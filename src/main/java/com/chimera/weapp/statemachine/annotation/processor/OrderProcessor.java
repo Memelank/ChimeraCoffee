@@ -13,23 +13,5 @@ import java.lang.annotation.*;
 @Inherited
 @Component
 public @interface OrderProcessor {
-    /**
-     * 指定状态，state不能同时存在
-     */
-    OrderStateEnum[] state() default {};
-
-    /**
-     * 业务
-     */
-    String[] bizCode() default {};
-
-    /**
-     * 场景
-     */
-    String[] sceneId() default {};
-
-    /**
-     * 订单操作事件
-     */
-    OrderEventEnum event();
+    int processorId();
 }

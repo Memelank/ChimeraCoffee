@@ -4,7 +4,6 @@ package com.chimera.weapp.statemachine.processor;
 import com.chimera.weapp.statemachine.annotation.processor.OrderProcessor;
 import com.chimera.weapp.statemachine.context.InitOrderContext;
 import com.chimera.weapp.statemachine.context.StateContext;
-import com.chimera.weapp.statemachine.enums.OrderEventEnum;
 import com.chimera.weapp.statemachine.enums.OrderStateEnum;
 import com.chimera.weapp.statemachine.enums.ServiceType;
 import com.chimera.weapp.statemachine.event.InitEvent;
@@ -14,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@OrderProcessor(state = OrderStateEnum.TO_BE_INIT, bizCode = {"CHEAP", "POPULAR"}, sceneId = "H5", event = OrderEventEnum.INIT)
+@OrderProcessor(processorId = 1)
 @Component
 public class OrderCreatedProcessor extends AbstractStateProcessor<String, InitOrderContext> {
 

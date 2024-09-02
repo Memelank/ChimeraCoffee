@@ -1,4 +1,5 @@
 package com.chimera.weapp.entity;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
@@ -15,7 +16,7 @@ import lombok.Builder;
 public class User {
 
     @Id
-    private String id;
+    private ObjectId id;
     private String name;
     private String school;
 }

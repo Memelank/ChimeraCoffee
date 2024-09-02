@@ -1,4 +1,4 @@
-package com.chimera.weapp;
+package com.chimera.weapp.statemachine;
 
 import com.chimera.weapp.statemachine.context.InitOrderContext;
 import com.chimera.weapp.statemachine.engine.OrderFsmEngine;
