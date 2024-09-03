@@ -20,9 +20,4 @@ public class StateContext<C> {
      * 业务可定义的上下文泛型对象
      */
     private C context;
-
-    public StateContext(OrderStateEvent orderStateEvent, FsmOrder fsmOrder) {
-        this.orderStateEvent = orderStateEvent;
-        this.fsmOrder = fsmOrder;
-    }
 }

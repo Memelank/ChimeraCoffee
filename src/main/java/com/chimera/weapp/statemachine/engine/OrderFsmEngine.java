@@ -1,5 +1,6 @@
 package com.chimera.weapp.statemachine.engine;
 
+import com.chimera.weapp.statemachine.context.StateContext;
 import com.chimera.weapp.statemachine.event.OrderStateEvent;
 import com.chimera.weapp.statemachine.pojo.FsmOrder;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
@@ -17,10 +18,10 @@ public interface OrderFsmEngine {
     /**
      * 执行状态迁移事件，不携带 FsmOrder 参数，默认会根据 orderId 从 FsmOrderService 接口获取
      */
-    <T,C> ServiceResult<T,C> sendEvent(OrderStateEvent orderStateEvent) throws Exception;
+    <T, C> ServiceResult<T, C> sendEvent(OrderStateEvent orderStateEvent, StateContext<C> context) throws Exception;
 
     /**
      * 执行状态迁移事件，可携带 FsmOrder 参数
      */
-    <T,C> ServiceResult<T,C> sendEvent(OrderStateEvent orderStateEvent, FsmOrder fsmOrder) throws Exception;
+    <T, C> ServiceResult<T, C> sendEvent(OrderStateEvent orderStateEvent, FsmOrder fsmOrder, StateContext<C> context) throws Exception;
 }

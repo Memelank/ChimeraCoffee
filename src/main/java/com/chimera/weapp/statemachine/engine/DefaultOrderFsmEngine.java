@@ -1,7 +1,6 @@
 package com.chimera.weapp.statemachine.engine;
 
 import com.chimera.weapp.repository.CustomRepository;
-import com.chimera.weapp.repository.ProcessorMapRepository;
 import com.chimera.weapp.statemachine.context.StateContext;
 import com.chimera.weapp.statemachine.enums.ErrorCodeEnum;
 import com.chimera.weapp.statemachine.enums.OrderEventEnum;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,8 +28,6 @@ public class DefaultOrderFsmEngine implements OrderFsmEngine {
     @Autowired
     private FsmOrderService fsmOrderService;
     @Autowired
-    private DefaultStateProcessRegistry stateProcessorRegistry;
-    @Autowired
     private CustomRepository customRepository;
     @Autowired
     private DefaultStateProcessRegistry defaultStateProcessRegistry;
@@ -42,7 +38,7 @@ public class DefaultOrderFsmEngine implements OrderFsmEngine {
     }
 
     @Override
-    public <T, C> ServiceResult<T, C> sendEvent(OrderStateEvent orderStateEvent) throws Exception {
+    public <T, C> ServiceResult<T, C> sendEvent(OrderStateEvent orderStateEvent, StateContext<C> context) throws Exception {
         FsmOrder fsmOrder = null;
         if (OrderEventEnum.INIT.toString().equals(orderStateEvent.getEventType())) {
             fsmOrder = fsmOrderService.getFsmOrder(orderStateEvent.getOrderId());
@@ -50,15 +46,14 @@ public class DefaultOrderFsmEngine implements OrderFsmEngine {
                 throw new FsmException(ErrorCodeEnum.ORDER_NOT_FOUND);
             }
         }
-        return sendEvent(orderStateEvent, fsmOrder);
+        return sendEvent(orderStateEvent, fsmOrder, context);
     }
 
     @Override
-    public <T, C> ServiceResult<T, C> sendEvent(OrderStateEvent orderStateEvent, FsmOrder fsmOrder) throws Exception {
-        // 构造当前事件上下文
-        StateContext context = this.getStateContext(orderStateEvent, fsmOrder);
+    public <T, C> ServiceResult<T, C> sendEvent(OrderStateEvent orderStateEvent, FsmOrder fsmOrder, StateContext<C> context) throws Exception {
+
         // 获取当前事件处理器
-        StateProcessor<T, ?> stateProcessor = this.getStateProcessor(context);
+        StateProcessor<T, C> stateProcessor = this.getStateProcessor(context);
         // 执行处理逻辑
         return stateProcessor.action(context);//StateProcessor的方法，会调用StateActionStep的一系列方法
     }
@@ -66,7 +61,7 @@ public class DefaultOrderFsmEngine implements OrderFsmEngine {
     /**
      * 获取当前事件处理器
      */
-    private <T> StateProcessor<T, ?> getStateProcessor(StateContext<?> context) {
+    private <T, C> StateProcessor<T, C> getStateProcessor(StateContext<C> context) {
         OrderStateEvent stateEvent = context.getOrderStateEvent();
         FsmOrder fsmOrder = context.getFsmOrder();
         // 根据 state+event+bizCode+sceneId 信息获取所对应的业务处理器集合
@@ -99,10 +94,4 @@ public class DefaultOrderFsmEngine implements OrderFsmEngine {
         return processorResult.get(0);
     }
 
-    /**
-     * 构造当前事件上下文
-     */
-    private StateContext<?> getStateContext(OrderStateEvent orderStateEvent, FsmOrder fsmOrder) {
-        return (StateContext<?>) new StateContext(orderStateEvent, fsmOrder);
-    }
 }

@@ -17,6 +17,10 @@ public class User {
 
     @Id
     private ObjectId id;
+    private String openId;
     private String name;
     private String school;
+    private double expend;
+    private int orderNum;
+    private String address;
 }

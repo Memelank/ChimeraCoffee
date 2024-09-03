@@ -1,11 +1,9 @@
 package com.chimera.weapp.statemachine.processor;
 
-
 import com.chimera.weapp.statemachine.annotation.processor.OrderProcessor;
 import com.chimera.weapp.statemachine.context.InitOrderContext;
 import com.chimera.weapp.statemachine.context.StateContext;
 import com.chimera.weapp.statemachine.enums.OrderStateEnum;
-import com.chimera.weapp.statemachine.enums.ServiceType;
 import com.chimera.weapp.statemachine.event.InitEvent;
 import com.chimera.weapp.statemachine.pojo.OrderInfo;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
@@ -15,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @OrderProcessor(processorId = 1)
 @Component
-public class OrderCreatedProcessor extends AbstractStateProcessor<String, InitOrderContext> {
+public class OrderInitProcessor extends AbstractStateProcessor<String, InitOrderContext> {
 
 
 
@@ -28,8 +26,6 @@ public class OrderCreatedProcessor extends AbstractStateProcessor<String, InitOr
     public ServiceResult<String, InitOrderContext> action(String nextState, StateContext<InitOrderContext> context) throws Exception {
         InitEvent initEvent = (InitEvent) context.getOrderStateEvent();
 
-        // 促销信息信息
-        String promtionInfo = this.doPromotion();
 
         // 订单创建业务处理逻辑...
 
@@ -38,13 +34,6 @@ public class OrderCreatedProcessor extends AbstractStateProcessor<String, InitOr
         result.setMsg("success");
         result.setSuccess(true);
         return result;
-    }
-
-    /**
-     * 促销相关扩展点
-     */
-    protected String doPromotion() {
-        return "1";
     }
 
     @Override
@@ -73,11 +62,6 @@ public class OrderCreatedProcessor extends AbstractStateProcessor<String, InitOr
 
     @Override
     public boolean filter(StateContext<InitOrderContext> context) {
-        OrderInfo orderInfo = (OrderInfo) context.getFsmOrder();
-        context.setContext(new InitOrderContext<>("estimatePriceInfo"));
-        if (orderInfo.getServiceType() == ServiceType.TAKEOFF_CAR) {
-            return true;
-        }
-        return false;
+        return true;
     }
 }
