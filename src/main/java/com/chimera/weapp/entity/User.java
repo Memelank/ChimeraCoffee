@@ -15,7 +15,7 @@ import lombok.Builder;
 public class User {
 
     @Id
-    private String id;
+    private String uid;
     private String name;
     private String school;
 }
