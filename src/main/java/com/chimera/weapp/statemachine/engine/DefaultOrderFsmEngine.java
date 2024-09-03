@@ -1,5 +1,7 @@
 package com.chimera.weapp.statemachine.engine;
 
+import com.chimera.weapp.repository.CustomRepository;
+import com.chimera.weapp.repository.ProcessorMapRepository;
 import com.chimera.weapp.statemachine.context.StateContext;
 import com.chimera.weapp.statemachine.enums.ErrorCodeEnum;
 import com.chimera.weapp.statemachine.enums.OrderEventEnum;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,6 +31,15 @@ public class DefaultOrderFsmEngine implements OrderFsmEngine {
     private FsmOrderService fsmOrderService;
     @Autowired
     private DefaultStateProcessRegistry stateProcessorRegistry;
+    @Autowired
+    private CustomRepository customRepository;
+    @Autowired
+    private DefaultStateProcessRegistry defaultStateProcessRegistry;
+
+    public List<AbstractStateProcessor> acquireStateProcessor(String state, String event, String businessType, String scene) {
+        List<Integer> processorIds = customRepository.findProcessorIds(state, event, businessType, scene);
+        return processorIds.stream().map(defaultStateProcessRegistry::acquireStateProcessor).toList();
+    }
 
     @Override
     public <T, C> ServiceResult<T, C> sendEvent(OrderStateEvent orderStateEvent) throws Exception {
@@ -48,7 +60,7 @@ public class DefaultOrderFsmEngine implements OrderFsmEngine {
         // 获取当前事件处理器
         StateProcessor<T, ?> stateProcessor = this.getStateProcessor(context);
         // 执行处理逻辑
-        return stateProcessor.action(context);
+        return stateProcessor.action(context);//StateProcessor的方法，会调用StateActionStep的一系列方法
     }
 
     /**
@@ -58,7 +70,7 @@ public class DefaultOrderFsmEngine implements OrderFsmEngine {
         OrderStateEvent stateEvent = context.getOrderStateEvent();
         FsmOrder fsmOrder = context.getFsmOrder();
         // 根据 state+event+bizCode+sceneId 信息获取所对应的业务处理器集合
-        List<AbstractStateProcessor> processorList = stateProcessorRegistry.acquireStateProcess(
+        List<AbstractStateProcessor> processorList = acquireStateProcessor(
                 fsmOrder.getOrderState(), stateEvent.getEventType(),
                 fsmOrder.bizCode(), fsmOrder.sceneId());
         if (processorList == null) {
