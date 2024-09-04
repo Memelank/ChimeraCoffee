@@ -20,6 +20,8 @@ public class Order {
     @Id
     private ObjectId id;
     private ObjectId userId;
-    private String status;
+    private String state;
+    private String biz;
+    private String scene;
     private List<OrderItem> items;
 }

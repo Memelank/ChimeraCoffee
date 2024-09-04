@@ -1,17 +1,19 @@
 package com.chimera.weapp.statemachine.processor;
 
 
+
 import com.chimera.weapp.statemachine.context.StateContext;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 状态机处理器模板类
  */
 @Component
-public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, C>, StateActionStep<T, C>{
+public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, C>, StateActionStep<T, C> {
 
     /**
      * 有可能根据 state+event+bizCode+sceneId 信息获取到的是多个状态处理器processor，
@@ -21,8 +23,26 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
      * 当然，如果最终经过业务filter之后，还是有多个状态处理器符合条件，那么这里只能抛异常处理了。这个需要在开发时，对状态和多维度处理器有详细规划。
      */
     public abstract boolean filter(StateContext<C> context);
+
     private static final Logger logger = LoggerFactory.getLogger(AbstractStateProcessor.class);
 
+
+    @Override
+    public ServiceResult<T, C> check(StateContext<C> context) {
+        String orderId = context.getOrderId();
+        String userId = context.getUserId();
+        ServiceResult<T, C> result = new ServiceResult<>();
+        if (orderId == null || userId == null) {
+            result.setMsg("缺少订单id或缺少用户id");
+            result.setSuccess(false);
+            logger.error("缺少订单id或缺少用户id,context:{}", context);
+        } else {
+            result.setSuccess(true);
+        }
+        return result;
+    }
+
+    @Transactional
     @Override
     public final ServiceResult<T, C> action(StateContext<C> context) throws Exception {
         ServiceResult<T, C> result;
@@ -53,7 +73,7 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
             return result;
         } catch (Exception e) {
             // 记录日志
-            logger.error("failed",e);
+            logger.error("failed", e);
             throw e;
         }
     }

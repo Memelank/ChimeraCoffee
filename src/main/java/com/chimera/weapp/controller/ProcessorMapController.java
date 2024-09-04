@@ -3,6 +3,7 @@ package com.chimera.weapp.controller;
 import com.chimera.weapp.entity.ProcessorMap;
 import com.chimera.weapp.repository.ProcessorMapRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -13,8 +14,8 @@ public class ProcessorMapController {
     private ProcessorMapRepository repository;
 
     @PostMapping
-    public ProcessorMap createEntity(@RequestBody ProcessorMap entity) {
-        return repository.save(entity);
+    public ResponseEntity<ProcessorMap> createEntity(@RequestBody ProcessorMap entity) {
+        return ResponseEntity.ok(repository.save(entity));
     }
 
 }
