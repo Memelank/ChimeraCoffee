@@ -1,8 +1,8 @@
 package com.chimera.weapp.repository;
 
-import com.chimera.weapp.entity.Product;
+import com.chimera.weapp.entity.ProcessorMap;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface ProductRepository extends MongoRepository<Product, ObjectId> {
+public interface ProcessorMapRepository extends MongoRepository<ProcessorMap, ObjectId> {
 }

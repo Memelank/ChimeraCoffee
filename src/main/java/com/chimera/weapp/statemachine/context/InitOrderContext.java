@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class InitOrderContext<T> {
-    private T estimatePriceInfo; //促销信息
+public class InitOrderContext {
+    String sortOfData;
 }

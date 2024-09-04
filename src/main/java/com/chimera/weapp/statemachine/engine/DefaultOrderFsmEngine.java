@@ -1,14 +1,11 @@
 package com.chimera.weapp.statemachine.engine;
 
+import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.statemachine.context.StateContext;
 import com.chimera.weapp.statemachine.enums.ErrorCodeEnum;
-import com.chimera.weapp.statemachine.enums.OrderEventEnum;
-import com.chimera.weapp.statemachine.event.OrderStateEvent;
 import com.chimera.weapp.statemachine.exception.FsmException;
-import com.chimera.weapp.statemachine.pojo.FsmOrder;
 import com.chimera.weapp.statemachine.processor.AbstractStateProcessor;
 import com.chimera.weapp.statemachine.processor.StateProcessor;
-import com.chimera.weapp.statemachine.service.FsmOrderService;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,7 +13,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * （2）状态机引擎运行时阶段：状态机执行引擎实现
@@ -25,48 +21,34 @@ import java.util.Objects;
 public class DefaultOrderFsmEngine implements OrderFsmEngine {
 
     @Autowired
-    private FsmOrderService fsmOrderService;
+    private CustomRepository customRepository;
     @Autowired
-    private DefaultStateProcessRegistry stateProcessorRegistry;
+    private DefaultStateProcessRegistry defaultStateProcessRegistry;
 
-    @Override
-    public <T, C> ServiceResult<T, C> sendEvent(OrderStateEvent orderStateEvent) throws Exception {
-        FsmOrder fsmOrder = null;
-        if (OrderEventEnum.INIT.toString().equals(orderStateEvent.getEventType())) {
-            fsmOrder = fsmOrderService.getFsmOrder(orderStateEvent.getOrderId());
-            if (fsmOrder == null) {
-                throw new FsmException(ErrorCodeEnum.ORDER_NOT_FOUND);
-            }
-        }
-        return sendEvent(orderStateEvent, fsmOrder);
+    public List<AbstractStateProcessor> acquireStateProcessor(String state, String event, String businessType, String scene) {
+        List<Integer> processorIds = customRepository.findProcessorIds(state, event, businessType, scene);
+        return processorIds.stream().map(defaultStateProcessRegistry::acquireStateProcessor).toList();
     }
 
+
     @Override
-    public <T, C> ServiceResult<T, C> sendEvent(OrderStateEvent orderStateEvent, FsmOrder fsmOrder) throws Exception {
-        // 构造当前事件上下文
-        StateContext context = this.getStateContext(orderStateEvent, fsmOrder);
+    public <T, C> ServiceResult<T, C> sendEvent(String orderEvent, StateContext<C> context) throws Exception {
+
         // 获取当前事件处理器
-        StateProcessor<T, ?> stateProcessor = this.getStateProcessor(context);
+        StateProcessor<T, C> stateProcessor = this.getStateProcessor(orderEvent, context);
         // 执行处理逻辑
-        return stateProcessor.action(context);
+        return stateProcessor.action(context);//StateProcessor的方法，会调用StateActionStep的一系列方法
     }
 
     /**
      * 获取当前事件处理器
      */
-    private <T> StateProcessor<T, ?> getStateProcessor(StateContext<?> context) {
-        OrderStateEvent stateEvent = context.getOrderStateEvent();
-        FsmOrder fsmOrder = context.getFsmOrder();
+    private <T, C> StateProcessor<T, C> getStateProcessor(String orderEvent, StateContext<C> context) {
         // 根据 state+event+bizCode+sceneId 信息获取所对应的业务处理器集合
-        List<AbstractStateProcessor> processorList = stateProcessorRegistry.acquireStateProcess(
-                fsmOrder.getOrderState(), stateEvent.getEventType(),
-                fsmOrder.bizCode(), fsmOrder.sceneId());
+        List<AbstractStateProcessor> processorList = acquireStateProcessor(
+                context.getOrderState(), orderEvent,
+                context.getBiz(), context.getScene());
         if (processorList == null) {
-            // 订单状态发生改变
-            if (!Objects.isNull(stateEvent.orderState()) &&
-                    !stateEvent.orderState().equals(fsmOrder.getOrderState())) {
-                throw new FsmException(ErrorCodeEnum.ORDER_STATE_NOT_MATCH);
-            }
             throw new FsmException(ErrorCodeEnum.NOT_FOUND_PROCESSOR);
         }
         List<AbstractStateProcessor> processorResult = new ArrayList<>(processorList.size());
@@ -87,10 +69,4 @@ public class DefaultOrderFsmEngine implements OrderFsmEngine {
         return processorResult.get(0);
     }
 
-    /**
-     * 构造当前事件上下文
-     */
-    private StateContext<?> getStateContext(OrderStateEvent orderStateEvent, FsmOrder fsmOrder) {
-        return (StateContext<?>) new StateContext(orderStateEvent, fsmOrder);
-    }
 }

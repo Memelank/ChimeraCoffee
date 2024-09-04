@@ -1,6 +1,6 @@
 package com.chimera.weapp.entity;
 
-import com.chimera.weapp.vo.CoffeeVariant;
+import com.chimera.weapp.vo.OrderItem;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,17 +11,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
-@Document(collection = "product")
+@Document(collection = "order")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Product {
+public class Order {
     @Id
     private ObjectId id;
-    private ObjectId cateId;
-    private String name;
-    private String imgURL;
-    private String describe;
-    private List<CoffeeVariant> variants;
+    private ObjectId userId;
+    private String state;
+    private String biz;
+    private String scene;
+    private List<OrderItem> items;
 }

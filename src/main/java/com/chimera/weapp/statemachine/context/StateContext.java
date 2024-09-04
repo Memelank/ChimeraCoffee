@@ -1,7 +1,5 @@
 package com.chimera.weapp.statemachine.context;
 
-import com.chimera.weapp.statemachine.event.OrderStateEvent;
-import com.chimera.weapp.statemachine.pojo.FsmOrder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,20 +7,19 @@ import lombok.NoArgsConstructor;
 @Data
 public class StateContext<C> {
     /**
-     * 订单操作事件
-     */
-    private OrderStateEvent orderStateEvent;
-    /**
      * 状态机需要的订单基本信息
      */
-    private FsmOrder fsmOrder;
+    private String userId;
+
+    private String orderId;
+
+    private String orderState;
+
+    private String biz;
+
+    private String scene;
     /**
      * 业务可定义的上下文泛型对象
      */
     private C context;
-
-    public StateContext(OrderStateEvent orderStateEvent, FsmOrder fsmOrder) {
-        this.orderStateEvent = orderStateEvent;
-        this.fsmOrder = fsmOrder;
-    }
 }

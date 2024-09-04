@@ -1,6 +1,5 @@
 package com.chimera.weapp.entity;
 
-import com.chimera.weapp.vo.CoffeeVariant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,19 +8,17 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
-
-@Document(collection = "product")
+@Document(collection = "processor_map")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Product {
+public class ProcessorMap {
     @Id
     private ObjectId id;
-    private ObjectId cateId;
-    private String name;
-    private String imgURL;
-    private String describe;
-    private List<CoffeeVariant> variants;
+    private String state;
+    private String event;
+    private String[] businessTypes;
+    private String[] scenes;
+    private int[] processorIds;
 }
