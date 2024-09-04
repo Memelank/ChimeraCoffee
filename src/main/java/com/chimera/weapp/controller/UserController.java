@@ -41,6 +41,15 @@ public class UserController {
                     if (updatedUser.getSchool() != null) {
                         user.setSchool(updatedUser.getSchool());
                     }
+                    if (updatedUser.getExpend() != null) {
+                        user.setExpend(updatedUser.getExpend());
+                    }
+                    if (updatedUser.getOrders() != null) {
+                        user.setOrders(updatedUser.getOrders());
+                    }
+                    if (updatedUser.getAddress() != null) {
+                        user.setAddress(updatedUser.getAddress());
+                    }
                     return ResponseEntity.ok(repository.save(user));
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());

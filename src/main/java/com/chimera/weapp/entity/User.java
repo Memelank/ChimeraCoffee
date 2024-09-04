@@ -18,4 +18,7 @@ public class User {
     private String uid;
     private String name;
     private String school;
+    private Integer expend;
+    private Integer orders;
+    private String address;
 }
