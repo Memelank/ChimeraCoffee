@@ -24,8 +24,8 @@ public class ProductCateController {
 
     // 创建新产品类别
     @PostMapping
-    public ProductCate createEntity(@RequestBody ProductCate entity) {
-        return repository.save(entity);
+    public ResponseEntity<ProductCate> createEntity(@RequestBody ProductCate entity) {
+        return ResponseEntity.ok(repository.save(entity));
     }
 
     // 根据ID获取产品类别

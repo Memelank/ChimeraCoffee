@@ -19,6 +19,7 @@ import java.util.List;
 public class Product {
     @Id
     private ObjectId id;
+    private ObjectId cateId;
     private String name;
     private String imgURL;
     private String describe;
