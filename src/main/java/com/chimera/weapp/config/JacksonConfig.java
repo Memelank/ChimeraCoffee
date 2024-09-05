@@ -1,23 +1,39 @@
 package com.chimera.weapp.config;
 
-import com.chimera.weapp.vo.CoffeeVariant;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import org.bson.types.ObjectId;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+
+import java.io.IOException;
 
 @Configuration
 public class JacksonConfig {
-
     @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule();
+    public Jackson2ObjectMapperBuilderCustomizer customizer() {
+        return new Jackson2ObjectMapperBuilderCustomizer() {
+            @Override
+            public void customize(Jackson2ObjectMapperBuilder jacksonObjectMapperBuilder) {
+                SimpleModule module = new SimpleModule();
+                module.addSerializer(ObjectId.class, new ObjectIdSerializer());
+                jacksonObjectMapperBuilder.modules(module);
+            }
+        };
+    }
+    static class ObjectIdSerializer extends StdSerializer<ObjectId> {
 
-        // Register your custom serializers here
-        module.addSerializer(CoffeeVariant.class, new GenericSerializer<>());
+        public ObjectIdSerializer() {
+            super(ObjectId.class);
+        }
 
-        objectMapper.registerModule(module);
-        return objectMapper;
+        @Override
+        public void serialize(ObjectId value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeString(value.toHexString());
+        }
     }
 }

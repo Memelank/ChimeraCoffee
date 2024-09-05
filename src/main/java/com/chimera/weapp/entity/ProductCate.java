@@ -21,7 +21,6 @@ public class ProductCate implements Comparable<ProductCate> {
     private ObjectId id;
     private String title;
     private Integer status; //状态，0为禁用，1为正常
-    private LocalDate add_date; //添加日期
     private Integer priority;
 
     @Override
