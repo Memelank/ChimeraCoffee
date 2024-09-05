@@ -9,9 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CoffeeVariant {
-    private String size;
-    private String temperature;
-    private String intensity;
-    private double price;
+public class OptionValue {
+    private String value;
+    private double priceAdjustment;
 }

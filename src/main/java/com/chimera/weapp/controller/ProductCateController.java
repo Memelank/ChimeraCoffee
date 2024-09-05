@@ -48,9 +48,6 @@ public class ProductCateController {
                     if (updatedProductCate.getStatus() != null) {
                         productCate.setStatus(updatedProductCate.getStatus());
                     }
-                    if (updatedProductCate.getAdd_date() != null) {
-                        productCate.setAdd_date(updatedProductCate.getAdd_date());
-                    }
                     // 可以添加更多字段的判断和更新逻辑
                     return ResponseEntity.ok(repository.save(productCate));
                 })
