@@ -2,11 +2,14 @@ package com.chimera.weapp.controller;
 
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.repository.OrderRepository;
-import com.chimera.weapp.statemachine.context.InitOrderContext;
+import com.chimera.weapp.statemachine.context.DineInContext;
+import com.chimera.weapp.statemachine.context.FixDeliveryContext;
 import com.chimera.weapp.statemachine.context.StateContext;
 import com.chimera.weapp.statemachine.engine.OrderFsmEngine;
-import com.chimera.weapp.statemachine.enums.OrderEventEnum;
-import com.chimera.weapp.statemachine.enums.OrderStateEnum;
+
+import com.chimera.weapp.statemachine.enums.EventEnum;
+import com.chimera.weapp.statemachine.enums.SceneEnum;
+import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,24 +33,35 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<ServiceResult> createOrder(@RequestBody Order entity) throws Exception {
-        entity.setState(OrderStateEnum.TO_BE_INIT.toString());
+        //TODO 微信支付流程?可能在这
+        entity.setState(StateEnum.PAID.toString());
         Order save = repository.save(entity);
-        StateContext<InitOrderContext> context = new StateContext<>();
+        ServiceResult<Object, ?> serviceResult = null;
+
+        StateContext<Object> context = new StateContext<>();
         setContext(context, save);
-        ServiceResult<Object, InitOrderContext> serviceResult =
-                orderFsmEngine.sendEvent(OrderEventEnum.INIT.toString(), context);
-        if (serviceResult.isSuccess()) {
+        if (SceneEnum.FIX_DELIVERY.toString().equals(save.getScene())) {
+            FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
+            context.setContext(fixDeliveryContext);
+            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context);
+        } else if (SceneEnum.DINE_IN.toString().equals(save.getScene())) {
+            DineInContext dineInContext = new DineInContext();
+            context.setContext(dineInContext);
+            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_DINE_IN.toString(), context);
+        }
+
+        if (serviceResult != null && serviceResult.isSuccess()) {
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);
         }
     }
 
-    private void setContext(StateContext<InitOrderContext> context, Order save) {
+    private void setContext(StateContext<?> context, Order save) {
         context.setOrderId(save.getId().toString());
         context.setUserId(save.getUserId().toString());
         context.setOrderState(save.getState());
-        context.setBiz(save.getBiz());
+        context.setCustomerType(save.getCustomerType());
         context.setScene(save.getScene());
     }
 }

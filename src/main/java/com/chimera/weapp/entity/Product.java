@@ -22,5 +22,6 @@ public class Product {
     private String name;
     private String imgURL;
     private String describe;
+    private int status;
     private List<ObjectId> productOptionIds;
 }
