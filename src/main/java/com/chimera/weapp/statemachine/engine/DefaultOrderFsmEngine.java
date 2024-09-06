@@ -47,7 +47,7 @@ public class DefaultOrderFsmEngine implements OrderFsmEngine {
         // 根据 state+event+bizCode+sceneId 信息获取所对应的业务处理器集合
         List<AbstractStateProcessor> processorList = acquireStateProcessor(
                 context.getOrderState(), orderEvent,
-                context.getBiz(), context.getScene());
+                context.getCustomerType(), context.getScene());
         if (processorList == null) {
             throw new FsmException(ErrorCodeEnum.NOT_FOUND_PROCESSOR);
         }

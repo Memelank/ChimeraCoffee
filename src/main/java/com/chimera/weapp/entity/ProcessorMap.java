@@ -18,7 +18,7 @@ public class ProcessorMap {
     private ObjectId id;
     private String state;
     private String event;
-    private String[] businessTypes;
+    private String[] customerTypes;
     private String[] scenes;
     private int[] processorIds;
 }

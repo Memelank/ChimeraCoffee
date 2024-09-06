@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class InitOrderContext {
-    String sortOfData;
+public class CallAfterSalesContext {
+    Object sortOfData;
 }
