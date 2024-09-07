@@ -6,6 +6,10 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import io.swagger.v3.oas.models.media.StringSchema;
+import org.bson.types.ObjectId;
+import org.springframework.context.annotation.Primary;
+
 
 @Configuration
 public class SwaggerConfig {
@@ -22,5 +26,13 @@ public class SwaggerConfig {
                         .description("SpringShop Wiki Documentation")
                         .url("https://springshop.wiki.github.org/docs"));
     }
+
+    @Bean
+    @Primary
+    public OpenAPI customizeOpenAPI() {
+        return new OpenAPI()
+                .schema(ObjectId.class.getSimpleName(), new StringSchema());
+    }
+
 
 }
