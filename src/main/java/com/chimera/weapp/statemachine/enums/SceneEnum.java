@@ -9,8 +9,4 @@ public enum SceneEnum {
 
     }
 
-    @Override
-    public String toString() {
-        return this.name();
-    }
 }

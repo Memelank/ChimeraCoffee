@@ -7,8 +7,4 @@ public enum CustomerTypeEnum {
     CustomerTypeEnum(String businessTypes){
 
     }
-    @Override
-    public String toString() {
-        return this.name();
-    }
 }

@@ -12,9 +12,4 @@ public enum EventEnum {
     EventEnum(String state) {
     }
 
-    @Override
-    public String toString() {
-        return this.name();
-    }
-
 }

@@ -19,7 +19,10 @@ public class User {
     private ObjectId id;
     private String openId;
     private String name;
+    private String hashedPassword;
     private String school;
+    private String role;
+    private String jwt;
     private double expend;
     private int orderNum;
     private String address;
