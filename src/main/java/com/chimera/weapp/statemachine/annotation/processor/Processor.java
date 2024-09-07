@@ -1,7 +1,5 @@
 package com.chimera.weapp.statemachine.annotation.processor;
 
-import com.chimera.weapp.statemachine.enums.OrderEventEnum;
-import com.chimera.weapp.statemachine.enums.OrderStateEnum;
 import org.springframework.stereotype.Component;
 import java.lang.annotation.*;
 /**
@@ -12,6 +10,6 @@ import java.lang.annotation.*;
 @Documented
 @Inherited
 @Component
-public @interface OrderProcessor {
+public @interface Processor {
     int processorId();
 }

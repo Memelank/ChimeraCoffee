@@ -1,8 +1,6 @@
 package com.chimera.weapp.repository;
 
 import com.chimera.weapp.entity.Order;
-import com.chimera.weapp.statemachine.enums.OrderStateEnum;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -21,7 +19,7 @@ public class CustomRepository {
         Query query = new Query();
         query.addCriteria(Criteria.where("state").is(state)
                 .and("event").is(event)
-                .and("businessTypes").is(businessType)
+                .and("customerTypes").is(businessType)
                 .and("scenes").is(scene));
         query.fields().include("processorIds").exclude("_id");
 

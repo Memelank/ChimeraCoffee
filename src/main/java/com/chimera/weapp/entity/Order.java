@@ -21,7 +21,7 @@ public class Order {
     private ObjectId id;
     private ObjectId userId;
     private String state;
-    private String biz;
+    private String customerType;
     private String scene;
     private List<OrderItem> items;
 }

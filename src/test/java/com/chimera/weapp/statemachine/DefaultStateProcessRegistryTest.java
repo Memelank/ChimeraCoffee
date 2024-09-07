@@ -1,9 +1,9 @@
 package com.chimera.weapp.statemachine;
 
 import com.chimera.weapp.statemachine.engine.DefaultOrderFsmEngine;
-import com.chimera.weapp.statemachine.enums.BizEnum;
-import com.chimera.weapp.statemachine.enums.OrderEventEnum;
-import com.chimera.weapp.statemachine.enums.OrderStateEnum;
+import com.chimera.weapp.statemachine.enums.CustomerTypeEnum;
+import com.chimera.weapp.statemachine.enums.EventEnum;
+import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.enums.SceneEnum;
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,8 +20,8 @@ public class DefaultStateProcessRegistryTest {
 
     @Test
     public void registry_AfterApplicationStart_CanMaintainMap() {
-        Assert.assertEquals(1, defaultOrderFsmEngine.acquireStateProcessor(OrderStateEnum.TO_BE_INIT.toString(),
-                OrderEventEnum.INIT.toString(), BizEnum.FOR_TSINGHUA_STUDENT.toString(), SceneEnum.Common.toString()).size());
+        Assert.assertEquals(1, defaultOrderFsmEngine.acquireStateProcessor(StateEnum.PAID.toString(),
+                EventEnum.NEED_DINE_IN.toString(), CustomerTypeEnum.FOR_TSINGHUA_STUDENT.toString(), SceneEnum.DINE_IN.toString()).size());
 
     }
 }

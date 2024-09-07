@@ -15,7 +15,7 @@ public class StateContext<C> {
 
     private String orderState;
 
-    private String biz;
+    private String customerType;
 
     private String scene;
     /**
