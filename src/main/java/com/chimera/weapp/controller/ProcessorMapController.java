@@ -1,10 +1,15 @@
 package com.chimera.weapp.controller;
 
+import com.chimera.weapp.annotation.LoginRequired;
+import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.ProcessorMap;
+import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ProcessorMapRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -18,4 +23,10 @@ public class ProcessorMapController {
         return ResponseEntity.ok(repository.save(entity));
     }
 
+    @LoginRequired
+    @RolesAllow({RoleEnum.ADMIN})
+    @GetMapping
+    public ResponseEntity<List<ProcessorMap>> getAllEntities() {
+        return ResponseEntity.ok(repository.findAll());
+    }
 }
