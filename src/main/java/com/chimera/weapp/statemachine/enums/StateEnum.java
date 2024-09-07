@@ -11,8 +11,4 @@ public enum StateEnum {
     StateEnum(String state) {
     }
 
-    @Override
-    public String toString() {
-        return this.name();
-    }
 }
