@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
+@LoginRequired
+@RolesAllow({RoleEnum.ADMIN})
 @RestController
 @RequestMapping("/processorMap")
 public class ProcessorMapController {
@@ -23,8 +24,6 @@ public class ProcessorMapController {
         return ResponseEntity.ok(repository.save(entity));
     }
 
-    @LoginRequired
-    @RolesAllow({RoleEnum.ADMIN})
     @GetMapping
     public ResponseEntity<List<ProcessorMap>> getAllEntities() {
         return ResponseEntity.ok(repository.findAll());

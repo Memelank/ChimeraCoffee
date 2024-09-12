@@ -5,6 +5,7 @@ import com.chimera.weapp.entity.User;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.util.JwtUtils;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +34,13 @@ public class SecurityAspect {
     @Autowired
     private HttpServletResponse response;
 
-    @Pointcut("@annotation(com.chimera.weapp.annotation.LoginRequired)")
+    @Pointcut("@within(com.chimera.weapp.annotation.LoginRequired)||" +
+            "@annotation(com.chimera.weapp.annotation.LoginRequired)")
     public void onLoginRequired() {
     }
 
-    @Pointcut("@annotation(com.chimera.weapp.annotation.RolesAllow)")
+    @Pointcut("@within(com.chimera.weapp.annotation.RolesAllow)||" +
+            "@annotation(com.chimera.weapp.annotation.RolesAllow)")
     public void onRolesAllow() {
     }
 
@@ -58,9 +61,6 @@ public class SecurityAspect {
             token = token.substring(7);  // 去掉 "Bearer " 前缀
             Claims claims = JwtUtils.parseToken(token);
 
-            if (JwtUtils.isTokenExpired(token)) {
-                return new ResponseEntity<>("Unauthorized - Token expired", HttpStatus.UNAUTHORIZED);
-            }
             String username = (String) claims.get("userName");
             compareTokenWithMongoDBToken(token, username);
 
@@ -70,12 +70,16 @@ public class SecurityAspect {
             canRefresh = true;
             return pjp.proceed();
 
+        } catch (ExpiredJwtException e) {
+            canRefresh = false;
+            log.error("token expired", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch (Throwable e) {
             canRefresh = false;
             log.error("exception on method was not properly caught", e);
             return ResponseEntity
                     .internalServerError()
-                    .body("服务器未知错误: " + e.getMessage());
+                    .body("服务器未知错误!");
         } finally {
             if (canRefresh) {
                 Claims claims = (Claims) request.getAttribute("claims");
@@ -122,10 +126,7 @@ public class SecurityAspect {
         if (claims == null) {
             return new ResponseEntity<>("Unauthorized - No claims found", HttpStatus.UNAUTHORIZED);
         }
-
-        MethodSignature signature = (MethodSignature) pjp.getSignature();
-        Method method = signature.getMethod();
-        RolesAllow rolesAllow = method.getAnnotation(RolesAllow.class);
+        RolesAllow rolesAllow = getRolesAllow(pjp);
         String role = (String) claims.get("role");
         boolean hasRequiredRole = Arrays.stream(rolesAllow.value())
                 .map(Enum::name)
@@ -137,5 +138,18 @@ public class SecurityAspect {
         }
         return pjp.proceed();
     }
+
+    private RolesAllow getRolesAllow(ProceedingJoinPoint pjp) {
+        MethodSignature signature = (MethodSignature) pjp.getSignature();
+        Method method = signature.getMethod();
+        Class<?> targetClass = pjp.getTarget().getClass();
+        RolesAllow rolesAllowFromMethod = method.getAnnotation(RolesAllow.class);
+        if (rolesAllowFromMethod != null) {
+            return rolesAllowFromMethod;
+        } else {
+            return targetClass.getAnnotation(RolesAllow.class);
+        }
+    }
+
 }
 

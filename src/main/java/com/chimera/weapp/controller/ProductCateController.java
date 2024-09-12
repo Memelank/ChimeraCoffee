@@ -1,6 +1,9 @@
 package com.chimera.weapp.controller;
 
+import com.chimera.weapp.annotation.LoginRequired;
+import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.ProductCate;
+import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ProductCateRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,8 @@ public class ProductCateController {
 
     // 创建新产品类别
     @PostMapping
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<ProductCate> createEntity(@RequestBody ProductCate entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
@@ -38,6 +43,8 @@ public class ProductCateController {
 
     // 更新产品类别信息
     @PutMapping("/{id}")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<ProductCate> updateProductCate(@PathVariable String id, @RequestBody ProductCate updatedProductCate) {
         return repository.findById(new ObjectId(id))
                 .map(productCate -> {
@@ -57,6 +64,8 @@ public class ProductCateController {
 
     // 删除产品类别
     @DeleteMapping("/{id}")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Void> deleteProductCate(@PathVariable String id) {
         if (!repository.existsById(new ObjectId(id))) {
             return ResponseEntity.notFound().build();
