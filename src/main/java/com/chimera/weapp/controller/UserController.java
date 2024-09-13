@@ -17,7 +17,7 @@ public class UserController {
     private UserRepository repository;
 
     @GetMapping
-    public List<User> getAllEntities() {
+    public List<User> getAllUsers() {
         return repository.findAll();
     }
 
@@ -27,12 +27,12 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createEntity(@RequestBody User entity) {
+    public ResponseEntity<User> createUser(@RequestBody User entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
 
     @GetMapping("/{name}")
-    public ResponseEntity<User> getEntityByName(@PathVariable String name) {
+    public ResponseEntity<User> getUserByName(@PathVariable String name) {
         Optional<User> user = repository.findByName(name);
         return user.map(ResponseEntity::ok).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }

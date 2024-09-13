@@ -21,7 +21,7 @@ public class ProductCateController {
 
     // 获取所有产品类别
     @GetMapping
-    public List<ProductCate> getAllEntities() {
+    public List<ProductCate> getAllProductCates() {
         return repository.findAll();
     }
 
@@ -29,7 +29,7 @@ public class ProductCateController {
     @PostMapping
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<ProductCate> createEntity(@RequestBody ProductCate entity) {
+    public ResponseEntity<ProductCate> createProductCate(@RequestBody ProductCate entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
 

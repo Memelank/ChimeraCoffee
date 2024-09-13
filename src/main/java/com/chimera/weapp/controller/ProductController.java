@@ -26,12 +26,12 @@ public class ProductController {
     private ProductRepository repository;
 
     @GetMapping
-    public ResponseEntity<List<Product>> getAllEntities() {
+    public ResponseEntity<List<Product>> getAllProducts() {
         return ResponseEntity.ok(repository.findAll());
     }
 
     @PutMapping
-    public ResponseEntity<Product> updateEntity(@RequestBody Product entity) {
+    public ResponseEntity<Product> updateProduct(@RequestBody Product entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
 
@@ -41,7 +41,7 @@ public class ProductController {
 //    }
 
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<Product> createEntity(
+    public ResponseEntity<Product> createProduct(
             @RequestPart("product") Product entity,
             @RequestPart("image") MultipartFile imageFile) throws IOException {
 

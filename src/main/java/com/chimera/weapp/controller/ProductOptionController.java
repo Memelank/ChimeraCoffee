@@ -14,11 +14,11 @@ public class ProductOptionController {
     private ProductOptionRepository repository;
 
     @PostMapping
-    public ResponseEntity<ProductOption> createEntity(@RequestBody ProductOption entity) {
+    public ResponseEntity<ProductOption> createProductOption(@RequestBody ProductOption entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
     @GetMapping
-    public List<ProductOption> getAllEntities() {
+    public List<ProductOption> getAllProductOptions() {
         List<ProductOption> all = repository.findAll();
         return all;
     }

@@ -15,7 +15,7 @@ public class AddressController {
     private AddressRepository repository;
 
     @GetMapping
-    public List<Address> getAllEntities() {
+    public List<Address> getAllAddresses() {
         return repository.findAll();
     }
 
@@ -25,12 +25,12 @@ public class AddressController {
     }
 
     @PostMapping
-    public ResponseEntity<Address> createEntity(@RequestBody Address entity) {
+    public ResponseEntity<Address> createAddress(@RequestBody Address entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
 
     @GetMapping("/{school}")
-    public ResponseEntity<List<Address>> getEntityByName(@PathVariable String school) {
+    public ResponseEntity<List<Address>> getAddressByName(@PathVariable String school) {
         return ResponseEntity.ok(repository.findBySchool(school));
     }
 }

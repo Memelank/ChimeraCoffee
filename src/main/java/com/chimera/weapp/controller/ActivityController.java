@@ -23,12 +23,12 @@ public class ActivityController {
     private ActivityRepository repository;
 
     @GetMapping
-    public ResponseEntity<List<Activity>> getAllEntities() {
+    public ResponseEntity<List<Activity>> getAllActivities() {
         return ResponseEntity.ok(repository.findAll());
     }
 
     @PutMapping
-    public ResponseEntity<Activity> updateEntity(@RequestBody Activity entity) {
+    public ResponseEntity<Activity> updateActivity(@RequestBody Activity entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
 
@@ -38,7 +38,7 @@ public class ActivityController {
 //    }
 
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<Activity> createEntity(
+    public ResponseEntity<Activity> createActivity(
             @RequestPart("activity") Activity entity,
             @RequestPart("image") MultipartFile imageFile) throws IOException {
 

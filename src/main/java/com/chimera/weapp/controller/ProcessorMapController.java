@@ -20,12 +20,12 @@ public class ProcessorMapController {
     private ProcessorMapRepository repository;
 
     @PostMapping
-    public ResponseEntity<ProcessorMap> createEntity(@RequestBody ProcessorMap entity) {
+    public ResponseEntity<ProcessorMap> createProcessorMap(@RequestBody ProcessorMap entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
 
     @GetMapping
-    public ResponseEntity<List<ProcessorMap>> getAllEntities() {
+    public ResponseEntity<List<ProcessorMap>> getAllProcessorMaps() {
         return ResponseEntity.ok(repository.findAll());
     }
 }

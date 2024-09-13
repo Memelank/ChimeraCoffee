@@ -27,7 +27,7 @@ public class OrderController {
     private OrderFsmEngine orderFsmEngine;
 
     @GetMapping
-    public List<Order> getAllEntities() {
+    public List<Order> getAllOrders() {
         return repository.findAll();
     }
 
