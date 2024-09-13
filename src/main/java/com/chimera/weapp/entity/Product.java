@@ -22,6 +22,6 @@ public class Product {
     private String name;
     private String imgURL;
     private String describe;
-    private int status;
+    private int status; // 0是下架，1是上架
     private List<ObjectId> productOptionIds;
 }

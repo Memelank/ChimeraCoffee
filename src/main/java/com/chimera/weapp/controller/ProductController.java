@@ -19,6 +19,9 @@ public class ProductController {
     @Value("${file.upload-dir}")
     private String uploadDirectory;
 
+    @Value("${app.url}")
+    private String url;
+
     @Autowired
     private ProductRepository repository;
 
@@ -49,7 +52,7 @@ public class ProductController {
             imageFile.transferTo(destinationFile);
 
             // 将上传后的文件路径或URL存储到imgURL中
-            entity.setImgURL(filename);  // 可以根据实际情况调整URL前缀
+            entity.setImgURL(url + filename);  // 可以根据实际情况调整URL前缀
         }
 
         // 保存产品信息到数据库
