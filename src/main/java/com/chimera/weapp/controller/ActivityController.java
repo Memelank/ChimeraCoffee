@@ -19,6 +19,9 @@ public class ActivityController {
     @Value("${file.upload-dir}")
     private String uploadDirectory;
 
+    @Value("${app.url}")
+    private String url;
+
     @Autowired
     private ActivityRepository repository;
 
@@ -45,11 +48,11 @@ public class ActivityController {
         // 上传文件到服务器
         if (!imageFile.isEmpty()) {
             String filename = imageFile.getOriginalFilename();
-            File destinationFile = new File(uploadDirectory + filename);
+            File destinationFile = new File(uploadDirectory + "activity/" + filename);
             imageFile.transferTo(destinationFile);
 
             // 将上传后的文件路径或URL存储到imgURL中
-            entity.setImgURL(filename);  // 可以根据实际情况调整URL前缀
+            entity.setImgURL(url + "activity/" + filename);  // 可以根据实际情况调整URL前缀
         }
 
         // 保存产品信息到数据库
