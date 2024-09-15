@@ -21,7 +21,10 @@ public class Product {
     private ObjectId cateId;
     private String name;
     private String imgURL;
+    private double price;
     private String describe;
+    private String short_desc;
     private int status; // 0是下架，1是上架
+    private int delete; // 1是删除，0是正常
     private List<ObjectId> productOptionIds;
 }

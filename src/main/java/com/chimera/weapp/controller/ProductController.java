@@ -35,11 +35,6 @@ public class ProductController {
         return ResponseEntity.ok(repository.save(entity));
     }
 
-//    @PostMapping
-//    public ResponseEntity<Product> createEntity(@RequestBody Product entity) {
-//        return ResponseEntity.ok(repository.save(entity));
-//    }
-
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<Product> createProduct(
             @RequestPart("product") Product entity,
@@ -48,11 +43,11 @@ public class ProductController {
         // 上传文件到服务器
         if (!imageFile.isEmpty()) {
             String filename = imageFile.getOriginalFilename();
-            File destinationFile = new File(uploadDirectory + filename);
+            File destinationFile = new File(uploadDirectory + "product/" + filename);
             imageFile.transferTo(destinationFile);
 
             // 将上传后的文件路径或URL存储到imgURL中
-            entity.setImgURL(url + filename);  // 可以根据实际情况调整URL前缀
+            entity.setImgURL(url + "product/" + filename);  // 可以根据实际情况调整URL前缀
         }
 
         // 保存产品信息到数据库
