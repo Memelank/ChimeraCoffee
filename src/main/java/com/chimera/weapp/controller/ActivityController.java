@@ -1,6 +1,9 @@
 package com.chimera.weapp.controller;
 
+import com.chimera.weapp.annotation.LoginRequired;
+import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.Activity;
+import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ActivityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,11 +29,15 @@ public class ActivityController {
     private ActivityRepository repository;
 
     @GetMapping
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<List<Activity>> getAllActivities() {
         return ResponseEntity.ok(repository.findAll());
     }
 
     @PutMapping
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Activity> updateActivity(@RequestBody Activity entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
@@ -41,6 +48,8 @@ public class ActivityController {
 //    }
 
     @PostMapping(consumes = {"multipart/form-data"})
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Activity> createActivity(
             @RequestPart("activity") Activity entity,
             @RequestPart("image") MultipartFile imageFile) throws IOException {

@@ -1,6 +1,9 @@
 package com.chimera.weapp.controller;
 
+import com.chimera.weapp.annotation.LoginRequired;
+import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.Product;
+import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,11 +34,15 @@ public class ProductController {
     }
 
     @PutMapping
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Product> updateProduct(@RequestBody Product entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
 
     @PostMapping(consumes = {"multipart/form-data"})
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Product> createProduct(
             @RequestPart("product") Product entity,
             @RequestPart("image") MultipartFile imageFile) throws IOException {

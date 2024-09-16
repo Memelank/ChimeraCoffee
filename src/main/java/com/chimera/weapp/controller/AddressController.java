@@ -1,6 +1,9 @@
 package com.chimera.weapp.controller;
 
+import com.chimera.weapp.annotation.LoginRequired;
+import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.Address;
+import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.AddressRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,21 +18,28 @@ public class AddressController {
     private AddressRepository repository;
 
     @GetMapping
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public List<Address> getAllAddresses() {
         return repository.findAll();
     }
 
     @PutMapping
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Address> updateAddress(@RequestBody Address user) {
         return ResponseEntity.ok(repository.save(user));
     }
 
     @PostMapping
+    @LoginRequired
     public ResponseEntity<Address> createAddress(@RequestBody Address entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
 
     @GetMapping("/{school}")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<List<Address>> getAddressByName(@PathVariable String school) {
         return ResponseEntity.ok(repository.findBySchool(school));
     }

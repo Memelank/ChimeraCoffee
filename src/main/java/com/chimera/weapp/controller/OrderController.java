@@ -1,6 +1,9 @@
 package com.chimera.weapp.controller;
 
+import com.chimera.weapp.annotation.LoginRequired;
+import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.Order;
+import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.statemachine.context.DineInContext;
 import com.chimera.weapp.statemachine.context.FixDeliveryContext;
@@ -32,6 +35,7 @@ public class OrderController {
     }
 
     @PostMapping
+    @LoginRequired
     public ResponseEntity<ServiceResult> createOrder(@RequestBody Order entity) throws Exception {
         //TODO 微信支付流程?可能在这
         entity.setState(StateEnum.PAID.toString());

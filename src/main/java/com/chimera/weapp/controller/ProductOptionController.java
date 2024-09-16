@@ -1,6 +1,9 @@
 package com.chimera.weapp.controller;
 
+import com.chimera.weapp.annotation.LoginRequired;
+import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.ProductOption;
+import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ProductOptionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +17,8 @@ public class ProductOptionController {
     private ProductOptionRepository repository;
 
     @PostMapping
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<ProductOption> createProductOption(@RequestBody ProductOption entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
