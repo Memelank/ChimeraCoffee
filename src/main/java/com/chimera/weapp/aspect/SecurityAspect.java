@@ -87,7 +87,7 @@ public class SecurityAspect {
                 Date now = new Date();
                 Date expiration = claims.getExpiration();
                 // 如果令牌即将过期，刷新令牌
-                if (expiration.getTime() - now.getTime() < 60 * 60 * 1000) {  // 如果距离过期少于60分钟
+                if (expiration.getTime() - now.getTime() < 24 * 60 * 60 * 1000) {  // 如果距离过期少于一天
                     String userId = (String) claims.get("userId");
                     String userName = (String) claims.get("userName");
                     String role = (String) claims.get("role");
