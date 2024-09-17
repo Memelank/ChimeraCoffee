@@ -33,31 +33,35 @@ public class ProductController {
         return ResponseEntity.ok(repository.findAll());
     }
 
-    @PutMapping
+    @PostMapping("/uploadImage")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
+    public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile imageFile) throws IOException {
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String filename = imageFile.getOriginalFilename();
+            File destinationFile = new File(uploadDirectory + "product/" + filename);
+            imageFile.transferTo(destinationFile);
+            return ResponseEntity.ok(filename); // Return only filename
+        }
+        return ResponseEntity.badRequest().body("No file uploaded or file is empty.");
+    }
+
+
+    @PutMapping(consumes = {"multipart/form-data"})
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Product> updateProduct(@RequestBody Product entity) {
+        // Save the updated product information
+        entity.setImgURL(url + "product/" + entity.getImgURL());
         return ResponseEntity.ok(repository.save(entity));
     }
 
     @PostMapping(consumes = {"multipart/form-data"})
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<Product> createProduct(
-            @RequestPart("product") Product entity,
-            @RequestPart("image") MultipartFile imageFile) throws IOException {
-
-        // 上传文件到服务器
-        if (!imageFile.isEmpty()) {
-            String filename = imageFile.getOriginalFilename();
-            File destinationFile = new File(uploadDirectory + "product/" + filename);
-            imageFile.transferTo(destinationFile);
-
-            // 将上传后的文件路径或URL存储到imgURL中
-            entity.setImgURL(url + "product/" + filename);  // 可以根据实际情况调整URL前缀
-        }
-
-        // 保存产品信息到数据库
+    public ResponseEntity<Product> createProduct(@RequestBody Product entity) {
+        // Save the product information to the database
+        entity.setImgURL(url + "product/" + entity.getImgURL());
         return ResponseEntity.ok(repository.save(entity));
     }
 
