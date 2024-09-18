@@ -5,6 +5,9 @@ import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.Product;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ProductRepository;
+import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -22,6 +25,7 @@ import java.util.List;
 @RequestMapping("/product")
 public class ProductController {
 
+    private static final Logger log = LoggerFactory.getLogger(ProductController.class);
     @Value("${file.upload-dir}")
     private String uploadDirectory;
 
@@ -62,8 +66,6 @@ public class ProductController {
         }
     }
 
-
-
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
@@ -80,6 +82,19 @@ public class ProductController {
         // Save the product information to the database
         entity.setImgURL(url + "product/" + entity.getImgURL());
         return ResponseEntity.ok(repository.save(entity));
+    }
+
+    // 判断cateId分类是否在使用
+    @GetMapping("/existsByCateId")
+    public ResponseEntity<Boolean> existsByCateId(@RequestParam String cateId) {
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(cateId);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(false);
+        }
+        boolean exists = repository.existsByCateIdAndDelete(objectId, 0);
+        return ResponseEntity.ok(exists);
     }
 
 }
