@@ -22,6 +22,7 @@ public class ProductCate implements Comparable<ProductCate> {
     private String title;
     private Integer status; //状态，0为禁用，1为正常
     private Integer priority;
+    private int delete; // 1是删除，0是正常
 
     @Override
     public int compareTo(ProductCate o) {
