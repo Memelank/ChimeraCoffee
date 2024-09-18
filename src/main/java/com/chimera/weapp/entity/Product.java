@@ -4,11 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.chimera.weapp.vo.OptionValue;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.util.Map;
 
 @Document(collection = "product")
 @Data
@@ -26,5 +28,5 @@ public class Product {
     private String short_desc;
     private int status; // 0是下架，1是上架
     private int delete; // 1是删除，0是正常
-    private List<ObjectId> productOptionIds;
+    private Map<ObjectId, List<OptionValue>> productOptions;
 }
