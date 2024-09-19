@@ -28,5 +28,5 @@ public class Product {
     private String short_desc;
     private int status; // 0是下架，1是上架
     private int delete; // 1是删除，0是正常
-    private Map<ObjectId, List<OptionValue>> productOptions;
+    private Map<String, List<OptionValue>> productOptions; // String为option的objectId
 }
