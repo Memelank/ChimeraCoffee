@@ -16,7 +16,7 @@ public class JwtUtils {
     private static final SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
     // 生成 JWT
-    public static String generateToken(String userId, String username, String role) {
+    public static String generateToken(String userId, String username, String role, String openid) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("userName", username);

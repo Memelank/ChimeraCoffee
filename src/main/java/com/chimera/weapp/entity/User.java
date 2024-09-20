@@ -17,7 +17,8 @@ public class User {
 
     @Id
     private ObjectId id;
-    private String openId;
+    private String openid;
+    private String sessionKey;
     private String name;
     private String hashedPassword;
     private String school;
