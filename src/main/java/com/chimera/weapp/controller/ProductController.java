@@ -40,7 +40,7 @@ public class ProductController {
         return ResponseEntity.ok(repository.findAll());
     }
 
-    @PostMapping("/uploadImage")
+    @PostMapping(value = "/uploadImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile imageFile) {
