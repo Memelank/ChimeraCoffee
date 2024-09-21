@@ -67,7 +67,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping
+    @PostMapping("/wx")
     @Transactional
     public ResponseEntity<String> wxLoginOrRegister(@RequestBody JSONObject body) throws IOException, URISyntaxException, ParseException {
         String code = body.getString("code");
@@ -100,7 +100,7 @@ public class AuthController {
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", "Bearer " + jwt);
             securityService.tryToRefreshToken(claims);
-            return new ResponseEntity("登录成功", headers, HttpStatus.OK);
+            return new ResponseEntity<>("登录成功", headers, HttpStatus.OK);
         }
     }
 }
