@@ -1,11 +1,14 @@
 package com.chimera.weapp.entity;
 import org.bson.types.ObjectId;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+
+import java.util.Date;
 
 
 @Document(collection = "user")
@@ -27,4 +30,7 @@ public class User {
     private double expend;
     private int orderNum;
     private String address;
+
+    @CreatedDate  // 自动填充创建时间
+    private Date createdAt;
 }
