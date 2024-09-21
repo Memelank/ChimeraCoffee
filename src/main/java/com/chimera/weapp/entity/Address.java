@@ -8,6 +8,8 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+
 
 @Document(collection = "address")
 @Data
@@ -18,5 +20,5 @@ public class Address {
     @Id
     private ObjectId id;
     private String school;
-    private String address;
+    private List<String> address;
 }

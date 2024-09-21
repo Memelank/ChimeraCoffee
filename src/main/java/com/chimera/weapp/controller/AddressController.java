@@ -27,8 +27,8 @@ public class AddressController {
     @PutMapping
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<Address> updateAddress(@RequestBody Address user) {
-        return ResponseEntity.ok(repository.save(user));
+    public ResponseEntity<Address> updateAddress(@RequestBody Address entity) {
+        return ResponseEntity.ok(repository.save(entity));
     }
 
     @PostMapping
@@ -37,11 +37,5 @@ public class AddressController {
         return ResponseEntity.ok(repository.save(entity));
     }
 
-    @GetMapping("/{school}")
-    @LoginRequired
-    @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<List<Address>> getAddressByName(@PathVariable String school) {
-        return ResponseEntity.ok(repository.findBySchool(school));
-    }
 }
 
