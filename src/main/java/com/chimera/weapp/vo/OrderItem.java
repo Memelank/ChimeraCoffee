@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -14,7 +15,6 @@ import java.util.Map;
 @Builder
 public class OrderItem {
     private ObjectId productId;
-    private Map<Integer, String> optionIdToValue;
-    private int quantity;
+    private Map<String, List<OptionValue>> optionValues;
     private double price;
 }

@@ -27,7 +27,7 @@ public class UserController {
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
     public List<User> getAllUsers() {
-        return repository.findAll();
+        return repository.findAllNonAdminUsers();
     }
 
     @PutMapping
