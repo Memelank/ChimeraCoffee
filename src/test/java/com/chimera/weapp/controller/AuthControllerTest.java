@@ -55,6 +55,9 @@ class AuthControllerTest {
         Mockito.when(weChatService.code2session(Mockito.any()))
                 .thenReturn(JSONObject.parseObject("{\"openid\":\"openid666\",\"session_key\":\"session_key111\"}"));
         Mockito.when(repository.findByOpenid(Mockito.any())).thenReturn(Optional.of(User.builder()
+                .id(new ObjectId(new Date()))
+                .openid("openid666")
+                .name("wx_customer1")
                 .jwt(JwtUtils.generateToken("id","name","role","openid666")).build()));
         ResponseEntity<String> responseEntity = authController.wxLoginOrRegister(JSONObject.parseObject("{\"code\":\"code\"}"));
         assertTrue(responseEntity.getBody().contains("登录成功"));

@@ -2,7 +2,6 @@ package com.chimera.weapp.service;
 
 import com.alibaba.fastjson2.JSONObject;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -21,7 +20,7 @@ public class WeChatService {
     @Value("${wx-mini-program.secret}")
     private String secret;
 
-    public JSONObject code2session(String code) throws IOException, URISyntaxException, ParseException {
+    public JSONObject code2session(String code) throws IOException, URISyntaxException {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/sns/jscode2session");
 
@@ -31,8 +30,8 @@ public class WeChatService {
             HttpHost target = new HttpHost(uriBuilder.getScheme(), uriBuilder.getHost());
 
             ClassicHttpRequest httpRequest = ClassicRequestBuilder.get(uriBuilder.build()).build();
-            CloseableHttpResponse response = httpClient.execute(target, httpRequest, classicHttpResponse -> (CloseableHttpResponse) classicHttpResponse);
-            return JSONObject.parse(EntityUtils.toString(response.getEntity()));
+            String body = httpClient.execute(target, httpRequest, classicHttpResponse -> EntityUtils.toString(classicHttpResponse.getEntity()));
+            return JSONObject.parse(body);
         }
     }
 }

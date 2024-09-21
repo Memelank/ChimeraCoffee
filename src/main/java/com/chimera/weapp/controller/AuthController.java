@@ -7,11 +7,14 @@ import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.service.WeChatService;
+import com.chimera.weapp.util.JSONUtils;
 import com.chimera.weapp.util.JwtUtils;
 import com.chimera.weapp.util.PasswordUtils;
 import io.jsonwebtoken.Claims;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.ParseException;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,6 +41,8 @@ public class AuthController {
     private SecurityService securityService;
 
     @PostMapping("/login")
+    @Transactional
+    @Operation(summary = "若成功，可返回的json中key为data的id，openid，name字段取相应值")
     public ResponseEntity<String> login(@RequestBody LoginDTO loginDTO) {
         String username = loginDTO.getUsername();
         String password = loginDTO.getPassword();
@@ -58,9 +65,10 @@ public class AuthController {
 
                 headers.add("Authorization", "Bearer " + token);
                 user1.setJwt(token);
-                repository.save(user1);
+                User save = repository.save(user1);
                 log.info("用户：{} 登录成功", user1.getName());
-                return new ResponseEntity<>("登陆成功", headers, HttpStatus.OK);
+                String responseBody = JSONUtils.buildResponseBody("登陆成功", buildResponseDataValue(save));
+                return new ResponseEntity<>(responseBody, headers, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("用户名和密码不匹配", HttpStatus.UNAUTHORIZED);
             }
@@ -69,8 +77,9 @@ public class AuthController {
 
     @PostMapping("/wx")
     @Transactional
-    public ResponseEntity<String> wxLoginOrRegister(@RequestBody JSONObject body) throws IOException, URISyntaxException, ParseException {
-        String code = body.getString("code");
+    @Operation(summary = "若成功，可返回的json中key为data的id，openid，name字段取相应值")
+    public ResponseEntity<String> wxLoginOrRegister(@RequestBody JSONObject requestBody) throws IOException, URISyntaxException, ParseException {
+        String code = requestBody.getString("code");
         if (code == null || code.isEmpty()) {
             return ResponseEntity.badRequest().body("code为空");
         }
@@ -92,7 +101,8 @@ public class AuthController {
 
             headers.add("Authorization", "Bearer " + jwt);
             log.info("小程序用户：{} 注册成功", save.getName());
-            return new ResponseEntity<>("自动注册成功（小程序的开发呀，token在headers）", headers, HttpStatus.OK);
+            String responseBody = JSONUtils.buildResponseBody("自动注册成功", buildResponseDataValue(save));
+            return new ResponseEntity<>(responseBody, headers, HttpStatus.OK);
         } else {
             User user1 = user.get();
             String jwt = user1.getJwt();
@@ -100,7 +110,19 @@ public class AuthController {
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", "Bearer " + jwt);
             securityService.tryToRefreshToken(claims);
-            return new ResponseEntity<>("登录成功", headers, HttpStatus.OK);
+            String responseBody = JSONUtils.buildResponseBody("登录成功", buildResponseDataValue(user1));
+            return new ResponseEntity<>(responseBody, headers, HttpStatus.OK);
         }
+    }
+
+    private Map<?, ?> buildResponseDataValue(User user) {
+        ObjectId userId = user.getId();
+        String openid = user.getOpenid();
+        String name = user.getName();
+        HashMap<Object, Object> map = new HashMap<>();
+        map.put("id", userId.toHexString());
+        map.put("openid", openid);
+        map.put("name", name);
+        return map;
     }
 }
