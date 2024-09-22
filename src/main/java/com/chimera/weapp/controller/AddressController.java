@@ -5,6 +5,7 @@ import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.Address;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.AddressRepository;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,25 @@ public class AddressController {
     @LoginRequired
     public ResponseEntity<Address> createAddress(@RequestBody Address entity) {
         return ResponseEntity.ok(repository.save(entity));
+    }
+
+    @DeleteMapping("/{id}")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
+    public ResponseEntity<Void> deleteAddress(@PathVariable String id) {
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(id);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build(); // 返回400错误，表示无效的ObjectId
+        }
+
+        if (!repository.existsById(objectId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        repository.deleteById(objectId);
+        return ResponseEntity.noContent().build();
     }
 
 }
