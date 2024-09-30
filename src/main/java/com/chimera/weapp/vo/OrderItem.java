@@ -15,6 +15,6 @@ import java.util.Map;
 @Builder
 public class OrderItem {
     private ObjectId productId;
-    private Map<String, List<OptionValue>> optionValues;
+    private Map<String, OptionValue> optionValues;
     private double price;
 }
