@@ -12,7 +12,17 @@ public enum EventEnum {
     CANCEL_TAKE_OUT("商家取消外带"),
     CALL_AFTER_SALES("客户发起售后");
 
+    private final String state;
+
+    // 构造函数接收自定义字符串
     EventEnum(String state) {
+        this.state = state;
+    }
+
+    // 重写toString方法，返回自定义字符串
+    @Override
+    public String toString() {
+        return this.state;
     }
 
 }

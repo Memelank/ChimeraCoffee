@@ -6,8 +6,15 @@ public enum SceneEnum {
     FIX_DELIVERY("定时达"),
     SCHOOL_ANNIVERSARY("校庆场景");
 
-    SceneEnum(String scene) {
+    private final String scene;
 
+    SceneEnum(String scene) {
+        this.scene = scene;
+    }
+
+    @Override
+    public String toString() {
+        return this.scene;
     }
 
 }
