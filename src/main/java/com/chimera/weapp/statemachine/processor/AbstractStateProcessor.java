@@ -56,7 +56,7 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
             this.prepare(context);
 
             // getNextState不能在prepare前，因为有的nextState是根据prepare中的数据转换而来
-            String nextState = this.getNextState(context).name();
+            String nextState = this.getNextState(context).toString();
             // 业务逻辑
             result = this.action(nextState, context);
             if (!result.isSuccess()) {

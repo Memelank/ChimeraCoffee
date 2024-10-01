@@ -65,20 +65,25 @@ public class OrderController {
 
     @PostMapping("/supply")
     @LoginRequired
-    public ResponseEntity<ServiceResult> supplyOrder(@RequestBody Order save) throws Exception {
+    public ResponseEntity<ServiceResult> supplyOrder(@RequestBody Order order) throws Exception {
         ServiceResult<Object, ?> serviceResult = null;
 
+        System.out.println("Order process api get.");
+        System.out.println("OrderId:" + order.getId().toString());
+        System.out.println("UserId:" + order.getUserId().toString());
+        System.out.println("State:" + order.getState().toString());
+
         StateContext<Object> context = new StateContext<>();
-        setNormalContext(context, save);
-        if (SceneEnum.FIX_DELIVERY.toString().equals(save.getScene())) {
+        setNormalContext(context, order);
+        if (SceneEnum.FIX_DELIVERY.toString().equals(order.getScene())) {
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
             context.setContext(fixDeliveryContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.SUPPLY_FIX_DELIVERY.toString(), context);
-        } else if (SceneEnum.DINE_IN.toString().equals(save.getScene())) {
+        } else if (SceneEnum.DINE_IN.toString().equals(order.getScene())) {
             DineInContext dineInContext = new DineInContext();
             context.setContext(dineInContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.SUPPLY_DINE_IN.toString(), context);
-        } else if (SceneEnum.TAKE_OUT.toString().equals(save.getScene())) {
+        } else if (SceneEnum.TAKE_OUT.toString().equals(order.getScene())) {
             TakeOutContext takeOutContext = new TakeOutContext();
             context.setContext(takeOutContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.SUPPLY_TAKE_OUT.toString(), context);
@@ -93,20 +98,20 @@ public class OrderController {
 
     @PostMapping("/cancel")
     @LoginRequired
-    public ResponseEntity<ServiceResult> cancelOrder(@RequestBody Order save) throws Exception {
+    public ResponseEntity<ServiceResult> cancelOrder(@RequestBody Order order) throws Exception {
         ServiceResult<Object, ?> serviceResult = null;
 
         StateContext<Object> context = new StateContext<>();
-        setNormalContext(context, save);
-        if (SceneEnum.FIX_DELIVERY.toString().equals(save.getScene())) {
+        setNormalContext(context, order);
+        if (SceneEnum.FIX_DELIVERY.toString().equals(order.getScene())) {
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
             context.setContext(fixDeliveryContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_FIX_DELIVERY.toString(), context);
-        } else if (SceneEnum.DINE_IN.toString().equals(save.getScene())) {
+        } else if (SceneEnum.DINE_IN.toString().equals(order.getScene())) {
             DineInContext dineInContext = new DineInContext();
             context.setContext(dineInContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_DINE_IN.toString(), context);
-        } else if (SceneEnum.TAKE_OUT.toString().equals(save.getScene())) {
+        } else if (SceneEnum.TAKE_OUT.toString().equals(order.getScene())) {
             TakeOutContext takeOutContext = new TakeOutContext();
             context.setContext(takeOutContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_TAKE_OUT.toString(), context);
@@ -121,11 +126,11 @@ public class OrderController {
 
     @PostMapping("/after_sale")
     @LoginRequired
-    public ResponseEntity<ServiceResult> afterSale(@RequestBody Order save) throws Exception {
+    public ResponseEntity<ServiceResult> afterSale(@RequestBody Order order) throws Exception {
         ServiceResult<Object, ?> serviceResult = null;
 
         StateContext<Object> context = new StateContext<>();
-        setNormalContext(context, save);
+        setNormalContext(context, order);
         CallAfterSalesContext callAfterSalesContext = new CallAfterSalesContext();
         context.setContext(callAfterSalesContext);
         serviceResult = orderFsmEngine.sendEvent(EventEnum.CALL_AFTER_SALES.toString(), context);
