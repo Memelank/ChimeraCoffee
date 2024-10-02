@@ -71,12 +71,12 @@ public class TestServiceDev {
                 OrderItem.builder()
                         .productId(new ObjectId("66f224e960315e7ec0d02c91"))  // 设置默认的ProductId
                         .optionValues(createDefaultOptionValues1())  // 设置默认OptionValues
-                        .price(20.0)  // 设置默认价格
+                        .price(20)  // 设置默认价格
                         .build(),
                 OrderItem.builder()
                         .productId(new ObjectId("66f226fc60315e7ec0d02c92"))  // 设置默认的ProductId
                         .optionValues(createDefaultOptionValues2())  // 设置默认OptionValues
-                        .price(21.0)  // 设置默认价格
+                        .price(21)  // 设置默认价格
                         .build()
         );
     }
@@ -90,7 +90,7 @@ public class TestServiceDev {
                 OptionValue.builder()
                         .uuid("1727145031681")
                         .value("中杯")
-                        .priceAdjustment(0.0)  // 价格调整
+                        .priceAdjustment(0)  // 价格调整
                         .build()
         );
 
@@ -106,7 +106,7 @@ public class TestServiceDev {
                 OptionValue.builder()
                         .uuid("1727145026950")
                         .value("热")
-                        .priceAdjustment(2.0)  // 价格调整
+                        .priceAdjustment(2)  // 价格调整
                         .build()
         );
 
@@ -115,7 +115,7 @@ public class TestServiceDev {
                 OptionValue.builder()
                         .uuid("1727145031681")
                         .value("中杯")
-                        .priceAdjustment(2.0)  // 价格减少
+                        .priceAdjustment(2)  // 价格减少
                         .build()
         );
 

@@ -24,4 +24,5 @@ public class Order {
     private String customerType;
     private String scene;
     private List<OrderItem> items;
+    private int totalPrice;
 }

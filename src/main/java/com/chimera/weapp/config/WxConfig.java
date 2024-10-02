@@ -18,11 +18,12 @@ public class WxConfig {
     private String apiV3Key;
     @Bean
     public NotificationConfig build() {//todo 成为商户后才能有这四个值
-        return new RSAAutoCertificateConfig.Builder()
-                .merchantId(merchantId)
-                .privateKeyFromPath(privateKeyPath)
-                .merchantSerialNumber(merchantSerialNumber)
-                .apiV3Key(apiV3Key)
-                .build();
+//        return new RSAAutoCertificateConfig.Builder()
+//                .merchantId(merchantId)
+//                .privateKeyFromPath(privateKeyPath)
+//                .merchantSerialNumber(merchantSerialNumber)
+//                .apiV3Key(apiV3Key)
+//                .build();
+        return null;
     }
 }

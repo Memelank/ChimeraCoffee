@@ -1,6 +1,7 @@
 package com.chimera.weapp.statemachine.enums;
 
 public enum EventEnum {
+    NOTIFY_PRE_PAID("微信支付通过支付通知接口将用户支付成功消息通知给商户"),
     NEED_DINE_IN("需要堂食"),
     NEED_TAKE_OUT("需要外带"),
     NEED_FIX_DELIVERY("需要定时达"),
