@@ -14,5 +14,5 @@ public class OptionValue {
     @NotNull
     private String uuid;
     private String value;
-    private double priceAdjustment;
+    private int priceAdjustment;
 }

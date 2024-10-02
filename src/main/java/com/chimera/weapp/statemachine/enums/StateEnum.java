@@ -1,6 +1,7 @@
 package com.chimera.weapp.statemachine.enums;
 
 public enum StateEnum {
+    PRE_PAID("预支付"),
     PAID("已支付"),
     WAITING_DINE_IN("待出餐"),
     WAITING_FIX_DELIVERY("待出餐"),

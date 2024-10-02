@@ -109,6 +109,11 @@
 			<artifactId>httpclient5</artifactId>
 
 		</dependency>
+		<dependency>
+			<groupId>com.github.wechatpay-apiv3</groupId>
+			<artifactId>wechatpay-java</artifactId>
+			<version>0.2.14</version>
+		</dependency>
 	</dependencies>
 
 	<build>
