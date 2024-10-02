@@ -24,7 +24,7 @@ public class CallAfterSales extends AbstractStateProcessor<String, CallAfterSale
 
     @Override
     public StateEnum getNextState(StateContext<CallAfterSalesContext> context) {
-        return StateEnum.ABNORMAL_END;
+        return StateEnum.AFTERSALES;
     }
 
     @Override

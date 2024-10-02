@@ -6,9 +6,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
 import java.util.List;
 
 @Document(collection = "order")
@@ -24,5 +26,9 @@ public class Order {
     private String customerType;
     private String scene;
     private List<OrderItem> items;
+    private int orderNum;
+
+    @CreatedDate  // 自动填充创建时间
+    private Date createdAt;
     private int totalPrice;
 }
