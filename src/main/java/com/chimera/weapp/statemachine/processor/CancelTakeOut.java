@@ -24,13 +24,12 @@ public class CancelTakeOut extends AbstractStateProcessor<String, TakeOutContext
 
     @Override
     public StateEnum getNextState(StateContext<TakeOutContext> context) {
-        return StateEnum.ABNORMAL_END;
+        return StateEnum.CANCELED;
     }
 
     @Override
     public ServiceResult<String, TakeOutContext> action(String nextState, StateContext<TakeOutContext> context) throws Exception {
         //TODO 退款
-
 
         ServiceResult<String, TakeOutContext> result = new ServiceResult<>();
         result.setContext(context.getContext());

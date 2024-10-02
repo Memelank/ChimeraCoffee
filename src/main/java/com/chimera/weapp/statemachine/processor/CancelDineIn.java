@@ -24,7 +24,7 @@ public class CancelDineIn extends AbstractStateProcessor<String, DineInContext>{
 
     @Override
     public StateEnum getNextState(StateContext<DineInContext> context) {
-        return StateEnum.ABNORMAL_END;
+        return StateEnum.CANCELED;
     }
 
     @Override

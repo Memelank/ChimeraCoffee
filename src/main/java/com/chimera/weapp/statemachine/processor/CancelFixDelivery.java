@@ -24,7 +24,7 @@ public class CancelFixDelivery extends AbstractStateProcessor<String, FixDeliver
 
     @Override
     public StateEnum getNextState(StateContext<FixDeliveryContext> context) {
-        return StateEnum.ABNORMAL_END;
+        return StateEnum.CANCELED;
     }
 
     @Override
