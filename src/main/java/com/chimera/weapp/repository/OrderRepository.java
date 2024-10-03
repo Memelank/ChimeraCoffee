@@ -4,8 +4,11 @@ import com.chimera.weapp.entity.Order;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.List;
+
 import java.util.Date;
 
 public interface OrderRepository extends MongoRepository<Order, ObjectId> {
+    List<Order> findByUserIdOrderByCreatedAtDesc(ObjectId userId);
     long countByCreatedAtGreaterThanEqual(Date startOfDay);
 }
