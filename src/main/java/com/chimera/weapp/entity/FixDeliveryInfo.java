@@ -8,6 +8,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -16,9 +17,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Address {
+public class FixDeliveryInfo {
     @Id
     private ObjectId id;
     private String school;
+    private Date time;
     private List<String> address;
 }

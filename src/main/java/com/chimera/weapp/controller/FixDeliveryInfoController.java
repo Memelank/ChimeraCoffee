@@ -2,9 +2,9 @@ package com.chimera.weapp.controller;
 
 import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.annotation.RolesAllow;
-import com.chimera.weapp.entity.Address;
+import com.chimera.weapp.entity.FixDeliveryInfo;
 import com.chimera.weapp.enums.RoleEnum;
-import com.chimera.weapp.repository.AddressRepository;
+import com.chimera.weapp.repository.FixDeliveryInfoRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,35 +13,35 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/address")
-public class AddressController {
+@RequestMapping("/fixDeliveryInfo")
+public class FixDeliveryInfoController {
     @Autowired
-    private AddressRepository repository;
+    private FixDeliveryInfoRepository repository;
 
     @GetMapping
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public List<Address> getAllAddresses() {
+    public List<FixDeliveryInfo> getAllFixDeliveryInfos() {
         return repository.findAll();
     }
 
     @PutMapping
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<Address> updateAddress(@RequestBody Address entity) {
+    public ResponseEntity<FixDeliveryInfo> updateFixDeliveryInfo(@RequestBody FixDeliveryInfo entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
 
     @PostMapping
     @LoginRequired
-    public ResponseEntity<Address> createAddress(@RequestBody Address entity) {
+    public ResponseEntity<FixDeliveryInfo> createFixDeliveryInfo(@RequestBody FixDeliveryInfo entity) {
         return ResponseEntity.ok(repository.save(entity));
     }
 
     @DeleteMapping("/{id}")
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<Void> deleteAddress(@PathVariable String id) {
+    public ResponseEntity<Void> deleteFixDeliveryInfo(@PathVariable String id) {
         ObjectId objectId;
         try {
             objectId = new ObjectId(id);
