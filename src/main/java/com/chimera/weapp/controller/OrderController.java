@@ -57,6 +57,12 @@ public class OrderController {
         return repository.findAll();
     }
 
+    @GetMapping("/user/{userId}")
+    public List<Order> getOrdersByUserId(@PathVariable String userId) {
+        ObjectId userObjectId = new ObjectId(userId);
+        return repository.findByUserIdOrderByCreatedAtDesc(userObjectId);
+    }
+
     @PostMapping("/wxcreate")
     @LoginRequired
     @Operation(summary = "创建预支付订单。小程序先调用这个，再调用wx.requestPayment")
