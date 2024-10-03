@@ -16,5 +16,6 @@ import java.util.Map;
 public class OrderItem {
     private ObjectId productId;
     private Map<String, OptionValue> optionValues;
+    private String name;
     private int price;
 }

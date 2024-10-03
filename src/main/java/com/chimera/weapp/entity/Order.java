@@ -1,6 +1,7 @@
 package com.chimera.weapp.entity;
 
 import com.chimera.weapp.vo.OrderItem;
+import com.chimera.weapp.vo.DeliveryInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class Order {
     private String state;
     private String customerType;
     private String scene;
+    private DeliveryInfo deliveryInfo;
     private List<OrderItem> items;
     private int orderNum;
 

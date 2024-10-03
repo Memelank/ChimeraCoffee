@@ -22,14 +22,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/order")
@@ -133,15 +132,69 @@ public class OrderController {
                 .build();
     }
 
-    @PostMapping("/supply")
+    @PostMapping("/create")
+    @LoginRequired
+    public ResponseEntity<ServiceResult> createOrderInStore(@RequestBody Order entity) throws Exception {
+        // 设置订单状态为已支付
+        entity.setState(StateEnum.PAID.toString());
+
+        // 获取当前日期的开始时间（0点）
+        Date startOfDay = getStartOfDay(new Date());
+
+        // 查询当天的订单数量
+        long orderCountToday = repository.countByCreatedAtGreaterThanEqual(startOfDay);
+
+        // 设置订单号，从1开始累计
+        entity.setOrderNum((int) orderCountToday + 1);
+
+        // 保存订单
+        Order save = repository.save(entity);
+
+        // FSM 状态机处理
+        ServiceResult<Object, ?> serviceResult = null;
+        StateContext<Object> context = new StateContext<>();
+        setNormalContext(context, save);
+
+        // 根据不同的场景设置上下文并发送事件
+        if (SceneEnum.FIX_DELIVERY.toString().equals(save.getScene())) {
+            FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
+            context.setContext(fixDeliveryContext);
+            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context);
+        } else if (SceneEnum.DINE_IN.toString().equals(save.getScene())) {
+            DineInContext dineInContext = new DineInContext();
+            context.setContext(dineInContext);
+            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_DINE_IN.toString(), context);
+        } else if (SceneEnum.TAKE_OUT.toString().equals(save.getScene())) {
+            TakeOutContext takeOutContext = new TakeOutContext();
+            context.setContext(takeOutContext);
+            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_TAKE_OUT.toString(), context);
+        }
+
+        // 根据状态机的处理结果返回不同的响应
+        if (serviceResult != null && serviceResult.isSuccess()) {
+            return ResponseEntity.ok(serviceResult);
+        } else {
+            return ResponseEntity.internalServerError().body(serviceResult);
+        }
+    }
+
+    /**
+     * 获取当天开始时间（0点）
+     */
+    private Date getStartOfDay(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
+    }
+
+    @PostMapping(value = "/supply", consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
     public ResponseEntity<ServiceResult> supplyOrder(@RequestBody Order order) throws Exception {
         ServiceResult<Object, ?> serviceResult = null;
-
-        System.out.println("Order process api get.");
-        System.out.println("OrderId:" + order.getId().toString());
-        System.out.println("UserId:" + order.getUserId().toString());
-        System.out.println("State:" + order.getState().toString());
 
         StateContext<Object> context = new StateContext<>();
         setNormalContext(context, order);
@@ -166,13 +219,15 @@ public class OrderController {
         }
     }
 
-    @PostMapping("/cancel")
+    @PostMapping(value = "/refund", consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
-    public ResponseEntity<ServiceResult> cancelOrder(@RequestBody Order order) throws Exception {
+    public ResponseEntity<ServiceResult> refundOrder(@RequestBody Order order) throws Exception {
         ServiceResult<Object, ?> serviceResult = null;
 
         StateContext<Object> context = new StateContext<>();
         setNormalContext(context, order);
+
+        System.out.println("context:" + context);
         if (SceneEnum.FIX_DELIVERY.toString().equals(order.getScene())) {
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
             context.setContext(fixDeliveryContext);
