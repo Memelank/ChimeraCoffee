@@ -11,8 +11,9 @@ public enum EventEnum {
     CANCEL_DINE_IN("商家取消堂食"),
     CANCEL_FIX_DELIVERY("商家取消定时达"),
     CANCEL_TAKE_OUT("商家取消外带"),
-    CALL_AFTER_SALES("发起售后");
-
+    CALL_AFTER_SALES("发起售后"),
+    REFUND("退款"),
+    ;
     private final String state;
 
     // 构造函数接收自定义字符串

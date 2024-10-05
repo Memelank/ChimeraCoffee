@@ -8,7 +8,8 @@ public enum StateEnum {
     WAITING_TAKE_OUT("待出餐"),
     NORMAL_END("正常结束"),
     CANCELED("已取消"),
-    AFTERSALES("已售后");
+    AFTERSALES("已售后"),
+    REFUNDED("已退款");
 
     private final String state;
 

@@ -29,8 +29,10 @@ public class Order {
     private DeliveryInfo deliveryInfo;
     private List<OrderItem> items;
     private int orderNum;
+    private String remark;
+    private String merchantNote;
+    private int totalPrice;
 
     @CreatedDate  // 自动填充创建时间
     private Date createdAt;
-    private int totalPrice;
 }
