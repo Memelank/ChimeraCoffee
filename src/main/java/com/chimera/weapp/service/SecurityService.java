@@ -43,7 +43,8 @@ public class SecurityService {
             String userId = (String) claims.get("userId");
             String userName = (String) claims.get("userName");
             String role = (String) claims.get("role");
-            String newToken = JwtUtils.generateToken(userId, userName, role, null);
+            String openid = (String) claims.get("openid");
+            String newToken = JwtUtils.generateToken(userId, userName, role, openid);
 
             response.setHeader("Authorization", "Bearer " + newToken);
 

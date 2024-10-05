@@ -21,6 +21,7 @@ public class JwtUtils {
         claims.put("userId", userId);
         claims.put("userName", username);
         claims.put("role", role);  // 将用户角色存入 JWT 中
+        claims.put("openid",openid);
         return Jwts.builder()
                 .claims(claims)
                 .issuedAt(new Date())

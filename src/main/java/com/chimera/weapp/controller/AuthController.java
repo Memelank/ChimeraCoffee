@@ -80,38 +80,39 @@ public class AuthController {
         JSONObject session = weChatService.code2session(code);
         String openid = session.getString("openid");
         String sessionKey = session.getString("session_key");
-        Optional<User> user = repository.findByOpenid(openid);
-        if (user.isEmpty()) {
+        Optional<User> userOptional = repository.findByOpenid(openid);
+        if (userOptional.isEmpty()) {
             User newUser = User.builder()
                     .openid(openid)
                     .sessionKey(sessionKey)
                     .role(RoleEnum.CUSTOMER.toString())
                     .name("wx_" + UUID.randomUUID()).build();
-            User save = repository.save(newUser);
-            String jwt = JwtUtils.generateToken(save.getId().toHexString(), save.getName(), save.getRole(), save.getOpenid());
-            save.setJwt(jwt);
-            repository.save(save);
+            User save1 = repository.save(newUser);
+            String jwt = JwtUtils.generateToken(save1.getId().toHexString(), save1.getName(), save1.getRole(), save1.getOpenid());
+            save1.setJwt(jwt);
+            User save2 = repository.save(save1);
             HttpHeaders headers = new HttpHeaders();
 
             headers.add("Authorization", "Bearer " + jwt);
-            log.info("小程序用户：{} 注册成功", save.getName());
+            log.info("小程序用户:{} 注册成功,openid:{}", save2.getName(), save2.getOpenid());
             return new ResponseEntity<>(
                     new ResponseBodyDTO<>("自动注册成功",
-                            UserDTO.ofUser(save).build()), headers, HttpStatus.OK);
+                            UserDTO.ofUser(save2).build()), headers, HttpStatus.OK);
         } else {
-            User user1 = user.get();
-            String jwt = user1.getJwt();
+            User user = userOptional.get();
+            String jwt = user.getJwt();
             try {
-                Claims claims = JwtUtils.parseToken(jwt);
-                securityService.tryToRefreshToken(claims);
+                JwtUtils.parseToken(jwt);
             } catch (ExpiredJwtException e) {
-                jwt = JwtUtils.generateToken(user1.getId().toHexString(), user1.getName(), user1.getRole(), user1.getOpenid());
-                user1.setJwt(jwt);
+                log.info(String.format("有小程序用户在jwt过期后重新登录，用户openid为%s", user.getOpenid()), e);
             }
+            jwt = JwtUtils.generateToken(user.getId().toHexString(), user.getName(), user.getRole(), user.getOpenid());
             HttpHeaders headers = new HttpHeaders();
+            user.setJwt(jwt);
+            repository.save(user);
             headers.add("Authorization", "Bearer " + jwt);
             return new ResponseEntity<>(new ResponseBodyDTO<>("登陆成功",
-                    UserDTO.ofUser(repository.findByOpenid(openid).orElseThrow()).build()),
+                    UserDTO.ofUser(user).build()),
                     headers, HttpStatus.OK);
         }
     }
