@@ -11,6 +11,7 @@ import com.chimera.weapp.util.JSONUtils;
 import com.chimera.weapp.util.JwtUtils;
 import com.chimera.weapp.util.PasswordUtils;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.ParseException;
@@ -106,10 +107,14 @@ public class AuthController {
         } else {
             User user1 = user.get();
             String jwt = user1.getJwt();
-            Claims claims = JwtUtils.parseToken(jwt);
+            try {
+                Claims claims = JwtUtils.parseToken(jwt);
+                securityService.tryToRefreshToken(claims);
+            }catch (ExpiredJwtException e){
+                jwt = JwtUtils.generateToken(user1.getId().toHexString(), user1.getName(), user1.getRole(), user1.getOpenid());
+            }
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", "Bearer " + jwt);
-            securityService.tryToRefreshToken(claims);
             String responseBody = JSONUtils.buildResponseBody("登录成功", buildResponseDataValue(user1));
             return new ResponseEntity<>(responseBody, headers, HttpStatus.OK);
         }
