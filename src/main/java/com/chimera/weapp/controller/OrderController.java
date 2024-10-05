@@ -228,31 +228,46 @@ public class OrderController {
     @PostMapping(value = "/refund", consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
     public ResponseEntity<ServiceResult> refundOrder(@RequestBody Order order) throws Exception {
+
         ServiceResult<Object, ?> serviceResult = null;
 
         StateContext<Object> context = new StateContext<>();
         setNormalContext(context, order);
-
-        System.out.println("context:" + context);
-        if (SceneEnum.FIX_DELIVERY.toString().equals(order.getScene())) {
-            FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
-            context.setContext(fixDeliveryContext);
-            serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_FIX_DELIVERY.toString(), context);
-        } else if (SceneEnum.DINE_IN.toString().equals(order.getScene())) {
-            DineInContext dineInContext = new DineInContext();
-            context.setContext(dineInContext);
-            serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_DINE_IN.toString(), context);
-        } else if (SceneEnum.TAKE_OUT.toString().equals(order.getScene())) {
-            TakeOutContext takeOutContext = new TakeOutContext();
-            context.setContext(takeOutContext);
-            serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_TAKE_OUT.toString(), context);
-        }
+        RefundContext refundContext = new RefundContext();
+        context.setContext(refundContext);
+        serviceResult = orderFsmEngine.sendEvent(EventEnum.REFUND.toString(), context);
 
         if (serviceResult != null && serviceResult.isSuccess()) {
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);
         }
+
+//        ServiceResult<Object, ?> serviceResult = null;
+//
+//        StateContext<Object> context = new StateContext<>();
+//        setNormalContext(context, order);
+//
+//        System.out.println("context:" + context);
+//        if (SceneEnum.FIX_DELIVERY.toString().equals(order.getScene())) {
+//            FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
+//            context.setContext(fixDeliveryContext);
+//            serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_FIX_DELIVERY.toString(), context);
+//        } else if (SceneEnum.DINE_IN.toString().equals(order.getScene())) {
+//            DineInContext dineInContext = new DineInContext();
+//            context.setContext(dineInContext);
+//            serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_DINE_IN.toString(), context);
+//        } else if (SceneEnum.TAKE_OUT.toString().equals(order.getScene())) {
+//            TakeOutContext takeOutContext = new TakeOutContext();
+//            context.setContext(takeOutContext);
+//            serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_TAKE_OUT.toString(), context);
+//        }
+//
+//        if (serviceResult != null && serviceResult.isSuccess()) {
+//            return ResponseEntity.ok(serviceResult);
+//        } else {
+//            return ResponseEntity.internalServerError().body(serviceResult);
+//        }
     }
 
     @PostMapping("/after_sale")
