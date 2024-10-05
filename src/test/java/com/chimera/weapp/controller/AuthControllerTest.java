@@ -1,6 +1,8 @@
 package com.chimera.weapp.controller;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.chimera.weapp.dto.ResponseBodyDTO;
+import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.UserRepository;
@@ -31,7 +33,7 @@ class AuthControllerTest {
     private AuthController authController;
 
     @Test
-    public void wxLogin_register() throws IOException, URISyntaxException, ParseException {
+    public void wxLogin_register() throws IOException, URISyntaxException {
         MockitoAnnotations.openMocks(this);
 
         Mockito.when(weChatService.code2session(Mockito.any()))
@@ -43,13 +45,13 @@ class AuthControllerTest {
                         .openid("openid666")
                         .name("wx_customer1")
                         .role(RoleEnum.CUSTOMER.toString()).build());
-        ResponseEntity<String> responseEntity = authController.wxLoginOrRegister(JSONObject.parseObject("{\"code\":\"code\"}"));
+        ResponseEntity<ResponseBodyDTO<UserDTO>> responseEntity = authController.wxLoginOrRegister("code");
         assertNotNull(responseEntity.getHeaders().get("Authorization"));
-        assertTrue(responseEntity.getBody().contains("自动注册成功"));
+        assertTrue(responseEntity.getBody().getMsg().contains("自动注册成功"));
     }
 
     @Test
-    public void wxLogin_Login() throws IOException, URISyntaxException, ParseException {
+    public void wxLogin_Login() throws IOException, URISyntaxException {
         MockitoAnnotations.openMocks(this);
 
         Mockito.when(weChatService.code2session(Mockito.any()))
@@ -59,7 +61,7 @@ class AuthControllerTest {
                 .openid("openid666")
                 .name("wx_customer1")
                 .jwt(JwtUtils.generateToken("id","name","role","openid666")).build()));
-        ResponseEntity<String> responseEntity = authController.wxLoginOrRegister(JSONObject.parseObject("{\"code\":\"code\"}"));
-        assertTrue(responseEntity.getBody().contains("登录成功"));
+        ResponseEntity<ResponseBodyDTO<UserDTO>> responseEntity = authController.wxLoginOrRegister("code");
+        assertTrue(responseEntity.getBody().getMsg().contains("登陆成功"));
     }
 }
