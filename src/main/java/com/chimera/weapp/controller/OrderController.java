@@ -14,6 +14,7 @@ import com.chimera.weapp.statemachine.enums.SceneEnum;
 import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import com.wechat.pay.java.core.notification.NotificationConfig;
+
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.jsapi.model.Transaction;
@@ -22,6 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,9 +55,22 @@ public class OrderController {
 //    private NotificationConfig notificationConfig;
 
     @GetMapping
-    public List<Order> getAllOrders() {
-        return repository.findAll();
+    public ResponseEntity<?> getAllOrders(
+            @org.springframework.web.bind.annotation.RequestParam("startTime") @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date startTime,
+            @org.springframework.web.bind.annotation.RequestParam("endTime") @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date endTime) {
+
+        // 检查开始时间是否大于或等于结束时间
+        if (startTime.compareTo(endTime) >= 0) {
+            return ResponseEntity.badRequest().body("开始时间必须小于结束时间");
+        }
+
+        // 查找在指定时间范围内的订单，并按createdAt时间从近到远排序
+        List<Order> orders = repository.findByCreatedAtBetweenOrderByCreatedAtDesc(startTime, endTime);
+
+        return ResponseEntity.ok(orders);
     }
+
+
 
     @GetMapping("/user/{userId}")
     public List<Order> getOrdersByUserId(@PathVariable String userId) {
@@ -227,8 +242,9 @@ public class OrderController {
 
     @PostMapping(value = "/refund", consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
-    public ResponseEntity<ServiceResult> refundOrder(@RequestBody Order order) throws Exception {
+    public ResponseEntity<ServiceResult> refundOrder(@RequestBody Order save) throws Exception {
 
+        Order order = repository.save(save);
         ServiceResult<Object, ?> serviceResult = null;
 
         StateContext<Object> context = new StateContext<>();
