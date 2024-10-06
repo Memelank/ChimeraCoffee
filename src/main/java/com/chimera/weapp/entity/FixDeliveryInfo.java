@@ -21,6 +21,6 @@ public class FixDeliveryInfo {
     @Id
     private ObjectId id;
     private String school;
-    private Date time;
-    private List<String> address;
+    private List<String> times;
+    private List<String> addresses;
 }
