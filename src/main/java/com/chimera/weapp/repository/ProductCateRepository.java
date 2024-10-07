@@ -7,4 +7,5 @@ import org.bson.types.ObjectId;
 import java.util.List;
 
 public interface ProductCateRepository extends MongoRepository<ProductCate, ObjectId> {
+    List<ProductCate> findAllByDeleteIs(int delete);
 }
