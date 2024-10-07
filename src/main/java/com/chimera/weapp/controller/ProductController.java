@@ -5,6 +5,7 @@ import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.Product;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ProductRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ public class ProductController {
     private ProductRepository repository;
 
     @GetMapping
+    @Operation(summary = "获得所有Products，用于菜单展示")
     public ResponseEntity<List<Product>> getAllProducts() {
         return ResponseEntity.ok(repository.findAll());
     }

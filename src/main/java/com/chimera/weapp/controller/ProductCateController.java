@@ -6,6 +6,7 @@ import com.chimera.weapp.entity.Product;
 import com.chimera.weapp.entity.ProductCate;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ProductCateRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -23,8 +24,9 @@ public class ProductCateController {
 
     // 获取所有产品类别
     @GetMapping
+    @Operation(summary = "获得所有ProductCates，用于菜单侧边栏分类")
     public ResponseEntity<List<ProductCate>> getAllProductCates() {
-        return ResponseEntity.ok(repository.findAll());
+        return ResponseEntity.ok(repository.findAllByDeleteIs(0));
     }
 
     // 创建新产品类别

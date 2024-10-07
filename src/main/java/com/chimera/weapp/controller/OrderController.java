@@ -155,6 +155,7 @@ public class OrderController {
 
     @PostMapping("/create")
     @LoginRequired
+    @Operation(summary = "用于商铺端创建订单，不走微信支付，微信支付未办理前小程序也可先调用这个")
     public ResponseEntity<ServiceResult> createOrderInStore(@RequestBody Order entity) throws Exception {
         // 设置订单状态为已支付
         entity.setState(StateEnum.PAID.toString());

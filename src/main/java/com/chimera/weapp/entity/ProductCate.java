@@ -1,5 +1,6 @@
 package com.chimera.weapp.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,8 +21,11 @@ public class ProductCate implements Comparable<ProductCate> {
     @Id
     private ObjectId id;
     private String title;
-    private Integer status; //状态，0为禁用，1为正常
+    @Schema(description = "status=0为下架，前端不显示")
+    private Integer status; //状态，0为下架，1为上架
+    @Schema(description = "优先级，便于设置显示顺序，已自动排序")
     private Integer priority;
+    @Schema(description = "对于delete=1的，后端不返回")
     private int delete; // 1是删除，0是正常
 
     @Override

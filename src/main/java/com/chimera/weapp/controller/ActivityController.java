@@ -5,6 +5,7 @@ import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.Activity;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ActivityRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,7 @@ public class ActivityController {
     @GetMapping
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
+    @Operation(summary = "获得所有展示活动")
     public ResponseEntity<List<Activity>> getAllActivities() {
         return ResponseEntity.ok(repository.findAll());
     }

@@ -6,6 +6,7 @@ import com.chimera.weapp.entity.Product;
 import com.chimera.weapp.entity.ProductOption;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ProductOptionRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ public class ProductOptionController {
     }
 
     @GetMapping
+    @Operation(summary = "获得所有ProductOptions，用于选择商品具体选项，如：“规格”，“温度”")
     public List<ProductOption> getAllProductOptions() {
         List<ProductOption> all = repository.findAll();
         return all;

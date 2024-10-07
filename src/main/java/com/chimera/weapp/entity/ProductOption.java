@@ -1,6 +1,7 @@
 package com.chimera.weapp.entity;
 
 import com.chimera.weapp.vo.OptionValue;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,8 @@ import java.util.List;
 public class ProductOption {
     @Id
     private ObjectId id;
+    @Schema(description = "商品的可选项名称，如\"规格\"")
     private String name;
+    @Schema(description = "对于一个可选项，所有的可能选值，商铺管理用")
     private List<OptionValue> values;
 }

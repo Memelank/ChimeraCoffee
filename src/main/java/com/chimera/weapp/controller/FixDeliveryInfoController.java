@@ -5,6 +5,7 @@ import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.FixDeliveryInfo;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.FixDeliveryInfoRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ public class FixDeliveryInfoController {
     @GetMapping
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
+    @Operation(summary = "获取所有定时达信息，用于定时达下单")
     public List<FixDeliveryInfo> getAllFixDeliveryInfos() {
         return repository.findAll();
     }

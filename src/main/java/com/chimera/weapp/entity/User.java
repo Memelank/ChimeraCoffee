@@ -1,4 +1,5 @@
 package com.chimera.weapp.entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -19,6 +20,7 @@ import java.util.Date;
 public class User {
 
     @Id
+    @Schema(description = "Order中的UserId是这个吗？")
     private ObjectId id;
     private String openid;
     private String sessionKey;
