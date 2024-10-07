@@ -2,6 +2,7 @@ package com.chimera.weapp.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.annotation.LoginRequired;
+import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.dto.LoginDTO;
 import com.chimera.weapp.dto.ResponseBodyDTO;
 import com.chimera.weapp.dto.UserDTO;
@@ -124,7 +125,8 @@ public class AuthController {
 
     @GetMapping("/validate")
     @LoginRequired
-    @Operation(description = "一个纯粹的身份校验，输入请求头中的Authorization，输出响应头中的可能刷新的token，响应体中的用户基本信息")
+    @RolesAllow(RoleEnum.ADMIN)
+    @Operation(description = "一个纯粹的管理员身份校验，输入请求头中的Authorization，输出响应头中的可能刷新的token，响应体中的用户基本信息")
     public ResponseEntity<ResponseBodyDTO<UserDTO>> validate(){
         Claims claims = (Claims)request.getAttribute("claims");
         String userId = (String)claims.get("userId");
