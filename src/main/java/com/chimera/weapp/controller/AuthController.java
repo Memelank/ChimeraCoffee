@@ -1,6 +1,7 @@
 package com.chimera.weapp.controller;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.dto.LoginDTO;
 import com.chimera.weapp.dto.ResponseBodyDTO;
 import com.chimera.weapp.dto.UserDTO;
@@ -14,7 +15,9 @@ import com.chimera.weapp.util.PasswordUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,6 +40,8 @@ public class AuthController {
     private WeChatService weChatService;
     @Autowired
     private SecurityService securityService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping("/login")
     @Transactional
@@ -115,6 +120,17 @@ public class AuthController {
                     UserDTO.ofUser(user).build()),
                     headers, HttpStatus.OK);
         }
+    }
+
+    @GetMapping("/validate")
+    @LoginRequired
+    @Operation(description = "一个纯粹的身份校验，输入请求头中的Authorization，输出响应头中的可能刷新的token，响应体中的用户基本信息")
+    public ResponseEntity<ResponseBodyDTO<UserDTO>> validate(){
+        Claims claims = (Claims)request.getAttribute("claims");
+        String userId = (String)claims.get("userId");
+        User user = repository.findById(new ObjectId(userId)).orElseThrow();
+        return new ResponseEntity<>(new ResponseBodyDTO<>("登陆成功",
+                UserDTO.ofUser(user).build()), HttpStatus.OK);
     }
 
 }
