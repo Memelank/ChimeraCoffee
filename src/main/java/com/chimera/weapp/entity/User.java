@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 
 import java.util.Date;
+import java.util.List;
 
 
 @Document(collection = "user")
@@ -25,14 +26,25 @@ public class User {
     private String openid;
     private String sessionKey;
     private String name;
-    private String hashedPassword;
+    @Schema(description = "学生认证结果")
     private String school;
-    private String role;
-    private String jwt;
+    @Schema(description = "学生认证后设为True")
+    private Boolean studentCert;
+    @Schema(description = "总消费金额")
     private double expend;
+    @Schema(description = "下单次数")
     private int orderNum;
-    private String address;
+    @Schema(description = "持有积分")
+    private int points;
+
+    @Schema(description = "用户持有的优惠券，对应Coupon.id")
+    private List<String> coupons;
 
     @CreatedDate  // 自动填充创建时间
     private Date createdAt;
+
+    // 后端管理账号用
+    private String hashedPassword;
+    private String role;
+    private String jwt;
 }
