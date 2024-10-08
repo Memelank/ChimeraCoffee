@@ -20,7 +20,7 @@ import java.util.Date;
 public class Coupon {
     @Id
     private ObjectId id;
-    @Schema(description = "对应ProductCate.id，为空时适用所有商品类")
+    @Schema(description = "适用商品类，对应ProductCate.id，为空时适用所有商品类")
     private ObjectId cateId;
     @Schema(description = "抵扣金额")
     private int dePrice;
