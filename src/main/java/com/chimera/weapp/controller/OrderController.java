@@ -3,7 +3,9 @@ package com.chimera.weapp.controller;
 import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.entity.Order;
+import com.chimera.weapp.entity.Product;
 import com.chimera.weapp.repository.OrderRepository;
+import com.chimera.weapp.repository.ProductRepository;
 import com.chimera.weapp.service.OrderService;
 import com.chimera.weapp.service.WeChatService;
 import com.chimera.weapp.statemachine.context.*;
@@ -13,6 +15,8 @@ import com.chimera.weapp.statemachine.enums.EventEnum;
 import com.chimera.weapp.statemachine.enums.SceneEnum;
 import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
+import com.chimera.weapp.vo.OptionValue;
+import com.chimera.weapp.vo.OrderItem;
 import com.wechat.pay.java.core.notification.NotificationConfig;
 
 import com.wechat.pay.java.core.notification.NotificationParser;
@@ -23,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +46,9 @@ public class OrderController {
 
     @Autowired
     private OrderRepository repository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     @Autowired
     private WeChatService weChatService;
@@ -73,10 +81,23 @@ public class OrderController {
 
 
     @GetMapping("/user/{userId}")
-    public List<Order> getOrdersByUserId(@PathVariable String userId) {
+    @Operation(summary = "根据userId查询Orders，当前端传递all=true时，返回所有，否则默认5条")
+    public List<Order> getOrdersByUserId(
+            @PathVariable String userId,
+            @org.springframework.web.bind.annotation.RequestParam(value = "all", required = false, defaultValue = "false") boolean all) {
+
         ObjectId userObjectId = new ObjectId(userId);
-        return repository.findByUserIdOrderByCreatedAtDesc(userObjectId);
+
+        // 判断是否需要获取所有订单
+        if (all) {
+            // 获取所有订单，并按时间倒序排列
+            return repository.findByUserIdOrderByCreatedAtDesc(userObjectId);
+        } else {
+            // 仅获取最近的5个订单，并按时间倒序排列
+            return repository.findTop5ByUserIdOrderByCreatedAtDesc(userObjectId);
+        }
     }
+
 
     @PostMapping("/wxcreate")
     @LoginRequired
@@ -157,6 +178,35 @@ public class OrderController {
     @LoginRequired
     @Operation(summary = "用于商铺端创建订单，不走微信支付，微信支付未办理前小程序也可先调用这个")
     public ResponseEntity<ServiceResult> createOrderInStore(@RequestBody Order entity) throws Exception {
+        // 1. 计算每个 OrderItem 的价格，并计算订单总价
+        int totalPrice = 0;
+        for (OrderItem item : entity.getItems()) {
+            // 获取商品信息
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new Exception("商品未找到，ID：" + item.getProductId()));
+
+            // 获取商品的基础价格
+            int basePrice = product.getPrice();
+
+            // 计算选项的价格调整
+            int totalAdjustments = 0;
+            Map<String, OptionValue> optionValues = item.getOptionValues();
+            if (optionValues != null) {
+                for (OptionValue optionValue : optionValues.values()) {
+                    totalAdjustments += optionValue.getPriceAdjustment();
+                }
+            }
+
+            // 计算单个 OrderItem 的价格
+            int itemPrice = basePrice + totalAdjustments;
+            item.setPrice(itemPrice);
+
+            // 累加到订单总价
+            totalPrice += itemPrice;
+        }
+        // 设置订单总价
+        entity.setTotalPrice(totalPrice);
+
         // 设置订单状态为已支付
         entity.setState(StateEnum.PAID.toString());
 
@@ -259,51 +309,25 @@ public class OrderController {
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);
         }
+    }
 
+//    @PostMapping("/after_sale")
+//    @LoginRequired
+//    public ResponseEntity<ServiceResult> afterSale(@RequestBody Order order) throws Exception {
 //        ServiceResult<Object, ?> serviceResult = null;
 //
 //        StateContext<Object> context = new StateContext<>();
 //        setNormalContext(context, order);
-//
-//        System.out.println("context:" + context);
-//        if (SceneEnum.FIX_DELIVERY.toString().equals(order.getScene())) {
-//            FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
-//            context.setContext(fixDeliveryContext);
-//            serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_FIX_DELIVERY.toString(), context);
-//        } else if (SceneEnum.DINE_IN.toString().equals(order.getScene())) {
-//            DineInContext dineInContext = new DineInContext();
-//            context.setContext(dineInContext);
-//            serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_DINE_IN.toString(), context);
-//        } else if (SceneEnum.TAKE_OUT.toString().equals(order.getScene())) {
-//            TakeOutContext takeOutContext = new TakeOutContext();
-//            context.setContext(takeOutContext);
-//            serviceResult = orderFsmEngine.sendEvent(EventEnum.CANCEL_TAKE_OUT.toString(), context);
-//        }
+//        CallAfterSalesContext callAfterSalesContext = new CallAfterSalesContext();
+//        context.setContext(callAfterSalesContext);
+//        serviceResult = orderFsmEngine.sendEvent(EventEnum.CALL_AFTER_SALES.toString(), context);
 //
 //        if (serviceResult != null && serviceResult.isSuccess()) {
 //            return ResponseEntity.ok(serviceResult);
 //        } else {
 //            return ResponseEntity.internalServerError().body(serviceResult);
 //        }
-    }
-
-    @PostMapping("/after_sale")
-    @LoginRequired
-    public ResponseEntity<ServiceResult> afterSale(@RequestBody Order order) throws Exception {
-        ServiceResult<Object, ?> serviceResult = null;
-
-        StateContext<Object> context = new StateContext<>();
-        setNormalContext(context, order);
-        CallAfterSalesContext callAfterSalesContext = new CallAfterSalesContext();
-        context.setContext(callAfterSalesContext);
-        serviceResult = orderFsmEngine.sendEvent(EventEnum.CALL_AFTER_SALES.toString(), context);
-
-        if (serviceResult != null && serviceResult.isSuccess()) {
-            return ResponseEntity.ok(serviceResult);
-        } else {
-            return ResponseEntity.internalServerError().body(serviceResult);
-        }
-    }
+//    }
 
     private void setNormalContext(StateContext<?> context, Order save) {
         context.setOrderId(save.getId().toString());

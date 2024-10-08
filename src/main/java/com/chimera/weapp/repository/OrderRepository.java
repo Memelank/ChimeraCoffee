@@ -10,6 +10,7 @@ import java.util.Date;
 
 public interface OrderRepository extends MongoRepository<Order, ObjectId> {
     List<Order> findByUserIdOrderByCreatedAtDesc(ObjectId userId);
+    List<Order> findTop5ByUserIdOrderByCreatedAtDesc(ObjectId userId);
     long countByCreatedAtGreaterThanEqual(Date startOfDay);
     List<Order> findByCreatedAtBetweenOrderByCreatedAtDesc(Date startTime, Date endTime);
 }
