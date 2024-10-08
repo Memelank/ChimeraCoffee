@@ -1,10 +1,10 @@
 package com.chimera.weapp.controller;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.dto.PrePaidDTO;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.entity.Product;
+import com.chimera.weapp.handler.OrderWebSocketHandler;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.ProductRepository;
 import com.chimera.weapp.service.OrderService;
@@ -18,7 +18,6 @@ import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import com.chimera.weapp.vo.OptionValue;
 import com.chimera.weapp.vo.OrderItem;
-import com.wechat.pay.java.core.notification.NotificationConfig;
 
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
@@ -28,7 +27,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,6 +60,9 @@ public class OrderController {
 
 //    @Autowired
 //    private NotificationConfig notificationConfig;
+
+    @Autowired
+    private OrderWebSocketHandler orderWebSocketHandler;
 
     @GetMapping
     public ResponseEntity<?> getAllOrders(
@@ -286,6 +287,7 @@ public class OrderController {
         }
 
         if (serviceResult != null && serviceResult.isSuccess()) {
+            orderWebSocketHandler.sendMessageToOrder(order.getId().toHexString(),"已供餐");
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);
@@ -306,6 +308,7 @@ public class OrderController {
         serviceResult = orderFsmEngine.sendEvent(EventEnum.REFUND.toString(), context);
 
         if (serviceResult != null && serviceResult.isSuccess()) {
+            orderWebSocketHandler.sendMessageToOrder(order.getId().toHexString(),"已退款");
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);
