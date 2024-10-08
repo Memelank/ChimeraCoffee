@@ -1,6 +1,7 @@
 package com.chimera.weapp.service;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.chimera.weapp.dto.PrePaidDTO;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.repository.UserRepository;
@@ -51,14 +52,14 @@ public class WeChatService {
         }
     }
 
-    public JSONObject jsapiTransaction(Order save) throws URISyntaxException, IOException {
+    public PrePaidDTO jsapiTransaction(Order save) throws URISyntaxException, IOException {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {//todo 和code2session的逻辑相似，应抽取函数
             URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi");
 
             HttpHost target = new HttpHost(uriBuilder.getScheme(), uriBuilder.getHost());
             ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build()).setEntity(buildRequestBody(save)).build();
             String body = httpClient.execute(target, httpRequest, classicHttpResponse -> EntityUtils.toString(classicHttpResponse.getEntity()));
-            return JSONObject.parseObject(body);
+            return JSONObject.parseObject(body, PrePaidDTO.class);
         }
     }
 

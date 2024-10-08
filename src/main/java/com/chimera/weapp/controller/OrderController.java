@@ -2,6 +2,7 @@ package com.chimera.weapp.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.annotation.LoginRequired;
+import com.chimera.weapp.dto.PrePaidDTO;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.entity.Product;
 import com.chimera.weapp.repository.OrderRepository;
@@ -102,7 +103,7 @@ public class OrderController {
     @PostMapping("/wxcreate")
     @LoginRequired
     @Operation(summary = "创建预支付订单。小程序先调用这个，再调用wx.requestPayment")
-    public JSONObject create(@RequestBody Order order) throws URISyntaxException, IOException {
+    public PrePaidDTO create(@RequestBody Order order) throws URISyntaxException, IOException {
         order.setState(StateEnum.PRE_PAID.toString());
         orderService.checkPrice(order);
         Order save = repository.save(order);
