@@ -81,7 +81,6 @@ public class OrderController {
     }
 
 
-
     @GetMapping("/user/{userId}")
     @Operation(summary = "根据userId查询Orders，当前端传递all=true时，返回所有，否则默认5条")
     public List<Order> getOrdersByUserId(
@@ -121,32 +120,37 @@ public class OrderController {
         Transaction transaction = parser.parse(requestParam, Transaction.class);
         String outTradeNo = transaction.getOutTradeNo();
         synchronized (outTradeNo.intern()) {
-            Optional<Order> order = repository.findById(new ObjectId(outTradeNo));
-            if (order.isEmpty()) {
-                throw new RuntimeException("根据outTradeNo未查询到订单");
-            }
-            Order save = order.get();
-            if (!Objects.equals(save.getState(), StateEnum.PRE_PAID.toString()) &&
-                    !Objects.equals(save.getScene(), StateEnum.PAID.toString())) {
-                log.info("微信重复发送通知给订单号为{}的订单,已默认成功", outTradeNo);
+            //第一次调用状态机。发送PRE_PAID事件
+            Order order = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
+            if (Objects.equals(order.getState(), StateEnum.PRE_PAID.toString()) ||
+                    Objects.equals(order.getScene(), StateEnum.PAID.toString())) {
+                log.warn("微信重复发送通知给订单号为{}的订单,已默认成功", outTradeNo);
                 return ResponseEntity.ok("");
             }
             StateContext<Object> context = new StateContext<>();
-            setNormalContext(context, save);
+            setNormalContext(context, order);
 
             PrePayContext prePayContext = new PrePayContext();
             context.setContext(prePayContext);
-            orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
+            ServiceResult<Object, Object> prePaidFSMResult = orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
+            if (!prePaidFSMResult.isSuccess()) {
+                return ResponseEntity.internalServerError().body(
+                        String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", prePaidFSMResult.getMsg())
+                );
+            }
+
+            //第二次调用状态机。从PAID状态转变
+            Order order1 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
             ServiceResult<Object, ?> serviceResult = new ServiceResult<>();
-            if (SceneEnum.FIX_DELIVERY.toString().equals(save.getScene())) {
+            if (SceneEnum.FIX_DELIVERY.toString().equals(order1.getScene())) {
                 FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
                 context.setContext(fixDeliveryContext);
                 serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context);
-            } else if (SceneEnum.DINE_IN.toString().equals(save.getScene())) {
+            } else if (SceneEnum.DINE_IN.toString().equals(order1.getScene())) {
                 DineInContext dineInContext = new DineInContext();
                 context.setContext(dineInContext);
                 serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_DINE_IN.toString(), context);
-            } else if (SceneEnum.TAKE_OUT.toString().equals(save.getScene())) {
+            } else if (SceneEnum.TAKE_OUT.toString().equals(order1.getScene())) {
                 TakeOutContext takeOutContext = new TakeOutContext();
                 context.setContext(takeOutContext);
                 serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_TAKE_OUT.toString(), context);
@@ -180,34 +184,7 @@ public class OrderController {
     @LoginRequired
     @Operation(summary = "用于商铺端创建订单，不走微信支付，微信支付未办理前小程序也可先调用这个")
     public ResponseEntity<ServiceResult> createOrderInStore(@RequestBody Order entity) throws Exception {
-        // 1. 计算每个 OrderItem 的价格，并计算订单总价
-        int totalPrice = 0;
-        for (OrderItem item : entity.getItems()) {
-            // 获取商品信息
-            Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new Exception("商品未找到，ID：" + item.getProductId()));
-
-            // 获取商品的基础价格
-            int basePrice = product.getPrice();
-
-            // 计算选项的价格调整
-            int totalAdjustments = 0;
-            Map<String, OptionValue> optionValues = item.getOptionValues();
-            if (optionValues != null) {
-                for (OptionValue optionValue : optionValues.values()) {
-                    totalAdjustments += optionValue.getPriceAdjustment();
-                }
-            }
-
-            // 计算单个 OrderItem 的价格
-            int itemPrice = basePrice + totalAdjustments;
-            item.setPrice(itemPrice);
-
-            // 累加到订单总价
-            totalPrice += itemPrice;
-        }
-        // 设置订单总价
-        entity.setTotalPrice(totalPrice);
+        orderService.checkPrice(entity);
 
         // 设置订单状态为已支付
         entity.setState(StateEnum.PAID.toString());
@@ -308,7 +285,7 @@ public class OrderController {
         serviceResult = orderFsmEngine.sendEvent(EventEnum.REFUND.toString(), context);
 
         if (serviceResult != null && serviceResult.isSuccess()) {
-            orderWebSocketHandler.sendMessageToOrder(order.getId().toHexString(),"已退款");
+            orderWebSocketHandler.sendMessageToOrder(order.getId().toHexString(), "已退款");
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);

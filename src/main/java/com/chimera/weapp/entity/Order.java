@@ -10,8 +10,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Date;
 import java.util.List;
 
 @Document(collection = "order")
@@ -48,4 +51,8 @@ public class Order {
     @Schema(description = "前端先计算一个，根据sum(OrderItem.price)-优惠券，后端会check")
     @NotNull
     private int totalPrice;
+
+    @CreatedDate
+    @Schema(description = "自动填充创建时间")
+    private Date createdAt;
 }
