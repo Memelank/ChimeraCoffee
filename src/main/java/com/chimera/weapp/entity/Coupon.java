@@ -9,6 +9,8 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 
 @Document(collection = "coupon")
 @Data
@@ -28,4 +30,6 @@ public class Coupon {
     private int costPoints;
     @Schema(description = "是否可用积分兑换")
     private boolean convertible;
+    @Schema(description = "截至有效期")
+    private Date validity;
 }
