@@ -1,5 +1,6 @@
 package com.chimera.weapp.entity;
 
+import com.chimera.weapp.vo.CouponIns;
 import com.chimera.weapp.vo.OrderItem;
 import com.chimera.weapp.vo.DeliveryInfo;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -48,9 +49,12 @@ public class Order {
     private String remark;
     @Schema(description = "商家备注")
     private String merchantNote;
-    @Schema(description = "前端先计算一个，根据sum(OrderItem.price)-优惠券，后端会check")
+    @Schema(description = "前端先计算一个，根据sum(OrderItem.price)-coupon.dePrice，后端会check")
     @NotNull
     private int totalPrice;
+
+    @Schema(description = "本订单使用的优惠券，可为空")
+    private CouponIns coupon;
 
     @CreatedDate
     @Schema(description = "自动填充创建时间")
