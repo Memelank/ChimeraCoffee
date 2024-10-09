@@ -20,8 +20,6 @@ public class FixDeliveryInfoController {
     private FixDeliveryInfoRepository repository;
 
     @GetMapping
-    @LoginRequired
-    @RolesAllow(RoleEnum.ADMIN)
     @Operation(summary = "获取所有定时达信息，用于定时达下单")
     public List<FixDeliveryInfo> getAllFixDeliveryInfos() {
         return repository.findAll();

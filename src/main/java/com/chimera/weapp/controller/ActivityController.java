@@ -51,9 +51,7 @@ public class ActivityController {
     }
 
     @GetMapping
-    @LoginRequired
-    @RolesAllow(RoleEnum.ADMIN)
-    @Operation(summary = "获得所有活动")
+    @Operation(summary = "获得所有展示活动")
     public ResponseEntity<List<Activity>> getAllActivities() {
         return ResponseEntity.ok(repository.findAllByDeleteIs(0));
     }

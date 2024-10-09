@@ -1,9 +1,11 @@
 package com.chimera.weapp.controller;
 
 import com.chimera.weapp.annotation.LoginRequired;
+import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.dto.PrePaidDTO;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.entity.Product;
+import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.handler.OrderWebSocketHandler;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.ProductRepository;
@@ -65,6 +67,8 @@ public class OrderController {
     private OrderWebSocketHandler orderWebSocketHandler;
 
     @GetMapping
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<?> getAllOrders(
             @org.springframework.web.bind.annotation.RequestParam("startTime") @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date startTime,
             @org.springframework.web.bind.annotation.RequestParam("endTime") @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date endTime) {
@@ -244,6 +248,7 @@ public class OrderController {
 
     @PostMapping(value = "/supply", consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<ServiceResult> supplyOrder(@RequestBody Order order) throws Exception {
         ServiceResult<Object, ?> serviceResult = null;
 
@@ -273,6 +278,7 @@ public class OrderController {
 
     @PostMapping(value = "/refund", consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<ServiceResult> refundOrder(@RequestBody Order save) throws Exception {
 
         Order order = repository.save(save);
