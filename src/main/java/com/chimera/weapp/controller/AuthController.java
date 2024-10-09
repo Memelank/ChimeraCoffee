@@ -13,6 +13,7 @@ import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.service.WeChatService;
 import com.chimera.weapp.util.JwtUtils;
 import com.chimera.weapp.util.PasswordUtils;
+import com.chimera.weapp.util.ThreadLocalUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,10 +61,7 @@ public class AuthController {
             User user1 = user.get();
             boolean succeed = PasswordUtils.checkPassword(password, user1.getHashedPassword());
             if (succeed) {
-                String token = JwtUtils.generateToken(
-                        user1.getId().toHexString(),
-                        user1.getName(),
-                        user1.getRole(), null);
+                String token = JwtUtils.generateToken(user1.getId().toHexString());
                 HttpHeaders headers = new HttpHeaders();
 
                 headers.add("Authorization", "Bearer " + token);
@@ -94,7 +92,7 @@ public class AuthController {
                     .role(RoleEnum.CUSTOMER.toString())
                     .name("wx_" + UUID.randomUUID()).build();
             User save1 = repository.save(newUser);
-            String jwt = JwtUtils.generateToken(save1.getId().toHexString(), save1.getName(), save1.getRole(), save1.getOpenid());
+            String jwt = JwtUtils.generateToken(save1.getId().toHexString());
             save1.setJwt(jwt);
             User save2 = repository.save(save1);
             HttpHeaders headers = new HttpHeaders();
@@ -112,7 +110,7 @@ public class AuthController {
             } catch (ExpiredJwtException e) {
                 log.info(String.format("有小程序用户在jwt过期后重新登录，用户openid为%s", user.getOpenid()), e);
             }
-            jwt = JwtUtils.generateToken(user.getId().toHexString(), user.getName(), user.getRole(), user.getOpenid());
+            jwt = JwtUtils.generateToken(user.getId().toHexString());
             HttpHeaders headers = new HttpHeaders();
             user.setJwt(jwt);
             repository.save(user);
@@ -127,10 +125,9 @@ public class AuthController {
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
     @Operation(description = "一个纯粹的管理员身份校验，输入请求头中的Authorization，输出响应头中的可能刷新的token，响应体中的用户基本信息")
-    public ResponseEntity<ResponseBodyDTO<UserDTO>> validate(){
-        Claims claims = (Claims)request.getAttribute("claims");
-        String userId = (String)claims.get("userId");
-        User user = repository.findById(new ObjectId(userId)).orElseThrow();
+    public ResponseEntity<ResponseBodyDTO<UserDTO>> validate() {
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
+        User user = repository.findById(new ObjectId(userDTO.getId())).orElseThrow();
         return new ResponseEntity<>(new ResponseBodyDTO<>("登陆成功",
                 UserDTO.ofUser(user).build()), HttpStatus.OK);
     }

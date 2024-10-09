@@ -16,14 +16,9 @@ public class JwtUtils {
     private static final SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
     // 生成 JWT
-    public static String generateToken(String userId, String username, String role, String openid) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("userName", username);
-        claims.put("role", role);  // 将用户角色存入 JWT 中
-        claims.put("openid",openid);
+    public static String generateToken(String userId) {
         return Jwts.builder()
-                .claims(claims)
+                .subject(userId)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(key)

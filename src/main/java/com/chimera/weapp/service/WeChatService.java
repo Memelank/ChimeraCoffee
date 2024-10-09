@@ -2,9 +2,11 @@ package com.chimera.weapp.service;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.dto.PrePaidDTO;
+import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.repository.UserRepository;
+import com.chimera.weapp.util.ThreadLocalUtil;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.*;
@@ -64,10 +66,8 @@ public class WeChatService {
     }
 
     private String buildRequestBody(Order save) {
-        //todo 因为根据用户id取openid是频繁操作，应该从requestAttribute获取openid，但是暂时先不改SecurityAspect那边了
-        User customer = userRepository.findById(save.getUserId()).orElseThrow();
         ObjectId orderId = save.getId();
-        String openid = customer.getOpenid();
+        String openid = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class).getOpenid();
         String description = orderService.getDescription(save);
         Map<String, Object> map = new HashMap<>();
         map.put("appid", appid);

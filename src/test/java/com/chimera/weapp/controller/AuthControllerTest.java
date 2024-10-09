@@ -60,7 +60,7 @@ class AuthControllerTest {
                 .id(new ObjectId(new Date()))
                 .openid("openid666")
                 .name("wx_customer1")
-                .jwt(JwtUtils.generateToken("id","name","role","openid666")).build()));
+                .jwt(JwtUtils.generateToken("id")).build()));
         ResponseEntity<ResponseBodyDTO<UserDTO>> responseEntity = authController.wxLoginOrRegister("code");
         assertTrue(responseEntity.getBody().getMsg().contains("登陆成功"));
     }

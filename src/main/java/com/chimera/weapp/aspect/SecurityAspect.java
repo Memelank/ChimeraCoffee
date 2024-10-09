@@ -1,10 +1,12 @@
 package com.chimera.weapp.aspect;
 
 import com.chimera.weapp.annotation.RolesAllow;
+import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.util.JwtUtils;
+import com.chimera.weapp.util.ThreadLocalUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -59,12 +62,12 @@ public class SecurityAspect {
             token = token.substring(7);  // 去掉 "Bearer " 前缀
             Claims claims = JwtUtils.parseToken(token);
 
-            String username = (String) claims.get("userName");
-            compareTokenWithMongoDBToken(token, username);
+            String issuer = claims.getSubject();
+            compareTokenWithMongoDBToken(token, issuer);
 
             // 存储用户信息，以便后续使用
-            request.setAttribute("claims", claims);
-
+            ThreadLocalUtil.set(ThreadLocalUtil.USER_DTO, UserDTO.ofUser(repository.findById(new ObjectId(issuer)).orElseThrow()));
+            ThreadLocalUtil.set(ThreadLocalUtil.CLAIMS,claims);
             canRefresh = true;
             return pjp.proceed();
 
@@ -80,7 +83,7 @@ public class SecurityAspect {
                     .body("服务器未知错误!");
         } finally {
             if (canRefresh) {
-                Claims claims = (Claims) request.getAttribute("claims");
+                Claims claims = ThreadLocalUtil.get(ThreadLocalUtil.CLAIMS, Claims.class);
 
                 securityService.tryToRefreshToken(claims);
             }
@@ -89,8 +92,8 @@ public class SecurityAspect {
 
     }
 
-    private void compareTokenWithMongoDBToken(String token, String username) throws Exception {
-        User user = repository.findByName(username).orElseThrow(() -> new Exception("user not found"));
+    private void compareTokenWithMongoDBToken(String token, String userId) throws Exception {
+        User user = repository.findById(new ObjectId(userId)).orElseThrow(() -> new Exception("user not found"));
         String jwt = user.getJwt();
         if (jwt == null || jwt.isEmpty()) {
             throw new Exception("Unauthorized - User had log out");
@@ -105,12 +108,12 @@ public class SecurityAspect {
     @Around("onRolesAllow()")
     @Order(2)
     public Object checkRole(ProceedingJoinPoint pjp) throws Throwable {
-        Claims claims = (Claims) request.getAttribute("claims");
-        if (claims == null) {
-            return new ResponseEntity<>("Unauthorized - No claims found", HttpStatus.UNAUTHORIZED);
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO,UserDTO.class);
+        if (userDTO == null) {
+            return new ResponseEntity<>("Unauthorized - No userDTO found", HttpStatus.UNAUTHORIZED);
         }
         RolesAllow rolesAllow = getRolesAllow(pjp);
-        String role = (String) claims.get("role");
+        String role = userDTO.getRole();
         boolean hasRequiredRole = Arrays.stream(rolesAllow.value())
                 .map(Enum::name)
                 .anyMatch(roleAllow -> roleAllow.equals(role));
