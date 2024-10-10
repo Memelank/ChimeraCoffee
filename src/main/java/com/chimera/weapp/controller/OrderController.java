@@ -10,6 +10,7 @@ import com.chimera.weapp.handler.OrderWebSocketHandler;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.ProductRepository;
 import com.chimera.weapp.service.OrderService;
+import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.service.WeChatService;
 import com.chimera.weapp.statemachine.context.*;
 import com.chimera.weapp.statemachine.engine.OrderFsmEngine;
@@ -55,6 +56,9 @@ public class OrderController {
 
     @Autowired
     private HttpServletRequest httpServletRequest;
+
+    @Autowired
+    private SecurityService securityService;
 
 //    @Autowired
 //    private NotificationConfig notificationConfig;
@@ -104,6 +108,7 @@ public class OrderController {
     @LoginRequired
     @Operation(summary = "创建预支付订单。小程序先调用这个，再调用wx.requestPayment")
     public PrePaidDTO create(@RequestBody OrderApiParams orderApiParams) throws URISyntaxException, IOException {
+        securityService.checkIdImitate(orderApiParams.getUserId());
         Order order = orderService.buildOrderByApiParams(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
         Order save = repository.save(order);
@@ -184,6 +189,7 @@ public class OrderController {
     @LoginRequired
     @Operation(summary = "用于商铺端创建订单，不走微信支付，微信支付未办理前小程序也可先调用这个")
     public ResponseEntity<ServiceResult> createOrderInStore(@RequestBody OrderApiParams orderApiParams) throws Exception {
+        securityService.checkIdImitate(orderApiParams.getUserId());
         Order order = orderService.buildOrderByApiParams(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
         // 保存订单
@@ -228,6 +234,7 @@ public class OrderController {
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<ServiceResult> supplyOrder(@RequestBody Order order) throws Exception {
+        securityService.checkIdImitate(order.getUserId());
         ServiceResult<Object, ?> serviceResult = null;
 
         StateContext<Object> context = new StateContext<>();
@@ -258,7 +265,7 @@ public class OrderController {
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<ServiceResult> refundOrder(@RequestBody Order save) throws Exception {
-
+        securityService.checkIdImitate(save.getUserId());
         Order order = repository.save(save);
         ServiceResult<Object, ?> serviceResult = null;
 

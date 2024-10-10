@@ -1,6 +1,7 @@
 package com.chimera.weapp.dto;
 
 import com.chimera.weapp.entity.User;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UserDTO {
+    @NotNull
     private String id;
     private String openid;
     private String name;
