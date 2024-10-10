@@ -21,6 +21,8 @@ public class OrderItem {
     private Map<String, OptionValue> optionValues;
     @Schema(description = "Product.name")
     private String name;
-    @Schema(description = "根据Product.price和目前optionValues中OptionValue.priceAdjustment计算的价格")
+    @Schema(description = "根据Product.price和目前optionValues中OptionValue.priceAdjustment计算的价格。单位为分")
     private int price;
+    @Schema(description = "Product.imgURL")
+    private String imgURL;
 }
