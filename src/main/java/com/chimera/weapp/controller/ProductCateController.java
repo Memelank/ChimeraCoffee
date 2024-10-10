@@ -29,6 +29,12 @@ public class ProductCateController {
         return ResponseEntity.ok(repository.findAllByDeleteIs(0));
     }
 
+    // 获取所有产品类别
+    @GetMapping("/shop")
+    public ResponseEntity<List<ProductCate>> getAllProductCatesShop() {
+        return ResponseEntity.ok(repository.findAllByDeleteIsAndStatusIs(0, 1));
+    }
+
     // 创建新产品类别
     @PostMapping
     @LoginRequired

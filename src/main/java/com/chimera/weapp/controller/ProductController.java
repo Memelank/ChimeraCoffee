@@ -39,6 +39,12 @@ public class ProductController {
     @GetMapping
     @Operation(summary = "获得所有Products，用于菜单展示")
     public ResponseEntity<List<Product>> getAllProducts() {
+        return ResponseEntity.ok(repository.findAllByDeleteIsAndStatusIs(0, 1));
+    }
+
+
+    @GetMapping("/shop")
+    public ResponseEntity<List<Product>> getAllProductsShop() {
         return ResponseEntity.ok(repository.findAllByDeleteIs(0));
     }
 

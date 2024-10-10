@@ -33,7 +33,7 @@ public class Product {
     private String describe;
     @Schema(description = "菜单列表中，name下面展示的简介")
     private String short_desc;
-    @Schema(description = "status=0为下架，前端过滤不显示")
+    @Schema(description = "status=0为下架，后端不返回给前端")
     private int status; // 0是下架，1是上架
     @Schema(description = "对于delete=1的，后端不返回")
     private int delete; // 1是删除，0是正常

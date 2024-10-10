@@ -10,4 +10,6 @@ import java.util.List;
 public interface ProductRepository extends MongoRepository<Product, ObjectId> {
     boolean existsByCateIdAndDelete(ObjectId cateId, int delete);
     List<Product> findAllByDeleteIs(int delete);
+    List<Product> findAllByDeleteIsAndStatusIs(int delete, int status);
+
 }

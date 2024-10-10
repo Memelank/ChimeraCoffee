@@ -50,17 +50,14 @@ public class ActivityController {
         }
     }
 
-    @GetMapping
-    @Operation(summary = "获得所有展示活动")
-    public ResponseEntity<List<Activity>> getAllActivities() {
+    @GetMapping(("/shop"))
+    public ResponseEntity<List<Activity>> getAllActivitiesShop() {
         return ResponseEntity.ok(repository.findAllByDeleteIs(0));
     }
 
-    @GetMapping("/wx")
-    @LoginRequired
-    @RolesAllow(RoleEnum.ADMIN)
+    @GetMapping()
     @Operation(summary = "获取所有小程序展示活动")
-    public ResponseEntity<List<Activity>> getAllActivitiesWX() {
+    public ResponseEntity<List<Activity>> getAllActivities() {
         return ResponseEntity.ok(repository.findAllByDeleteIsAndStatusIs(0, 1));
     }
 
