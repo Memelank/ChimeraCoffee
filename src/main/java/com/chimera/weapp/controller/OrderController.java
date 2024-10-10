@@ -190,8 +190,8 @@ public class OrderController {
     public ResponseEntity<ServiceResult> createOrderInStore(@RequestBody Order entity) throws Exception {
         orderService.checkPrice(entity);
 
-        // 设置订单状态为已支付
-        entity.setState(StateEnum.PAID.toString());
+        // 设置订单状态为预支付
+        entity.setState(StateEnum.PRE_PAID.toString());
 
         // 获取当前日期的开始时间（0点）
         Date startOfDay = getStartOfDay(new Date());
@@ -204,12 +204,13 @@ public class OrderController {
 
         // 保存订单
         Order save = repository.save(entity);
-
         // FSM 状态机处理
+        //1.预支付到支付状态，过一遍积分的逻辑
+        orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), new StateContext<>());
+        //2.支付状态到其它别的状态
         ServiceResult<Object, ?> serviceResult = null;
         StateContext<Object> context = new StateContext<>();
         setNormalContext(context, save);
-
         // 根据不同的场景设置上下文并发送事件
         if (SceneEnum.FIX_DELIVERY.toString().equals(save.getScene())) {
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
