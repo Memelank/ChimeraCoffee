@@ -24,7 +24,7 @@ public class Coupon {
     private ObjectId cateId;
     @Schema(description = "名称")
     private int name;
-    @Schema(description = "抵扣金额")
+    @Schema(description = "抵扣金额。单位为分。")
     private int dePrice;
     @Schema(description = "0：下线，1：上线。对于status=0的，不再允许发放、兑换")
     private int status;

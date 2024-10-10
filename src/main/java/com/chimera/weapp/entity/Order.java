@@ -49,7 +49,7 @@ public class Order {
     private String remark;
     @Schema(description = "商家备注")
     private String merchantNote;
-    @Schema(description = "前端先计算一个，根据sum(OrderItem.price)-coupon.dePrice，后端会check")
+    @Schema(description = "前端先计算一个，根据sum(OrderItem.price)-coupon.dePrice，后端会check。单位为分。")
     @NotNull
     private int totalPrice;
 

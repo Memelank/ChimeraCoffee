@@ -31,7 +31,7 @@ public class Activity {
     private Date startTime;
     @Schema(description = "活动结束时间，到时自动下架")
     private Date endTime;
-    @Schema(description = "活动优惠抵扣价格，对于cateIds对应类的所有商品，减去这个价格。")
+    @Schema(description = "活动优惠抵扣价格，对于cateIds对应类的所有商品，减去这个价格。单位为分。")
     private int dePrice;
     @Schema(description = "适用商品类，对应ProductCate.id，当用户点击活动时，跳转到cateIds[0]对应的侧边栏")
     private List<String> cateIds;

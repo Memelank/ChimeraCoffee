@@ -25,9 +25,9 @@ public class Product {
     private ObjectId cateId;
     private String name;
     private String imgURL;
-    @Schema(description = "基础价格")
+    @Schema(description = "基础价格，单位为分")
     private int price;
-    @Schema(description = "学生优惠价。若用户为已认证学生，展示基础价格，然后划掉，再展示学生优惠价。若未认证则正常展示基础价格。")
+    @Schema(description = "学生优惠价。若用户为已认证学生，展示基础价格，然后划掉，再展示学生优惠价。若未认证则正常展示基础价格。单位为分。")
     private int stuPrice;
     @Schema(description = "详情页描述")
     private String describe;

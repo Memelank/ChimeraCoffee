@@ -16,6 +16,6 @@ public class OptionValue {
     private String uuid;
     @Schema(description = "加购商品的可选项的可选值，如对于\"规格\"，value可以为\"中杯\"")
     private String value;
-    @Schema(description = "该可选项的价格调整，>=0")
+    @Schema(description = "该可选项的价格调整，>=0。单位也为分。")
     private int priceAdjustment;
 }

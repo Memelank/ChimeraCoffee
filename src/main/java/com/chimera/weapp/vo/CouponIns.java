@@ -18,6 +18,6 @@ public class CouponIns {
     private String couponId;
     @Schema(description = "0=未使用，1=已使用，-1=已过期")
     private int status;
-    @Schema(description = "抵扣金额，与对应Coupon.dePrice对应")
+    @Schema(description = "抵扣金额，与对应Coupon.dePrice对应。单位为分")
     private int dePrice;
 }
