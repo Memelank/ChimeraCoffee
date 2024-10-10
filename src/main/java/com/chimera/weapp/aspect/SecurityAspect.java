@@ -66,7 +66,7 @@ public class SecurityAspect {
             compareTokenWithMongoDBToken(token, issuer);
 
             // 存储用户信息，以便后续使用
-            ThreadLocalUtil.set(ThreadLocalUtil.USER_DTO, UserDTO.ofUser(repository.findById(new ObjectId(issuer)).orElseThrow()));
+            ThreadLocalUtil.set(ThreadLocalUtil.USER_DTO, UserDTO.ofUser(repository.findById(new ObjectId(issuer)).orElseThrow()).build());
             ThreadLocalUtil.set(ThreadLocalUtil.CLAIMS,claims);
             canRefresh = true;
             return pjp.proceed();
