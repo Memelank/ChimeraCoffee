@@ -28,7 +28,7 @@ public class SecurityService {
 
     public void checkIdImitate(String idFromParameterOrBody) {
         UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
-        if (!Objects.equals(userDTO.getRole(), idFromParameterOrBody)) {
+        if (!Objects.equals(userDTO.getId(), idFromParameterOrBody)) {
             throw new RuntimeException("禁止冒充他人身份进行操作");
         }
     }

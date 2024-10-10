@@ -2,9 +2,9 @@ package com.chimera.weapp.controller;
 
 import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.annotation.RolesAllow;
+import com.chimera.weapp.apiparams.OrderApiParams;
 import com.chimera.weapp.dto.PrePaidDTO;
 import com.chimera.weapp.entity.Order;
-import com.chimera.weapp.entity.Product;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.handler.OrderWebSocketHandler;
 import com.chimera.weapp.repository.OrderRepository;
@@ -13,21 +13,16 @@ import com.chimera.weapp.service.OrderService;
 import com.chimera.weapp.service.WeChatService;
 import com.chimera.weapp.statemachine.context.*;
 import com.chimera.weapp.statemachine.engine.OrderFsmEngine;
-
 import com.chimera.weapp.statemachine.enums.EventEnum;
 import com.chimera.weapp.statemachine.enums.SceneEnum;
 import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
-import com.chimera.weapp.vo.OptionValue;
-import com.chimera.weapp.vo.OrderItem;
-
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.jsapi.model.Transaction;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.util.GenericSignature;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -108,9 +103,9 @@ public class OrderController {
     @PostMapping("/wxcreate")
     @LoginRequired
     @Operation(summary = "创建预支付订单。小程序先调用这个，再调用wx.requestPayment")
-    public PrePaidDTO create(@RequestBody Order order) throws URISyntaxException, IOException {
+    public PrePaidDTO create(@RequestBody OrderApiParams orderApiParams) throws URISyntaxException, IOException {
+        Order order = orderService.buildOrderByApiParams(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
-        orderService.checkPrice(order);
         Order save = repository.save(order);
         return weChatService.jsapiTransaction(save);
     }
@@ -188,23 +183,11 @@ public class OrderController {
     @PostMapping("/create")
     @LoginRequired
     @Operation(summary = "用于商铺端创建订单，不走微信支付，微信支付未办理前小程序也可先调用这个")
-    public ResponseEntity<ServiceResult> createOrderInStore(@RequestBody Order entity) throws Exception {
-        orderService.checkPrice(entity);
-
-        // 设置订单状态为预支付
-        entity.setState(StateEnum.PRE_PAID.toString());
-
-        // 获取当前日期的开始时间（0点）
-        Date startOfDay = getStartOfDay(new Date());
-
-        // 查询当天的订单数量
-        long orderCountToday = repository.countByCreatedAtGreaterThanEqual(startOfDay);
-
-        // 设置订单号，从1开始累计
-        entity.setOrderNum((int) orderCountToday + 1);
-
+    public ResponseEntity<ServiceResult> createOrderInStore(@RequestBody OrderApiParams orderApiParams) throws Exception {
+        Order order = orderService.buildOrderByApiParams(orderApiParams);
+        order.setState(StateEnum.PRE_PAID.toString());
         // 保存订单
-        Order save = repository.save(entity);
+        Order save = repository.save(order);
         // FSM 状态机处理
         //1.预支付到支付状态，过一遍积分的逻辑
         StateContext<Object> context = new StateContext<>();
@@ -240,18 +223,6 @@ public class OrderController {
         }
     }
 
-    /**
-     * 获取当天开始时间（0点）
-     */
-    private Date getStartOfDay(Date date) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        return calendar.getTime();
-    }
 
     @PostMapping(value = "/supply", consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
@@ -276,7 +247,7 @@ public class OrderController {
         }
 
         if (serviceResult != null && serviceResult.isSuccess()) {
-            orderWebSocketHandler.sendMessageToOrder(order.getId().toHexString(),"已供餐");
+            orderWebSocketHandler.sendMessageToOrder(order.getId().toHexString(), "已供餐");
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);

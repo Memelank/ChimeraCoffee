@@ -1,7 +1,5 @@
-package com.chimera.weapp.entity;
+package com.chimera.weapp.apiparams;
 
-import com.chimera.weapp.vo.CouponIns;
-import com.chimera.weapp.vo.OrderItem;
 import com.chimera.weapp.vo.DeliveryInfo;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,26 +9,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
 import java.util.List;
-
-@Document(collection = "order")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "就是订单呀")
-public class Order {
-    @Id
-    private ObjectId id;
+public class OrderApiParams {
     @NotNull
     private ObjectId userId;
-    @Schema(description = "自动填充状态")
-    private String state;
     @Schema(description = "顾客类型，可选：\"北大学生业务\"，\"清华学生业务\"，\"未认证为学生身份的用户业务\"")
     @NotNull
     private String customerType;
@@ -42,21 +29,11 @@ public class Order {
     @ArraySchema(arraySchema = @Schema(description = "订单所含商品列表", example = "[example1,example2...]"),
             schema = @Schema(description = "订单其中的一个商品"))
     @NotNull
-    private List<OrderItem> items;
-    @Schema(description = "自动填充订单号")
-    private int orderNum;
+    private List<OrderItemApiParams> items;
     @Schema(description = "顾客备注")
     private String remark;
     @Schema(description = "商家备注")
     private String merchantNote;
-    @Schema(description = "后端根据sum(OrderItem.price)-coupon.dePrice计算，单位为分。")
-    @NotNull
-    private int totalPrice;
-
-    @Schema(description = "本订单使用的优惠券，可为空")
-    private CouponIns coupon;
-
-    @CreatedDate
-    @Schema(description = "自动填充创建时间")
-    private Date createdAt;
+    @Schema(description = "本订单使用的优惠券uuid，可为空")
+    private String couponInsUUID;
 }
