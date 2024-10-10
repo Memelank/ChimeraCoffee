@@ -27,6 +27,7 @@ import com.wechat.pay.java.service.partnerpayments.jsapi.model.Transaction;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.util.GenericSignature;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -206,11 +207,15 @@ public class OrderController {
         Order save = repository.save(entity);
         // FSM 状态机处理
         //1.预支付到支付状态，过一遍积分的逻辑
-        orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), new StateContext<>());
-        //2.支付状态到其它别的状态
-        ServiceResult<Object, ?> serviceResult = null;
         StateContext<Object> context = new StateContext<>();
         setNormalContext(context, save);
+        PrePayContext prePayContext = new PrePayContext();
+        context.setContext(prePayContext);
+        orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
+        //2.支付状态到其它别的状态
+        context.setOrderState(StateEnum.PAID.toString());
+
+        ServiceResult<Object, ?> serviceResult = null;
         // 根据不同的场景设置上下文并发送事件
         if (SceneEnum.FIX_DELIVERY.toString().equals(save.getScene())) {
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
@@ -219,6 +224,7 @@ public class OrderController {
         } else if (SceneEnum.DINE_IN.toString().equals(save.getScene())) {
             DineInContext dineInContext = new DineInContext();
             context.setContext(dineInContext);
+            System.out.println(context);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_DINE_IN.toString(), context);
         } else if (SceneEnum.TAKE_OUT.toString().equals(save.getScene())) {
             TakeOutContext takeOutContext = new TakeOutContext();

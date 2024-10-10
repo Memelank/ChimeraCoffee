@@ -26,21 +26,11 @@ public class TestServiceDev {
 
         ProcessorMap processorMap = ProcessorMap.builder()
                 .id(new ObjectId())  // 自动生成的ObjectId
-                .state("已支付")  // 设置默认状态为NEW
-                .event("需要堂食")  // 设置默认事件
+                .state("预支付")  // 设置默认状态为NEW
+                .event("支付成功")  // 设置默认事件
                 .customerTypes(new String[]{"北大学生业务", "清华学生业务", "未认证为学生身份的用户业务"})  // 样例客户类型
-                .scenes(new String[]{"堂食"})  // 样例场景
-                .processorIds(new int[]{1})  // 样例处理器ID
-                .build();
-        processorMapRepository.save(processorMap);
-
-        processorMap = ProcessorMap.builder()
-                .id(new ObjectId())  // 自动生成的ObjectId
-                .state("待出餐")  // 设置默认状态为NEW
-                .event("提供堂食")  // 设置默认事件
-                .customerTypes(new String[]{"北大学生业务", "清华学生业务", "未认证为学生身份的用户业务"})  // 样例客户类型
-                .scenes(new String[]{"堂食"})  // 样例场景
-                .processorIds(new int[]{3})  // 样例处理器ID
+                .scenes(new String[]{"堂食", "外带", "定时达"})  // 样例场景
+                .processorIds(new int[]{0})  // 样例处理器ID
                 .build();
         processorMapRepository.save(processorMap);
 
