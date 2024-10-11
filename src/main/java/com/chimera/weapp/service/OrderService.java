@@ -85,6 +85,7 @@ public class OrderService {
             ObjectId productId = orderItemApiParams.getProductId();
             Product product = productRepository.findById(productId).orElseThrow();
             String name = product.getName();
+            ObjectId cateId = product.getCateId();
             int actualOrderItemPrice = 0;
             actualOrderItemPrice += product.getPrice();
             Map<String, String> optionValues = orderItemApiParams.getOptionValues();
@@ -104,6 +105,7 @@ public class OrderService {
             OrderItem orderItem = OrderItem.builder().productId(productId)
                     .optionValues(map)
                     .name(name)
+                    .cateId(cateId)
                     .imgURL(product.getImgURL())
                     .price(actualOrderItemPrice).build();
             res.add(orderItem);
