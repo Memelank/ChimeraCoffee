@@ -63,14 +63,13 @@ public class OrderService {
         for (CouponIns couponIns : coupons) {
             String couponInsUUID = couponIns.getUuid();
             if (Objects.equals(couponInsUUID, couponInsUUIDInput)) {
-                String couponId = couponIns.getCouponId();
-                Coupon coupon = couponRepository.findById(new ObjectId(couponId)).orElseThrow();
-                if (Objects.isNull(coupon.getCateId())) {
+                String cateId = couponIns.getCateId();
+                if (Objects.isNull(cateId)) {
                     return couponIns;
                 }
                 for (ObjectId productId : productIds) {
                     Product product = productRepository.findById(productId).orElseThrow();
-                    if (Objects.equals(product.getCateId(), coupon.getCateId())) {
+                    if (Objects.equals(product.getCateId().toHexString(), cateId)) {
                         return couponIns;
                     }
                 }
