@@ -4,12 +4,13 @@ public enum StateEnum {
     PRE_PAID("预支付"),
     PAID("已支付"),
     WAITING_DINE_IN("待出餐"),
-    WAITING_FIX_DELIVERY("待出餐"),
+    WAITING_FIX_DELIVERY("待配送"),
     WAITING_TAKE_OUT("待出餐"),
-    NORMAL_END("正常结束"),
+    NORMAL_END("已完成"),
+    REFUNDED("已退款"),
+
     CANCELED("已取消"),
-    AFTERSALES("已售后"),
-    REFUNDED("已退款");
+    AFTERSALES("已售后");
 
     private final String state;
 
