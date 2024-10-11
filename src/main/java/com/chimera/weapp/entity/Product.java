@@ -1,6 +1,7 @@
 package com.chimera.weapp.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class Product {
     @Id
     private ObjectId id;
     @Schema(description = "对应ProductCate.id")
+    @NotNull
     private ObjectId cateId;
     private String name;
     private String imgURL;
