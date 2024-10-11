@@ -1,11 +1,15 @@
 package com.chimera.weapp.dto;
 
 import com.chimera.weapp.entity.User;
+import com.chimera.weapp.vo.CouponIns;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,6 +22,8 @@ public class UserDTO {
     private String name;
     private String school;
     private String role;
+    private int points;
+    private List<CouponIns> coupons;
 
     public static UserDTO.UserDTOBuilder ofUser(User user) {
         return UserDTO.builder()
@@ -25,6 +31,8 @@ public class UserDTO {
                 .openid(user.getOpenid())
                 .name(user.getName())
                 .school(user.getSchool())
+                .points(user.getPoints())
+                .coupons(user.getCoupons())
                 .role(user.getRole());
     }
 }
