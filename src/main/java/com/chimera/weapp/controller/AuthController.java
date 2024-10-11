@@ -6,6 +6,7 @@ import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.dto.LoginDTO;
 import com.chimera.weapp.dto.ResponseBodyDTO;
 import com.chimera.weapp.dto.UserDTO;
+import com.chimera.weapp.dto.WxStudentCheckDTO;
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.UserRepository;
@@ -14,10 +15,12 @@ import com.chimera.weapp.service.WeChatService;
 import com.chimera.weapp.util.JwtUtils;
 import com.chimera.weapp.util.PasswordUtils;
 import com.chimera.weapp.util.ThreadLocalUtil;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,4 +135,30 @@ public class AuthController {
                 UserDTO.ofUser(user).build()), HttpStatus.OK);
     }
 
+    @PostMapping("/wx/checkstudentidentity")
+    @LoginRequired
+    @Operation
+    public ResponseEntity<WxStudentCheckDTO> checkStudentIdentity(CheckStudentIdentityApiParams apiParams) throws URISyntaxException, IOException {
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
+        String openid = userDTO.getOpenid();
+        WxStudentCheckDTO wxStudentCheckDTO = weChatService.checkStudentIdentity(
+                WeChatService.WxCheckStudentIdentityApiParams.builder()
+                        .openid(openid)
+                        .wx_studentcheck_code(apiParams.wx_student_check_code).build());
+        int bindStatus = wxStudentCheckDTO.getBind_status();
+        boolean student = wxStudentCheckDTO.is_student();
+        if (bindStatus == 3 && student) {
+            User user = repository.findByOpenid(openid).orElseThrow();
+            user.setStudentCert(true);
+            repository.save(user);
+            log.info("用户{}成功认证", openid);
+        }
+        return ResponseEntity.ok(wxStudentCheckDTO);
+    }
+
+
+    public static class CheckStudentIdentityApiParams {
+        @NotNull
+        String wx_student_check_code;
+    }
 }

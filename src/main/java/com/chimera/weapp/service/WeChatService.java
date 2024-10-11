@@ -2,11 +2,14 @@ package com.chimera.weapp.service;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.dto.PrePaidDTO;
+import com.chimera.weapp.dto.WxGrantAccessTokenDTO;
+import com.chimera.weapp.dto.WxStudentCheckDTO;
 import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.Order;
-import com.chimera.weapp.entity.User;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.util.ThreadLocalUtil;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.*;
@@ -22,6 +25,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 
 @Service
@@ -39,30 +43,72 @@ public class WeChatService {
     @Autowired
     private OrderService orderService;
 
-    public JSONObject code2session(String code) throws IOException, URISyntaxException {
+    private static final String ACCESS_TOKEN = "access_token";
+
+    // 公共请求方法，抽取相同逻辑
+    private String sendHttpRequest(URIBuilder uriBuilder, ClassicHttpRequest httpRequest) throws IOException, URISyntaxException {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/sns/jscode2session");
-
-            uriBuilder.addParameter("appid", appid)
-                    .addParameter("secret", secret)
-                    .addParameter("js_code", code);
             HttpHost target = new HttpHost(uriBuilder.getScheme(), uriBuilder.getHost());
-
-            ClassicHttpRequest httpRequest = ClassicRequestBuilder.get(uriBuilder.build()).build();
-            String body = httpClient.execute(target, httpRequest, classicHttpResponse -> EntityUtils.toString(classicHttpResponse.getEntity()));
-            return JSONObject.parse(body);
+            return httpClient.execute(target, httpRequest, (ClassicHttpResponse response) ->
+                    EntityUtils.toString(response.getEntity()));
         }
     }
 
-    public PrePaidDTO jsapiTransaction(Order save) throws URISyntaxException, IOException {
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {//todo 和code2session的逻辑相似，应抽取函数
-            URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi");
+    public JSONObject code2session(String code) throws IOException, URISyntaxException {
+        URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/sns/jscode2session");
+        uriBuilder.addParameter("appid", appid)
+                .addParameter("secret", secret)
+                .addParameter("js_code", code);
 
-            HttpHost target = new HttpHost(uriBuilder.getScheme(), uriBuilder.getHost());
-            ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build()).setEntity(buildRequestBody(save)).build();
-            String body = httpClient.execute(target, httpRequest, classicHttpResponse -> EntityUtils.toString(classicHttpResponse.getEntity()));
-            return JSONObject.parseObject(body, PrePaidDTO.class);
+        ClassicHttpRequest httpRequest = ClassicRequestBuilder.get(uriBuilder.build()).build();
+        String body = sendHttpRequest(uriBuilder, httpRequest);
+        return JSONObject.parse(body);
+    }
+
+    public PrePaidDTO jsapiTransaction(Order save) throws URISyntaxException, IOException {
+        URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi");
+
+        ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
+                .setEntity(buildRequestBody(save))
+                .build();
+
+        String body = sendHttpRequest(uriBuilder, httpRequest);
+        return JSONObject.parseObject(body, PrePaidDTO.class);
+    }
+
+    private String grant(String grant_type) throws URISyntaxException, IOException {
+        URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/cgi-bin/token");
+        uriBuilder.addParameter("grant_type", grant_type)
+                .addParameter("appid", appid)
+                .addParameter("secret", secret);
+        ClassicHttpRequest httpRequest = ClassicRequestBuilder.get(uriBuilder.build()).build();
+        String body = sendHttpRequest(uriBuilder, httpRequest);
+        JSONObject jsonObject = JSONObject.parseObject(body);
+        String errcode = jsonObject.getString("errcode");
+        if (Objects.nonNull(errcode)) {
+            throw new RuntimeException("调用https://api.weixin.qq.com/cgi-bin/token。grant失败：" + body);
         }
+        return body;
+    }
+
+    public WxStudentCheckDTO checkStudentIdentity(WxCheckStudentIdentityApiParams apiParams) throws URISyntaxException, IOException {
+        URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/intp/quickcheckstudentidentity");
+        String grant = grant(ACCESS_TOKEN);
+        WxGrantAccessTokenDTO wxGrantAccessTokenDTO = JSONObject.parseObject(grant, WxGrantAccessTokenDTO.class);
+        uriBuilder.addParameter(ACCESS_TOKEN, wxGrantAccessTokenDTO.getAccess_token());
+        ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
+                .setEntity(JSONObject.toJSONString(apiParams))
+                .build();
+        String body = sendHttpRequest(uriBuilder, httpRequest);
+        return JSONObject.parseObject(body, WxStudentCheckDTO.class);
+    }
+
+    @Builder
+    public static class WxCheckStudentIdentityApiParams {
+        @NotNull
+        String openid;
+        @NotNull
+        String wx_studentcheck_code;
     }
 
     private String buildRequestBody(Order save) {

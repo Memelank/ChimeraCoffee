@@ -20,6 +20,7 @@ public class UserDTO {
     private String id;
     private String openid;
     private String name;
+    private Boolean studentCert;
     private String school;
     private String role;
     private int points;
@@ -30,6 +31,7 @@ public class UserDTO {
                 .id(user.getId().toHexString())
                 .openid(user.getOpenid())
                 .name(user.getName())
+                .studentCert(user.getStudentCert())
                 .school(user.getSchool())
                 .points(user.getPoints())
                 .coupons(user.getCoupons())

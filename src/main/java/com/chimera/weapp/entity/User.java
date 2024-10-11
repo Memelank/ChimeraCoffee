@@ -27,10 +27,10 @@ public class User {
     private String openid;
     private String sessionKey;
     private String name;
-    @Schema(description = "学生认证结果")
-    private String school;
     @Schema(description = "学生认证后设为True")
     private Boolean studentCert;
+    @Schema(description = "学生认证结果")
+    private String school;
     @Schema(description = "总消费金额")
     private double expend;
     @Schema(description = "下单次数")
