@@ -10,6 +10,7 @@ import com.chimera.weapp.dto.WxStudentCheckDTO;
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.UserRepository;
+import com.chimera.weapp.service.BenefitService;
 import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.service.WeChatService;
 import com.chimera.weapp.util.JwtUtils;
@@ -19,8 +20,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +46,8 @@ public class AuthController {
     private SecurityService securityService;
     @Autowired
     private HttpServletRequest request;
+    @Autowired
+    private BenefitService benefitService;
 
     @PostMapping("/login")
     @Transactional
@@ -80,7 +81,7 @@ public class AuthController {
 
     @GetMapping("/wx")
     @Transactional
-    public ResponseEntity<ResponseBodyDTO<UserDTO>> wxLoginOrRegister(@RequestParam(value = "code") String code) throws IOException, URISyntaxException {
+    public ResponseEntity<ResponseBodyDTO<UserDTO>> wxLoginOrRegister(@RequestParam(value = "code") String code) throws Exception {
         if (code == null || code.isEmpty()) {
             return ResponseEntity.badRequest().body(new ResponseBodyDTO<>("code为空", null));
         }
@@ -98,13 +99,16 @@ public class AuthController {
             String jwt = JwtUtils.generateToken(save1.getId().toHexString());
             save1.setJwt(jwt);
             User save2 = repository.save(save1);
+            User save3 = benefitService.issueNewCustomerCouponsToUser(save2.getId());
+            User save4 = benefitService.issueActivityCouponsToUser(save3.getId());
+
             HttpHeaders headers = new HttpHeaders();
 
             headers.add("Authorization", "Bearer " + jwt);
-            log.info("小程序用户:{} 注册成功,openid:{}", save2.getName(), save2.getOpenid());
+            log.info("小程序用户:{} 注册成功,openid:{}", save4.getName(), save4.getOpenid());
             return new ResponseEntity<>(
                     new ResponseBodyDTO<>("自动注册成功",
-                            UserDTO.ofUser(save2).build()), headers, HttpStatus.OK);
+                            UserDTO.ofUser(save4).build()), headers, HttpStatus.OK);
         } else {
             User user = userOptional.get();
             String jwt = user.getJwt();
@@ -116,10 +120,12 @@ public class AuthController {
             jwt = JwtUtils.generateToken(user.getId().toHexString());
             HttpHeaders headers = new HttpHeaders();
             user.setJwt(jwt);
-            repository.save(user);
+            User save = repository.save(user);
+            User save2 = benefitService.issueActivityCouponsToUser(save.getId());
+
             headers.add("Authorization", "Bearer " + jwt);
             return new ResponseEntity<>(new ResponseBodyDTO<>("登陆成功",
-                    UserDTO.ofUser(user).build()),
+                    UserDTO.ofUser(save2).build()),
                     headers, HttpStatus.OK);
         }
     }
