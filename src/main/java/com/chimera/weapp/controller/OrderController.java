@@ -103,7 +103,7 @@ public class OrderController {
             return ResponseEntity.ok(repository.findByUserIdOrderByCreatedAtDesc(userObjectId));
         } else {
             // 仅获取最近的5个订单，并按时间倒序排列
-            return ResponseEntity.ok(repository.findTop5ByUserIdOrderByCreatedAtDesc(userObjectId));
+            return ResponseEntity.ok(repository.findTop10ByUserIdOrderByCreatedAtDesc(userObjectId));
         }
     }
 
