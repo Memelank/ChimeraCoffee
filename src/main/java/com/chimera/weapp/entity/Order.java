@@ -55,6 +55,8 @@ public class Order {
 
     @Schema(description = "本订单使用的优惠券，可为空")
     private CouponIns coupon;
+    @Schema(description = "只给商品端使用的，线下优惠，小程序端传了也不处理。")
+    private int disPrice = 0;
 
     @CreatedDate
     @Schema(description = "自动填充创建时间")

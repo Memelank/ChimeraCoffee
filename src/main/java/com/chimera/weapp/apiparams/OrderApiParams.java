@@ -34,6 +34,8 @@ public class OrderApiParams {
     private String remark;
     @Schema(description = "商家备注")
     private String merchantNote;
+    @Schema(description = "只给商品端使用的，线下优惠，小程序端传了也不处理。")
+    private int disPrice;
     @Schema(description = "本订单使用的优惠券uuid，可为空")
     private String couponInsUUID;
 }

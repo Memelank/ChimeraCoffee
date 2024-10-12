@@ -57,6 +57,36 @@ public class OrderService {
         return orderBuilder.build();
     }
 
+    public Order buildOrderByApiParamsShop(OrderApiParams orderApiParams) {
+        List<OrderItem> orderItems = buildItemsByApiParams(orderApiParams.getItems());
+        Order.OrderBuilder orderBuilder = Order.builder().userId(orderApiParams.getUserId())
+                .customerType(orderApiParams.getCustomerType())
+                .scene(orderApiParams.getScene())
+                .deliveryInfo(orderApiParams.getDeliveryInfo())
+                .items(orderItems)
+                .remark(orderApiParams.getRemark())
+                .merchantNote(orderApiParams.getMerchantNote())
+                .disPrice(orderApiParams.getDisPrice());
+
+        int orderItemPriceSum = orderItems.stream().map(OrderItem::getPrice).reduce(Integer::sum).orElseThrow();
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
+        if (!Objects.isNull(orderApiParams.getCouponInsUUID())) {
+            CouponIns couponIns = getCouponInsFromUserByUUID(userDTO.getId(), orderApiParams.getCouponInsUUID(),
+                    orderApiParams.getItems().stream().map(OrderItemApiParams::getProductId).toList());
+            orderBuilder.coupon(couponIns);
+            orderBuilder.totalPrice(orderItemPriceSum - couponIns.getDePrice());
+        }
+        orderBuilder.totalPrice(orderItemPriceSum - orderApiParams.getDisPrice());
+
+        // 获取当前日期的开始时间（0点）
+        Date startOfDay = getStartOfDay(new Date());
+        // 查询当天的订单数量
+        long orderCountToday = orderRepository.countByCreatedAtGreaterThanEqual(startOfDay);
+        // 设置订单号，从1开始累计
+        orderBuilder.orderNum((int) orderCountToday + 1);
+        return orderBuilder.build();
+    }
+
     public CouponIns getCouponInsFromUserByUUID(String userId, String couponInsUUIDInput, List<ObjectId> productIds) {
         User user = userRepository.findById(new ObjectId(userId)).orElseThrow();
         List<CouponIns> coupons = user.getCoupons();
