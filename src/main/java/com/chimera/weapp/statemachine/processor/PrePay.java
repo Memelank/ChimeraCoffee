@@ -40,7 +40,7 @@ public class PrePay extends AbstractStateProcessor<String, PrePayContext> {
     }
 
     @Override
-    public ServiceResult<String, PrePayContext> action(String nextState, StateContext<PrePayContext> context) throws Exception {
+    public ServiceResult<String, PrePayContext> actionStep(StateContext<PrePayContext> context) throws Exception {
         User user = userRepository.findById(new ObjectId(context.getUserId())).orElseThrow();
         Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
         int totalPrice = order.getTotalPrice();

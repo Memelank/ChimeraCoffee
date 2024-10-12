@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Processor(processorId = 6)
 @Component
-public class CancelFixDelivery extends AbstractStateProcessor<String, FixDeliveryContext>{
+public class CancelFixDelivery extends AbstractStateProcessor<String, FixDeliveryContext> {
     @Autowired
     private CustomRepository repository;
 
@@ -28,7 +28,7 @@ public class CancelFixDelivery extends AbstractStateProcessor<String, FixDeliver
     }
 
     @Override
-    public ServiceResult<String, FixDeliveryContext> action(String nextState, StateContext<FixDeliveryContext> context) throws Exception {
+    public ServiceResult<String, FixDeliveryContext> actionStep(StateContext<FixDeliveryContext> context) throws Exception {
         //TODO 退款
 
 

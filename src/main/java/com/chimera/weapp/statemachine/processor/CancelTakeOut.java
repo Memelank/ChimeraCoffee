@@ -28,7 +28,7 @@ public class CancelTakeOut extends AbstractStateProcessor<String, TakeOutContext
     }
 
     @Override
-    public ServiceResult<String, TakeOutContext> action(String nextState, StateContext<TakeOutContext> context) throws Exception {
+    public ServiceResult<String, TakeOutContext> actionStep( StateContext<TakeOutContext> context) throws Exception {
         //TODO 退款
 
         ServiceResult<String, TakeOutContext> result = new ServiceResult<>();

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Processor(processorId = 4)
 @Component
-public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliveryContext>{
+public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliveryContext> {
     @Autowired
     private CustomRepository repository;
 
@@ -28,7 +28,7 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
     }
 
     @Override
-    public ServiceResult<String, FixDeliveryContext> action(String nextState, StateContext<FixDeliveryContext> context) throws Exception {
+    public ServiceResult<String, FixDeliveryContext> actionStep(StateContext<FixDeliveryContext> context) throws Exception {
 
         ServiceResult<String, FixDeliveryContext> result = new ServiceResult<>();
         result.setContext(context.getContext());
@@ -45,6 +45,7 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
 
     @Override
     public void after(StateContext<FixDeliveryContext> context) {
+        //todo 提醒顾客订单将会定时定点派送
 
     }
 }

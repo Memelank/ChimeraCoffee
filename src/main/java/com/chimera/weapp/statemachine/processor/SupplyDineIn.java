@@ -28,7 +28,7 @@ public class SupplyDineIn extends AbstractStateProcessor<String, DineInContext> 
     }
 
     @Override
-    public ServiceResult<String, DineInContext> action(String nextState, StateContext<DineInContext> context) throws Exception {
+    public ServiceResult<String, DineInContext> actionStep(StateContext<DineInContext> context) throws Exception {
 
         ServiceResult<String, DineInContext> result = new ServiceResult<>();
         result.setContext(context.getContext());
@@ -45,6 +45,6 @@ public class SupplyDineIn extends AbstractStateProcessor<String, DineInContext> 
 
     @Override
     public void after(StateContext<DineInContext> context) {
-
+        //todo 提醒顾客来取餐
     }
 }

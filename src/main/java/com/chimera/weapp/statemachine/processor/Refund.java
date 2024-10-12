@@ -37,8 +37,8 @@ public class Refund extends AbstractStateProcessor<String, RefundContext> {
     }
 
     @Override
-    public ServiceResult<String, RefundContext> action(String nextState, StateContext<RefundContext> context) throws Exception {
-        //TODO 呼叫售后跟进
+    public ServiceResult<String, RefundContext> actionStep(StateContext<RefundContext> context) throws Exception {
+        //TODO 调用微信的退款接口&呼叫售后跟进
         User user = userRepository.findById(new ObjectId(context.getUserId())).orElseThrow();
         Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
         int totalPrice = order.getTotalPrice();
@@ -60,6 +60,7 @@ public class Refund extends AbstractStateProcessor<String, RefundContext> {
 
     @Override
     public void after(StateContext<RefundContext> context) {
-
+        //todo 提醒顾客已退款
+        //todo 提醒顾客注意售后？
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Processor(processorId = 7)
 @Component
-public class CallAfterSales extends AbstractStateProcessor<String, CallAfterSalesContext>{
+public class CallAfterSales extends AbstractStateProcessor<String, CallAfterSalesContext> {
     @Autowired
     private CustomRepository repository;
 
@@ -28,7 +28,7 @@ public class CallAfterSales extends AbstractStateProcessor<String, CallAfterSale
     }
 
     @Override
-    public ServiceResult<String, CallAfterSalesContext> action(String nextState, StateContext<CallAfterSalesContext> context) throws Exception {
+    public ServiceResult<String, CallAfterSalesContext> actionStep(StateContext<CallAfterSalesContext> context) throws Exception {
         //TODO 呼叫售后跟进
 
 

@@ -1,7 +1,6 @@
 package com.chimera.weapp.statemachine.processor;
 
 
-
 import com.chimera.weapp.statemachine.context.StateContext;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import org.slf4j.Logger;
@@ -46,34 +45,42 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
     @Override
     public final ServiceResult<T, C> action(StateContext<C> context) throws Exception {
         ServiceResult<T, C> result;
+        String step = "";
         try {
             // 参数校验器
+            step = "参数校验";
             result = check(context);
             if (!result.isSuccess()) {
                 return result;
             }
+
             // 数据准备
+            step = "数据准备";
             this.prepare(context);
 
-            // getNextState不能在prepare前，因为有的nextState是根据prepare中的数据转换而来
-            String nextState = this.getNextState(context).toString();
             // 业务逻辑
-            result = this.action(nextState, context);
+            result = this.action(context);
             if (!result.isSuccess()) {
                 return result;
             }
 
+            // nextState应在prepare和action都运行结束后获得
+            step = "获取下一个状态";
+            String nextState = this.getNextState(context).toString();
+
             // 持久化
+            step = "持久化";
             result = this.save(nextState, context);
             if (!result.isSuccess()) {
                 return result;
             }
             // after
+            step = "后续动作";
             this.after(context);
             return result;
         } catch (Exception e) {
             // 记录日志
-            logger.error("failed", e);
+            logger.error(String.format("failed at step [%s]", step), e);
             throw e;
         }
     }

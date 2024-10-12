@@ -29,8 +29,7 @@ public class NeedFixDeliveryFromCertifiedStudent extends AbstractStateProcessor<
     }
 
     @Override
-    public ServiceResult<String, FixDeliveryContext> action(String nextState, StateContext<FixDeliveryContext> context) throws Exception {
-        //TODO 提醒店员准备派送
+    public ServiceResult<String, FixDeliveryContext> actionStep(StateContext<FixDeliveryContext> context) throws Exception {
 
         ServiceResult<String, FixDeliveryContext> result = new ServiceResult<>();
         result.setContext(context.getContext());
@@ -47,6 +46,7 @@ public class NeedFixDeliveryFromCertifiedStudent extends AbstractStateProcessor<
 
     @Override
     public void after(StateContext<FixDeliveryContext> context) {
+        //TODO 提醒店员做单并提醒派送员准备派送
 
     }
 }

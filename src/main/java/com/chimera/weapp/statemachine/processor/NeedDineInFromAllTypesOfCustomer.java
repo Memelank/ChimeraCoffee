@@ -28,8 +28,7 @@ public class NeedDineInFromAllTypesOfCustomer extends AbstractStateProcessor<Str
     }
 
     @Override
-    public ServiceResult<String, DineInContext> action(String nextState, StateContext<DineInContext> context) throws Exception {
-        //TODO 提醒店员做单了
+    public ServiceResult<String, DineInContext> actionStep(StateContext<DineInContext> context) throws Exception {
 
         ServiceResult<String, DineInContext> result = new ServiceResult<>();
         result.setContext(context.getContext());
@@ -46,7 +45,7 @@ public class NeedDineInFromAllTypesOfCustomer extends AbstractStateProcessor<Str
 
     @Override
     public void after(StateContext<DineInContext> context) {
-
+        //TODO 提醒店员做单了
     }
 
 }

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Processor(processorId = 5)
 @Component
-public class CancelDineIn extends AbstractStateProcessor<String, DineInContext>{
+public class CancelDineIn extends AbstractStateProcessor<String, DineInContext> {
     @Autowired
     private CustomRepository repository;
 
@@ -28,7 +28,7 @@ public class CancelDineIn extends AbstractStateProcessor<String, DineInContext>{
     }
 
     @Override
-    public ServiceResult<String, DineInContext> action(String nextState, StateContext<DineInContext> context) throws Exception {
+    public ServiceResult<String, DineInContext> actionStep(StateContext<DineInContext> context) throws Exception {
         //TODO 退款
 
 

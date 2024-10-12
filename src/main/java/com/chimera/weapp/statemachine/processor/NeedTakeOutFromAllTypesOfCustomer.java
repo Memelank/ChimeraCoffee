@@ -28,8 +28,7 @@ public class NeedTakeOutFromAllTypesOfCustomer extends AbstractStateProcessor<St
     }
 
     @Override
-    public ServiceResult<String, TakeOutContext> action(String nextState, StateContext<TakeOutContext> context) throws Exception {
-        //TODO 提醒店员做单了
+    public ServiceResult<String, TakeOutContext> actionStep(StateContext<TakeOutContext> context) throws Exception {
 
         ServiceResult<String, TakeOutContext> result = new ServiceResult<>();
         result.setContext(context.getContext());
@@ -46,6 +45,7 @@ public class NeedTakeOutFromAllTypesOfCustomer extends AbstractStateProcessor<St
 
     @Override
     public void after(StateContext<TakeOutContext> context) {
+        //TODO 提醒店员做单了
 
     }
 
