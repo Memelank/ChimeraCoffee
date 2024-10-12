@@ -9,6 +9,7 @@ import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.handler.OrderWebSocketHandler;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.ProductRepository;
+import com.chimera.weapp.service.BenefitService;
 import com.chimera.weapp.service.OrderService;
 import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.service.WeChatService;
@@ -59,6 +60,9 @@ public class OrderController {
 
     @Autowired
     private SecurityService securityService;
+
+    @Autowired
+    private BenefitService benefitService;
 
 //    @Autowired
 //    private NotificationConfig notificationConfig;
@@ -143,6 +147,12 @@ public class OrderController {
                         String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", prePaidFSMResult.getMsg())
                 );
             }
+            //核销优惠
+            if (order.getCoupon() != null){
+                String orderCouponUUID = order.getCoupon().getUuid();
+                ObjectId userId = order.getUserId();
+                benefitService.redeemUserCoupon(userId, orderCouponUUID);
+            }
 
             //第二次调用状态机。从PAID状态转变
             Order order1 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
@@ -186,11 +196,11 @@ public class OrderController {
     }
 
     @PostMapping("/create")
-    @LoginRequired
+    @LoginRequired // TODO 上线要限制ADMIN
     @Operation(summary = "用于商铺端创建订单，不走微信支付，微信支付未办理前小程序也可先调用这个")
     public ResponseEntity<ServiceResult> createOrderInStore(@RequestBody OrderApiParams orderApiParams) throws Exception {
         securityService.checkIdImitate(orderApiParams.getUserId());
-        Order order = orderService.buildOrderByApiParams(orderApiParams);
+        Order order = orderService.buildOrderByApiParamsShop(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
         // 保存订单
         Order save = repository.save(order);
@@ -201,9 +211,16 @@ public class OrderController {
         PrePayContext prePayContext = new PrePayContext();
         context.setContext(prePayContext);
         orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
+
+        //核销优惠  TODO:上线后可去掉
+        if (order.getCoupon() != null){
+            String orderCouponUUID = order.getCoupon().getUuid();
+            ObjectId userId = order.getUserId();
+            benefitService.redeemUserCoupon(userId, orderCouponUUID);
+        }
+
         //2.支付状态到其它别的状态
         context.setOrderState(StateEnum.PAID.toString());
-
         ServiceResult<Object, ?> serviceResult = null;
         // 根据不同的场景设置上下文并发送事件
         if (SceneEnum.FIX_DELIVERY.toString().equals(save.getScene())) {
