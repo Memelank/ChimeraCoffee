@@ -1,5 +1,6 @@
 package com.chimera.weapp.entity;
 import com.chimera.weapp.vo.CouponIns;
+import com.chimera.weapp.vo.PointsProductIns;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
@@ -40,6 +41,9 @@ public class User {
 
     @Schema(description = "用户持有的优惠券实例")
     private List<CouponIns> coupons;
+
+    @Schema(description = "用户兑换过的积分商品列表")
+    private List<PointsProductIns> pointsProducts;
 
     @CreatedDate  // 自动填充创建时间
     private Date createdAt;
