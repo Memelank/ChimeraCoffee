@@ -5,9 +5,8 @@ import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.entity.Coupon;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.CouponRepository;
-import com.chimera.weapp.service.CouponService;
+import com.chimera.weapp.service.BenefitService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +22,7 @@ public class CouponController {
     private CouponRepository repository;
 
     @Autowired
-    private CouponService couponService;
+    private BenefitService benefitService;
 
     @GetMapping
     @LoginRequired
@@ -45,7 +44,7 @@ public class CouponController {
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<?> addCouponToUser(@RequestParam String userId, @RequestParam String couponId) {
         try {
-            couponService.addCouponToUser(userId, couponId);
+            benefitService.addCouponToUser(userId, couponId);
             return ResponseEntity.ok("Coupon added to user successfully");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -34,8 +34,6 @@ public class Coupon {
     private boolean convertible;
     @Schema(description = "消耗积分")
     private int costPoints;
-    @Schema(description = "积分兑换数量")
-    private int exchangeNum;
     @Schema(description = "截至有效期")
     private Date validity;
     @Schema(description = "发放数量")
