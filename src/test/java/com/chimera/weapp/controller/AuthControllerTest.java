@@ -33,7 +33,7 @@ class AuthControllerTest {
     private AuthController authController;
 
     @Test
-    public void wxLogin_register() throws IOException, URISyntaxException {
+    public void wxLogin_register() throws Exception {
         MockitoAnnotations.openMocks(this);
 
         Mockito.when(weChatService.code2session(Mockito.any()))
@@ -51,7 +51,7 @@ class AuthControllerTest {
     }
 
     @Test
-    public void wxLogin_Login() throws IOException, URISyntaxException {
+    public void wxLogin_Login() throws Exception {
         MockitoAnnotations.openMocks(this);
 
         Mockito.when(weChatService.code2session(Mockito.any()))
