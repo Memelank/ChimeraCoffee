@@ -27,15 +27,15 @@ public class CouponController {
     @GetMapping
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public List<Coupon> getAllCoupons() {
-        return repository.findAllByDeleteIs(0);
+    public ResponseEntity<List<Coupon>> getAllCoupons() {
+        return ResponseEntity.ok(repository.findAllByDeleteIs(0));
     }
 
     @GetMapping("/for_points")
     @LoginRequired
     @Operation(summary = "获取积分兑换优惠券列表,在\"我的-积分\"页面使用")
-    public List<Coupon> getAllCouponsForPoints() {
-        return repository.findAllByConvertibleIs(true);
+    public ResponseEntity<List<Coupon>> getAllCouponsForPoints() {
+        return ResponseEntity.ok(repository.findAllByConvertibleIs(true));
     }
 
     @Operation(summary = "给某个顾客发金条，商铺端专用")

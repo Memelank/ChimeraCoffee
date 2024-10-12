@@ -91,7 +91,7 @@ public class OrderController {
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "根据userId查询Orders，当前端传递all=true时，返回所有，否则默认5条")
-    public List<Order> getOrdersByUserId(
+    public ResponseEntity<List<Order>> getOrdersByUserId(
             @PathVariable String userId,
             @org.springframework.web.bind.annotation.RequestParam(value = "all", required = false, defaultValue = "false") boolean all) {
 
@@ -100,10 +100,10 @@ public class OrderController {
         // 判断是否需要获取所有订单
         if (all) {
             // 获取所有订单，并按时间倒序排列
-            return repository.findByUserIdOrderByCreatedAtDesc(userObjectId);
+            return ResponseEntity.ok(repository.findByUserIdOrderByCreatedAtDesc(userObjectId));
         } else {
             // 仅获取最近的5个订单，并按时间倒序排列
-            return repository.findTop5ByUserIdOrderByCreatedAtDesc(userObjectId);
+            return ResponseEntity.ok(repository.findTop5ByUserIdOrderByCreatedAtDesc(userObjectId));
         }
     }
 

@@ -26,8 +26,8 @@ public class UserController {
     @GetMapping
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public List<User> getAllUsers() {
-        return repository.findAllNonAdminUsers();
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(repository.findAllNonAdminUsers());
     }
 
     @PutMapping

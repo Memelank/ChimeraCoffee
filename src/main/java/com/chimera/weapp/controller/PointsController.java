@@ -51,8 +51,8 @@ public class PointsController {
     @GetMapping
     @LoginRequired
     @Operation(summary = "获取积分兑换商品")
-    public List<PointsProduct> getAllPointsProducts() {
-        return repository.findAllByDeleteIsAndStatusIs(0, 1);
+    public ResponseEntity<List<PointsProduct>> getAllPointsProducts() {
+        return ResponseEntity.ok(repository.findAllByDeleteIsAndStatusIs(0, 1));
     }
 
     @GetMapping(("/shop"))

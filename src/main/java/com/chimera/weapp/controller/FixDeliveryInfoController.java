@@ -21,8 +21,8 @@ public class FixDeliveryInfoController {
 
     @GetMapping
     @Operation(summary = "获取所有定时达信息，用于定时达下单")
-    public List<FixDeliveryInfo> getAllFixDeliveryInfos() {
-        return repository.findAll();
+    public ResponseEntity<List<FixDeliveryInfo>> getAllFixDeliveryInfos() {
+        return ResponseEntity.ok(repository.findAll());
     }
 
     @PutMapping
