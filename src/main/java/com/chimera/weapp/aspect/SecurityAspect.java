@@ -3,6 +3,7 @@ package com.chimera.weapp.aspect;
 import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.User;
+import com.chimera.weapp.exception.CompareTokenException;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.util.JwtUtils;
@@ -62,16 +63,16 @@ public class SecurityAspect {
             token = token.substring(7);  // 去掉 "Bearer " 前缀
             Claims claims = JwtUtils.parseToken(token);
 
-            String issuer = claims.getSubject();
-            compareTokenWithMongoDBToken(token, issuer);
+            String subject = claims.getSubject();
+            compareTokenWithMongoDBToken(token, subject);
 
             // 存储用户信息，以便后续使用
-            ThreadLocalUtil.set(ThreadLocalUtil.USER_DTO, UserDTO.ofUser(repository.findById(new ObjectId(issuer)).orElseThrow()).build());
-            ThreadLocalUtil.set(ThreadLocalUtil.CLAIMS,claims);
+            ThreadLocalUtil.set(ThreadLocalUtil.USER_DTO, UserDTO.ofUser(repository.findById(new ObjectId(subject)).orElseThrow()).build());
+            ThreadLocalUtil.set(ThreadLocalUtil.CLAIMS, claims);
             canRefresh = true;
             return pjp.proceed();
 
-        } catch (ExpiredJwtException e) {
+        } catch (ExpiredJwtException | CompareTokenException e) {
             canRefresh = false;
             log.error("token expired", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
@@ -96,10 +97,10 @@ public class SecurityAspect {
         User user = repository.findById(new ObjectId(userId)).orElseThrow(() -> new Exception("user not found"));
         String jwt = user.getJwt();
         if (jwt == null || jwt.isEmpty()) {
-            throw new Exception("Unauthorized - User had log out");
+            throw new CompareTokenException("Unauthorized - User had log out");
         }
         if (!token.equals(jwt)) {
-            throw new Exception("Unauthorized - Token is different");
+            throw new CompareTokenException("Unauthorized - Token is different");
         }
     }
 
@@ -108,7 +109,7 @@ public class SecurityAspect {
     @Around("onRolesAllow()")
     @Order(2)
     public Object checkRole(ProceedingJoinPoint pjp) throws Throwable {
-        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO,UserDTO.class);
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
         if (userDTO == null) {
             return new ResponseEntity<>("Unauthorized - No userDTO found", HttpStatus.UNAUTHORIZED);
         }

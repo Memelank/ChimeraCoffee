@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.Objects;
 
+import static com.chimera.weapp.util.JwtUtils.REFRESH_TIME;
+
 @Component
 public class SecurityService {
     @Autowired
@@ -41,7 +43,7 @@ public class SecurityService {
         Date now = new Date();
         Date expiration = claims.getExpiration();
         // 如果令牌即将过期，刷新令牌
-        if (expiration.getTime() - now.getTime() < 24 * 60 * 60 * 1000) {  // 如果距离过期少于一天
+        if (expiration.getTime() - now.getTime() < REFRESH_TIME) {  // 如果距离过期少于一天
             String userId = claims.getSubject();
             String newToken = JwtUtils.generateToken(userId);
 
