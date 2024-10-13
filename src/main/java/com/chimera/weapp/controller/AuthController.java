@@ -12,7 +12,7 @@ import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.service.BenefitService;
 import com.chimera.weapp.service.SecurityService;
-import com.chimera.weapp.service.WeChatService;
+import com.chimera.weapp.service.WeChatRequestService;
 import com.chimera.weapp.util.JwtUtils;
 import com.chimera.weapp.util.PasswordUtils;
 import com.chimera.weapp.util.ThreadLocalUtil;
@@ -41,7 +41,7 @@ public class AuthController {
     @Autowired
     private UserRepository repository;
     @Autowired
-    private WeChatService weChatService;
+    private WeChatRequestService weChatRequestService;
     @Autowired
     private SecurityService securityService;
     @Autowired
@@ -85,7 +85,7 @@ public class AuthController {
         if (code == null || code.isEmpty()) {
             return ResponseEntity.badRequest().body(new ResponseBodyDTO<>("code为空", null));
         }
-        JSONObject session = weChatService.code2session(code);
+        JSONObject session = weChatRequestService.code2session(code);
         String openid = session.getString("openid");
         String sessionKey = session.getString("session_key");
         Optional<User> userOptional = repository.findByOpenid(openid);
@@ -147,8 +147,8 @@ public class AuthController {
     public ResponseEntity<WxStudentCheckDTO> checkStudentIdentity(CheckStudentIdentityApiParams apiParams) throws URISyntaxException, IOException {
         UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
         String openid = userDTO.getOpenid();
-        WxStudentCheckDTO wxStudentCheckDTO = weChatService.checkStudentIdentity(
-                WeChatService.WxCheckStudentIdentityApiParams.builder()
+        WxStudentCheckDTO wxStudentCheckDTO = weChatRequestService.checkStudentIdentity(
+                WeChatRequestService.WxCheckStudentIdentityApiParams.builder()
                         .openid(openid)
                         .wx_studentcheck_code(apiParams.wx_student_check_code).build());
         int bindStatus = wxStudentCheckDTO.getBind_status();

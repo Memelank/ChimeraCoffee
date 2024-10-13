@@ -1,6 +1,7 @@
 package com.chimera.weapp.statemachine.processor;
 
 import com.chimera.weapp.repository.CustomRepository;
+import com.chimera.weapp.service.WeChatNoticeService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
 import com.chimera.weapp.statemachine.context.TakeOutContext;
 import com.chimera.weapp.statemachine.context.StateContext;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Component;
 public class SupplyTakeOut extends AbstractStateProcessor<String, TakeOutContext> {
     @Autowired
     private CustomRepository repository;
+    @Autowired
+    private WeChatNoticeService weChatNoticeService;
 
     @Override
     public boolean filter(StateContext<TakeOutContext> context) {
@@ -45,6 +48,7 @@ public class SupplyTakeOut extends AbstractStateProcessor<String, TakeOutContext
 
     @Override
     public void after(StateContext<TakeOutContext> context) {
-        //todo 提醒顾客可以取餐了
+        weChatNoticeService.dineInOrTakeOutNotice(context.getOrderId(), context
+                .getUserId());
     }
 }

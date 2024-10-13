@@ -1,11 +1,13 @@
 package com.chimera.weapp.statemachine.processor;
 
 import com.chimera.weapp.repository.CustomRepository;
+import com.chimera.weapp.service.WeChatNoticeService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
 import com.chimera.weapp.statemachine.context.FixDeliveryContext;
 import com.chimera.weapp.statemachine.context.StateContext;
 import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
+import com.chimera.weapp.vo.DeliveryInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,8 @@ import org.springframework.stereotype.Component;
 public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliveryContext> {
     @Autowired
     private CustomRepository repository;
+    @Autowired
+    private WeChatNoticeService weChatNoticeService;
 
     @Override
     public boolean filter(StateContext<FixDeliveryContext> context) {
@@ -45,7 +49,8 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
 
     @Override
     public void after(StateContext<FixDeliveryContext> context) {
-        //todo 提醒顾客订单将会定时定点派送
-
+        FixDeliveryContext fixDeliveryContext = context.getContext();
+        DeliveryInfo deliveryInfo = fixDeliveryContext.getDeliveryInfo();
+        weChatNoticeService.fixDeliveryNotice(context.getOrderId(), deliveryInfo.getTime().toString(), deliveryInfo.getAddress());
     }
 }

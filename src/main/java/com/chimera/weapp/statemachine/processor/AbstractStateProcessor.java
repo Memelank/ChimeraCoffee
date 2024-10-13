@@ -67,6 +67,7 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
             // nextState应在prepare和action都运行结束后获得
             step = "获取下一个状态";
             String nextState = this.getNextState(context).toString();
+            context.setOrderState(nextState);
 
             // 持久化
             step = "持久化";

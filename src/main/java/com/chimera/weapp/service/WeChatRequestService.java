@@ -1,10 +1,7 @@
 package com.chimera.weapp.service;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.chimera.weapp.dto.PrePaidDTO;
-import com.chimera.weapp.dto.WxGrantAccessTokenDTO;
-import com.chimera.weapp.dto.WxStudentCheckDTO;
-import com.chimera.weapp.dto.UserDTO;
+import com.chimera.weapp.dto.*;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.util.ThreadLocalUtil;
@@ -29,7 +26,7 @@ import java.util.Objects;
 
 
 @Service
-public class WeChatService {
+public class WeChatRequestService {
     @Autowired
     private UserRepository userRepository;
     @Value("${wx-mini-program.appid}")
@@ -40,6 +37,8 @@ public class WeChatService {
     private String notifyURL;
     @Value("${wx-mini-program.mchid}")
     private String mchid;
+    @Value("${wx-mini-program.state")
+    private String miniprogram_state;
     @Autowired
     private OrderService orderService;
 
@@ -103,12 +102,53 @@ public class WeChatService {
         return JSONObject.parseObject(body, WxStudentCheckDTO.class);
     }
 
+
     @Builder
     public static class WxCheckStudentIdentityApiParams {
         @NotNull
         String openid;
         @NotNull
         String wx_studentcheck_code;
+    }
+
+    public <T> void subscribeSend(T content, String page, String template_id, String touser) throws URISyntaxException, IOException {
+        URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/cgi-bin/message/subscribe/send");
+        String grant = grant(ACCESS_TOKEN);
+        uriBuilder.addParameter(ACCESS_TOKEN, grant);
+        WxSubscribeSendApiParams.WxSubscribeSendApiParamsBuilder builder = WxSubscribeSendApiParams.builder()
+                .template_id(template_id)
+                .touser(touser)
+                .data(JSONObject.toJSONString(content))
+                .miniprogram_state(miniprogram_state)
+                .lang("zh_CN");
+        if (Objects.nonNull(page) || !template_id.isBlank()) {
+            builder.page(page);
+        }
+
+        ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
+                .setEntity(JSONObject.toJSONString(builder.build()))
+                .build();
+        String body = sendHttpRequest(uriBuilder, httpRequest);
+        JSONObject jsonObject = JSONObject.parseObject(body);
+        String errcode = jsonObject.getString("errcode");
+        if (Objects.nonNull(errcode)) {
+            throw new RuntimeException("调用https://api.weixin.qq.com/cgi-bin/message/subscribe/send。subscribeSend失败：" + body);
+        }
+    }
+
+    @Builder
+    static class WxSubscribeSendApiParams {
+        @NotNull
+        String template_id;
+        String page;
+        @NotNull
+        String touser;
+        @NotNull
+        String data;
+        @NotNull
+        String miniprogram_state;
+        @NotNull
+        String lang;
     }
 
     private String buildRequestBody(Order save) {

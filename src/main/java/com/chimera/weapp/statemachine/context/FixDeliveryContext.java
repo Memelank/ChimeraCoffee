@@ -1,5 +1,6 @@
 package com.chimera.weapp.statemachine.context;
 
+import com.chimera.weapp.vo.DeliveryInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class FixDeliveryContext {
-    Object sortOfData;
+    DeliveryInfo deliveryInfo;
 }

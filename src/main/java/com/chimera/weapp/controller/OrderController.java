@@ -12,7 +12,7 @@ import com.chimera.weapp.repository.ProductRepository;
 import com.chimera.weapp.service.BenefitService;
 import com.chimera.weapp.service.OrderService;
 import com.chimera.weapp.service.SecurityService;
-import com.chimera.weapp.service.WeChatService;
+import com.chimera.weapp.service.WeChatRequestService;
 import com.chimera.weapp.statemachine.context.*;
 import com.chimera.weapp.statemachine.engine.OrderFsmEngine;
 import com.chimera.weapp.statemachine.enums.EventEnum;
@@ -50,7 +50,7 @@ public class OrderController {
     private ProductRepository productRepository;
 
     @Autowired
-    private WeChatService weChatService;
+    private WeChatRequestService weChatRequestService;
 
     @Autowired
     private OrderFsmEngine orderFsmEngine;
@@ -116,7 +116,7 @@ public class OrderController {
         Order order = orderService.buildOrderByApiParams(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
         Order save = repository.save(order);
-        return weChatService.jsapiTransaction(save);
+        return weChatRequestService.jsapiTransaction(save);
     }
 
 
@@ -158,6 +158,7 @@ public class OrderController {
             Order order1 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
             ServiceResult<Object, ?> serviceResult = new ServiceResult<>();
             if (SceneEnum.FIX_DELIVERY.toString().equals(order1.getScene())) {
+                //todo:把fixDeliveryContext里面的东西放一放
                 FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
                 context.setContext(fixDeliveryContext);
                 serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context);
@@ -224,6 +225,7 @@ public class OrderController {
         ServiceResult<Object, ?> serviceResult = null;
         // 根据不同的场景设置上下文并发送事件
         if (SceneEnum.FIX_DELIVERY.toString().equals(save.getScene())) {
+            //todo:把fixDeliveryContext里面的东西放一放
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
             context.setContext(fixDeliveryContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context);
@@ -257,6 +259,7 @@ public class OrderController {
         StateContext<Object> context = new StateContext<>();
         setNormalContext(context, order);
         if (SceneEnum.FIX_DELIVERY.toString().equals(order.getScene())) {
+            //todo:把fixDeliveryContext里面的东西放一放
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
             context.setContext(fixDeliveryContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.SUPPLY_FIX_DELIVERY.toString(), context);
