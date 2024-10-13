@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +53,25 @@ public class UserController {
     public ResponseEntity<User> getUserByName(@PathVariable String name) {
         Optional<User> user = repository.findByName(name);
         return user.map(ResponseEntity::ok).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/new")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
+    public ResponseEntity<List<User>> getNewUsers(
+            @RequestParam("startTime") String startTimeStr,
+            @RequestParam("endTime") String endTimeStr
+    ) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+            LocalDateTime startTime = LocalDateTime.parse(startTimeStr, formatter);
+            LocalDateTime endTime = LocalDateTime.parse(endTimeStr, formatter);
+
+            List<User> newUsers = repository.findUsersByCreatedAtBetween(startTime, endTime, RoleEnum.ADMIN);
+            return ResponseEntity.ok(newUsers);
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 }
 
