@@ -148,7 +148,7 @@ public class OrderController {
                 );
             }
             //核销优惠
-            if (order.getCoupon() != null){
+            if (order.getCoupon() != null) {
                 String orderCouponUUID = order.getCoupon().getUuid();
                 ObjectId userId = order.getUserId();
                 benefitService.redeemUserCoupon(userId, orderCouponUUID);
@@ -158,7 +158,6 @@ public class OrderController {
             Order order1 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
             ServiceResult<Object, ?> serviceResult = new ServiceResult<>();
             if (SceneEnum.FIX_DELIVERY.toString().equals(order1.getScene())) {
-                //todo:把fixDeliveryContext里面的东西放一放
                 FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
                 context.setContext(fixDeliveryContext);
                 serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context);
@@ -214,27 +213,27 @@ public class OrderController {
         orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
 
         //核销优惠  TODO:上线后可去掉
-        if (order.getCoupon() != null){
+        if (order.getCoupon() != null) {
             String orderCouponUUID = order.getCoupon().getUuid();
             ObjectId userId = order.getUserId();
             benefitService.redeemUserCoupon(userId, orderCouponUUID);
         }
 
         //2.支付状态到其它别的状态
-        context.setOrderState(StateEnum.PAID.toString());
+        Order orderAfterFirstProcess = repository.findById(save.getId()).orElseThrow();
+        setNormalContext(context, orderAfterFirstProcess);
         ServiceResult<Object, ?> serviceResult = null;
         // 根据不同的场景设置上下文并发送事件
-        if (SceneEnum.FIX_DELIVERY.toString().equals(save.getScene())) {
-            //todo:把fixDeliveryContext里面的东西放一放
+        if (SceneEnum.FIX_DELIVERY.toString().equals(orderAfterFirstProcess.getScene())) {
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
             context.setContext(fixDeliveryContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context);
-        } else if (SceneEnum.DINE_IN.toString().equals(save.getScene())) {
+        } else if (SceneEnum.DINE_IN.toString().equals(orderAfterFirstProcess.getScene())) {
             DineInContext dineInContext = new DineInContext();
             context.setContext(dineInContext);
             System.out.println(context);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_DINE_IN.toString(), context);
-        } else if (SceneEnum.TAKE_OUT.toString().equals(save.getScene())) {
+        } else if (SceneEnum.TAKE_OUT.toString().equals(orderAfterFirstProcess.getScene())) {
             TakeOutContext takeOutContext = new TakeOutContext();
             context.setContext(takeOutContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_TAKE_OUT.toString(), context);

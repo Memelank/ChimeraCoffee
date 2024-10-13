@@ -1,6 +1,8 @@
 package com.chimera.weapp.statemachine.processor;
 
+import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.repository.CustomRepository;
+import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.service.WeChatNoticeService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
 import com.chimera.weapp.statemachine.context.FixDeliveryContext;
@@ -9,6 +11,7 @@ import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import com.chimera.weapp.vo.DeliveryInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +23,8 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
     private CustomRepository repository;
     @Autowired
     private WeChatNoticeService weChatNoticeService;
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Override
     public boolean filter(StateContext<FixDeliveryContext> context) {
@@ -50,7 +55,8 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
     @Override
     public void after(StateContext<FixDeliveryContext> context) {
         FixDeliveryContext fixDeliveryContext = context.getContext();
-        DeliveryInfo deliveryInfo = fixDeliveryContext.getDeliveryInfo();
+        Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
+        DeliveryInfo deliveryInfo = order.getDeliveryInfo();
         weChatNoticeService.fixDeliveryNotice(context.getOrderId(), deliveryInfo.getTime().toString(), deliveryInfo.getAddress());
     }
 }
