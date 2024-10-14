@@ -118,7 +118,7 @@ public class WeChatRequestService {
         WxSubscribeSendApiParams.WxSubscribeSendApiParamsBuilder builder = WxSubscribeSendApiParams.builder()
                 .template_id(template_id)
                 .touser(touser)
-                .data(JSONObject.toJSONString(content))
+                .data(content.toString())
                 .miniprogram_state(miniprogram_state)
                 .lang("zh_CN");
         if (Objects.nonNull(page) || !template_id.isBlank()) {
