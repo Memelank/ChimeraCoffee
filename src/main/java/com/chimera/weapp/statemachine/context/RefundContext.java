@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class RefundContext {
-    Object sortOfData;
+    String reason;
 }

@@ -60,6 +60,10 @@ public class Refund extends AbstractStateProcessor<String, RefundContext> {
 
     @Override
     public void after(StateContext<RefundContext> context) {
+        String orderId = context.getOrderId();
+        Order order = orderRepository.findById(new ObjectId(orderId)).orElseThrow();
+        int totalPrice = order.getTotalPrice();
+
         //todo 提醒顾客已退款
         //todo 提醒顾客注意售后？
     }
