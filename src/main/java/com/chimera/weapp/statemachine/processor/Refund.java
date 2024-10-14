@@ -5,6 +5,7 @@ import com.chimera.weapp.entity.User;
 import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.UserRepository;
+import com.chimera.weapp.service.WeChatNoticeService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
 import com.chimera.weapp.statemachine.context.RefundContext;
 import com.chimera.weapp.statemachine.context.StateContext;
@@ -25,6 +26,8 @@ public class Refund extends AbstractStateProcessor<String, RefundContext> {
     private UserRepository userRepository;
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private WeChatNoticeService weChatNoticeService;
 
     @Override
     public boolean filter(StateContext<RefundContext> context) {
@@ -61,10 +64,6 @@ public class Refund extends AbstractStateProcessor<String, RefundContext> {
     @Override
     public void after(StateContext<RefundContext> context) {
         String orderId = context.getOrderId();
-        Order order = orderRepository.findById(new ObjectId(orderId)).orElseThrow();
-        int totalPrice = order.getTotalPrice();
-
-        //todo 提醒顾客已退款
-        //todo 提醒顾客注意售后？
+        weChatNoticeService.refundNotice(orderId, context.getContext().getReason());
     }
 }

@@ -290,7 +290,7 @@ public class OrderController {
 
         StateContext<Object> context = new StateContext<>();
         setNormalContext(context, order);
-        RefundContext refundContext = new RefundContext();
+        RefundContext refundContext = new RefundContext();//todo 往refundContext上添加退款原因
         context.setContext(refundContext);
         serviceResult = orderFsmEngine.sendEvent(EventEnum.REFUND.toString(), context);
 
