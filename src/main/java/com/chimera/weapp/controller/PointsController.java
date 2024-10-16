@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -85,13 +87,14 @@ public class PointsController {
             @RequestParam String userId,
             @RequestParam String productId,
             @RequestParam int sendType,
-            @RequestParam(required = false) String sendName,
+            @RequestParam String name,
+            @RequestParam String number,
             @RequestParam(required = false) String sendAddr,
-            @RequestParam(required = false) String sendNum) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date getDate) {
         try {
             ObjectId userObjectId = new ObjectId(userId);
             ObjectId productObjectId = new ObjectId(productId);
-            benefitService.exchangePointsForPointsProduct(userObjectId, productObjectId, sendType, sendName, sendAddr, sendNum);
+            benefitService.exchangePointsForPointsProduct(userObjectId, productObjectId, sendType, name, sendAddr, number, getDate);
             return ResponseEntity.ok("Product redeemed successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

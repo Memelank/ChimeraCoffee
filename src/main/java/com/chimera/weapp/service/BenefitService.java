@@ -339,7 +339,7 @@ public class BenefitService {
     }
 
     public void exchangePointsForPointsProduct(ObjectId userId, ObjectId pointsProductId, int sendType,
-                                         String sendName, String sendAddr, String sendNum) throws Exception {
+                                               String name, String sendAddr, String number, Date getDate) throws Exception {
         // 检索用户
         Optional<User> userOptional = userRepository.findById(userId);
         if (!userOptional.isPresent()) {
@@ -350,7 +350,7 @@ public class BenefitService {
         // 检索积分商品
         Optional<PointsProduct> pointsProductOptional = pointsProductRepository.findById(pointsProductId);
         if (!pointsProductOptional.isPresent()) {
-            throw new Exception("Points pointsProduct not found");
+            throw new Exception("Points product not found");
         }
         PointsProduct pointsProduct = pointsProductOptional.get();
 
@@ -361,19 +361,27 @@ public class BenefitService {
 
         // 检查用户积分是否足够
         if (user.getPoints() < pointsProduct.getCostPoints()) {
-            throw new Exception("User does not have enough points to redeem this pointsProduct");
+            throw new Exception("User does not have enough points to redeem this product");
         }
 
         // 处理领取方式和邮递信息
         if (sendType == 1) { // 邮递
-            if (sendName == null || sendName.isEmpty() ||
+            if (name == null || name.isEmpty() ||
                     sendAddr == null || sendAddr.isEmpty() ||
-                    sendNum == null || sendNum.isEmpty()) {
+                    number == null || number.isEmpty()) {
                 throw new Exception("Shipping information is required for delivery");
             }
-        } else if (sendType != 0) { // 非法的领取方式
+        } else if (sendType == 0) { // 自提
+            if (name == null || name.isEmpty() || number == null || number.isEmpty()) {
+                throw new Exception("Name and number are required for self-pickup");
+            }
+            if (getDate == null) {
+                throw new Exception("Pickup date is required for self-pickup");
+            }
+        } else { // 非法的领取方式
             throw new Exception("Invalid sendType. Must be 0 (self-pickup) or 1 (delivery)");
         }
+
 
         // 扣除用户积分
         user.setPoints(user.getPoints() - pointsProduct.getCostPoints());
@@ -387,10 +395,12 @@ public class BenefitService {
                 .pointsProductId(pointsProduct.getId().toHexString())
                 .name(pointsProduct.getName())
                 .sendType(sendType)
-                .sendName(sendName)
-                .sendAddr(sendAddr)
-                .sendNum(sendNum)
                 .userId(userId.toHexString())
+                .Name(name)
+                .number(number)
+                .sendAddr(sendAddr)
+                .getDate(getDate)
+                .received(0)
                 .build();
 
         // 将 PointsProductIns 添加到用户的 pointsProducts 列表
