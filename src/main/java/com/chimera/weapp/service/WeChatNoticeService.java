@@ -1,9 +1,7 @@
 package com.chimera.weapp.service;
 
-import com.chimera.weapp.apiparams.DineInOrTakeOutApiParams;
-import com.chimera.weapp.apiparams.FixDeliveryApiParams;
-import com.chimera.weapp.apiparams.RefundApiParams;
-import com.chimera.weapp.entity.AppConfiguration;
+import com.chimera.weapp.apiparams.SupplyNoticeApiParams;
+import com.chimera.weapp.apiparams.RefundApiNoticeParams;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.repository.AppConfigurationRepository;
 import com.chimera.weapp.repository.OrderRepository;
@@ -44,14 +42,14 @@ public class WeChatNoticeService {
         int orderNum = order.getOrderNum();
         String wxts = acRepo.findByKeyAndCategory(WXTS, DINE_IN_OR_TAKE_OUT).orElseThrow().getValue();
         String shopName = acRepo.findByKey(SHOP_NAME).orElseThrow().getValue();
-        String address = acRepo.findByKey(ADDRESS).orElseThrow().getValue();
+        String shopAddress = acRepo.findByKey(SHOP_ADDRESS).orElseThrow().getValue();
         String page = acRepo.findByKeyAndCategory(PAGE, DINE_IN_OR_TAKE_OUT).orElseThrow().getValue();
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, DINE_IN_OR_TAKE_OUT).orElseThrow().getValue();
-        DineInOrTakeOutApiParams.DineInOrTakeOutApiParamsBuilder builder = DineInOrTakeOutApiParams.builder()
+        SupplyNoticeApiParams.SupplyNoticeApiParamsBuilder builder = SupplyNoticeApiParams.builder()
                 .phrase19(orderState)
                 .thing11(wxts)
                 .thing2(shopName)
-                .thing7(address)
+                .thing7(shopAddress)
                 .character_string4(Integer.toString(orderNum));
         try {
             weChatRequestService.subscribeSend(builder.build(), page, templateId, openid);
@@ -61,21 +59,22 @@ public class WeChatNoticeService {
         }
     }
 
-    public void fixDeliveryNotice(String orderId, String time, String deliveryAddress) {
+    public void fixDeliveryNotice(String orderId, String time, String orderState, String deliveryAddress) {
         Order order = orderRepository.findById(new ObjectId(orderId)).orElseThrow();
         ObjectId userId = order.getUserId();
         String openid = userRepository.findById(userId).orElseThrow().getOpenid();
         int orderNum = order.getOrderNum();
         String wxts = acRepo.findByKeyAndCategory(WXTS, FIX_DELIVERY).orElseThrow().getValue();
+        String shopName = acRepo.findByKey(SHOP_NAME).orElseThrow().getValue();
         String page = acRepo.findByKeyAndCategory(PAGE, FIX_DELIVERY).orElseThrow().getValue();
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, FIX_DELIVERY).orElseThrow().getValue();
         String phoneNumber = acRepo.findByKey(CONTACT_PHONE_NUMBER).orElseThrow().getValue();
-        FixDeliveryApiParams.FixDeliveryApiParamsBuilder builder = FixDeliveryApiParams.builder()
-                .time9(time)
-                .thing17(deliveryAddress)
-                .phone_number16(phoneNumber)
-                .thing5(wxts)
-                .character_string1(Integer.toString(orderNum));
+        SupplyNoticeApiParams.SupplyNoticeApiParamsBuilder builder = SupplyNoticeApiParams.builder()
+                .phrase19(orderState)
+                .thing11(wxts + String.format("\n(指定时间为:%s,配送员电话号码为:%s)", time, phoneNumber))
+                .thing2(shopName)
+                .thing7(deliveryAddress)
+                .character_string4(Integer.toString(orderNum));
         try {
             weChatRequestService.subscribeSend(builder.build(), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
@@ -91,7 +90,7 @@ public class WeChatNoticeService {
         String wxts = acRepo.findByKeyAndCategory(WXTS, REFUND).orElseThrow().getValue();
         String page = acRepo.findByKeyAndCategory(PAGE, REFUND).orElseThrow().getValue();
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, REFUND).orElseThrow().getValue();
-        RefundApiParams.RefundApiParamsBuilder builder = RefundApiParams.builder()
+        RefundApiNoticeParams.RefundApiNoticeParamsBuilder builder = RefundApiNoticeParams.builder()
                 .character_string1(Integer.toString(order.getOrderNum()))
                 .amount2(Integer.toString(order.getTotalPrice()))
                 .time3(DateUtil.formatDate(new Date()))

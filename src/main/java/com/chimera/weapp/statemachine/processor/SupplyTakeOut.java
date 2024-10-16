@@ -49,6 +49,6 @@ public class SupplyTakeOut extends AbstractStateProcessor<String, TakeOutContext
     @Override
     public void after(StateContext<TakeOutContext> context) {
         weChatNoticeService.dineInOrTakeOutNotice(context.getOrderId(), context
-                .getUserId());
+                .getOrderState());
     }
 }

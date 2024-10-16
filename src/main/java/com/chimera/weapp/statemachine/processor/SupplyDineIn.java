@@ -49,7 +49,7 @@ public class SupplyDineIn extends AbstractStateProcessor<String, DineInContext> 
     @Override
     public void after(StateContext<DineInContext> context) {
         weChatNoticeService.dineInOrTakeOutNotice(context.getOrderId(), context
-                .getUserId());
+                .getOrderState());
     }
 
 }

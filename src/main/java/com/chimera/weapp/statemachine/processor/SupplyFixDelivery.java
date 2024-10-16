@@ -54,9 +54,8 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
 
     @Override
     public void after(StateContext<FixDeliveryContext> context) {
-        FixDeliveryContext fixDeliveryContext = context.getContext();
         Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
         DeliveryInfo deliveryInfo = order.getDeliveryInfo();
-        weChatNoticeService.fixDeliveryNotice(context.getOrderId(), deliveryInfo.getTime().toString(), deliveryInfo.getAddress());
+        weChatNoticeService.fixDeliveryNotice(context.getOrderId(), deliveryInfo.getTime().toString(), context.getOrderState(), deliveryInfo.getAddress());
     }
 }
