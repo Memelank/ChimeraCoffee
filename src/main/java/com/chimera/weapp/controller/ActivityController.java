@@ -58,7 +58,7 @@ public class ActivityController {
     @GetMapping()
     @Operation(summary = "获取所有小程序展示活动")
     public ResponseEntity<List<Activity>> getAllActivities() {
-        return ResponseEntity.ok(repository.findAllByDeleteIsAndStatusIs(0, 1));
+        return ResponseEntity.ok(repository.findAllByDeleteIsAndStatusIsOrderByStartTimeDesc(0, 1));
     }
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
