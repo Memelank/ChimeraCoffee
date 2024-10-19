@@ -44,6 +44,8 @@ public class WeChatRequestService {
 
     private static final String ACCESS_TOKEN = "access_token";
 
+    private static final String GRANT_TYPE = "client_credential";
+
     // 公共请求方法，抽取相同逻辑
     private String sendHttpRequest(URIBuilder uriBuilder, ClassicHttpRequest httpRequest) throws IOException, URISyntaxException {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
@@ -53,6 +55,11 @@ public class WeChatRequestService {
         }
     }
 
+    /**
+     * 2.调用 auth.code2Session 接口，换取 用户唯一标识 OpenID 、 用户在微信开放平台账号下的唯一标识UnionID（若当前小程序已绑定到微信开放平台账号） 和 会话密钥 session_key
+     * <a href="https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/login.html">链接</a>
+     * @param code 1.调用 wx.login() 获取 临时登录凭证code ，并回传到开发者服务器。
+     */
     public JSONObject code2session(String code) throws IOException, URISyntaxException {
         URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/sns/jscode2session");
         uriBuilder.addParameter("appid", appid)
@@ -64,20 +71,30 @@ public class WeChatRequestService {
         return JSONObject.parse(body);
     }
 
+    /**
+     * JSAPI下单
+     * 商户系统先调用该接口在微信支付服务后台生成预支付交易单，返回正确的预支付交易会话标识后再按Native、JSAPI、APP等不同场景生成交易串调起支付。
+     * <a href="https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_1.shtml">链接</a>
+     *
+     */
     public PrePaidDTO jsapiTransaction(Order save) throws URISyntaxException, IOException {
         URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi");
 
         ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
-                .setEntity(buildRequestBody(save))
+                .setEntity(orderService.buildJSAPIRequestBody(save, appid, mchid, notifyURL))
                 .build();
 
         String body = sendHttpRequest(uriBuilder, httpRequest);
         return JSONObject.parseObject(body, PrePaidDTO.class);
     }
 
-    private String grant(String grant_type) throws URISyntaxException, IOException {
+    /**
+     * 获取接口调用凭据
+     * <a href="https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/mp-access-token/getAccessToken.html">链接</a>
+     */
+    private String getAccessToken() throws URISyntaxException, IOException {
         URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/cgi-bin/token");
-        uriBuilder.addParameter("grant_type", grant_type)
+        uriBuilder.addParameter("grant_type", WeChatRequestService.GRANT_TYPE)
                 .addParameter("appid", appid)
                 .addParameter("secret", secret);
         ClassicHttpRequest httpRequest = ClassicRequestBuilder.get(uriBuilder.build()).build();
@@ -90,9 +107,13 @@ public class WeChatRequestService {
         return body;
     }
 
+    /**
+     * 快速获取学生身份API
+     * <a href="https://developers.weixin.qq.com/miniprogram/dev/platform-capabilities/industry/student.html">链接</a>
+     */
     public WxStudentCheckDTO checkStudentIdentity(WxCheckStudentIdentityApiParams apiParams) throws URISyntaxException, IOException {
         URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/intp/quickcheckstudentidentity");
-        String grant = grant(ACCESS_TOKEN);
+        String grant = getAccessToken();
         WxGrantAccessTokenDTO wxGrantAccessTokenDTO = JSONObject.parseObject(grant, WxGrantAccessTokenDTO.class);
         uriBuilder.addParameter(ACCESS_TOKEN, wxGrantAccessTokenDTO.getAccess_token());
         ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
@@ -111,9 +132,19 @@ public class WeChatRequestService {
         String wx_studentcheck_code;
     }
 
+
+    /**
+     * 发送订阅消息 <a href="https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/mp-message-management/subscribe-message/sendMessage.html">链接</a>
+     *
+     * @param content     内容
+     * @param page        跳转页面
+     * @param template_id 模板id
+     * @param touser      接收者（用户）id
+     * @param <T>         内容类型
+     */
     public <T> void subscribeSend(T content, String page, String template_id, String touser) throws URISyntaxException, IOException {
         URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/cgi-bin/message/subscribe/send");
-        String grant = grant(ACCESS_TOKEN);
+        String grant = getAccessToken();
         uriBuilder.addParameter(ACCESS_TOKEN, grant);
         WxSubscribeSendApiParams.WxSubscribeSendApiParamsBuilder builder = WxSubscribeSendApiParams.builder()
                 .template_id(template_id)
@@ -151,18 +182,4 @@ public class WeChatRequestService {
         String lang;
     }
 
-    private String buildRequestBody(Order save) {
-        ObjectId orderId = save.getId();
-        String openid = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class).getOpenid();
-        String description = orderService.getDescription(save);
-        Map<String, Object> map = new HashMap<>();
-        map.put("appid", appid);
-        map.put("mchid", mchid);
-        map.put("description", description);
-        map.put("out_trade_no", orderId.toHexString());
-        map.put("notify_url", notifyURL);
-        map.put("amount", String.format("{\"total\":%d,\"currency\":\"CNY\"}", save.getTotalPrice()));
-        map.put("payer", String.format("{\"openid\":\"%s\"}", openid));
-        return JSONObject.toJSONString(map);
-    }
 }

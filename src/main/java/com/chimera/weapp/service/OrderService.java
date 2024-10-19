@@ -1,5 +1,6 @@
 package com.chimera.weapp.service;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.apiparams.OrderApiParams;
 import com.chimera.weapp.apiparams.OrderItemApiParams;
 import com.chimera.weapp.dto.UserDTO;
@@ -125,7 +126,7 @@ public class OrderService {
                 ProductOption actualProductOption = productOptionRepository.findById(new ObjectId(optionId)).orElseThrow();
                 for (OptionValue actualOptionValue : actualProductOption.getValues()) {
                     if (Objects.equals(actualOptionValue.getUuid(), optionValueUUID)) {
-                        map.put(optionId,actualOptionValue);
+                        map.put(optionId, actualOptionValue);
                         actualOrderItemPrice += actualOptionValue.getPriceAdjustment();
                         break;
                     }
@@ -155,50 +156,19 @@ public class OrderService {
         return calendar.getTime();
     }
 
-    //订单金额由OrderItem组成
-    //校验每个OrderItem的金额是对的
-    //OrderItem的金额由product的基础金额+option金额决定
-    //具体校验的是
-    //option金额和数据库的对得上
-    //OrderItem的price=product基础金额+option金额
-    //OrderItem的price总额=totalPrice
-    public void checkPrice(Order order) {
-        List<OrderItem> orderItems = order.getItems();
-        int actualTotalPrice = 0;
-        for (OrderItem orderItem : orderItems) {
-            int actualOrderItemPrice = 0;
-            ObjectId productId = orderItem.getProductId();
-            Product product = productRepository.findById(productId).orElseThrow();
-            actualOrderItemPrice += product.getPrice();
-            Map<String, OptionValue> stringOptionValueMap = orderItem.getOptionValues();
-            for (Map.Entry<String, OptionValue> entry : stringOptionValueMap.entrySet()) {
-                String optionId = entry.getKey();
-                OptionValue optionValue = entry.getValue();
-                ProductOption actualProductOption = productOptionRepository.findById(new ObjectId(optionId)).orElseThrow();
-                boolean match = false;
-                for (OptionValue actualOptionValue : actualProductOption.getValues()) {
-                    if (Objects.equals(actualOptionValue.getUuid(), optionValue.getUuid())
-                            && Objects.equals(actualOptionValue.getPriceAdjustment(), optionValue.getPriceAdjustment())) {
-                        match = true;
-                        actualOrderItemPrice += optionValue.getPriceAdjustment();
-                        break;
-                    }
-                }
-                if (!match) {
-                    throw new RuntimeException("输入价格与实际价格不匹配");
-                }
-            }
-            //检查OrderItem的price=product基础金额+option金额
-            if (actualOrderItemPrice != orderItem.getPrice()) {
-                throw new RuntimeException("输入价格与实际价格不匹配");
-            } else {
-                actualTotalPrice += actualOrderItemPrice;
-            }
-        }
-        //OrderItem的price总额=totalPrice
-        if (actualTotalPrice != order.getTotalPrice()) {
-            throw new RuntimeException("输入价格与实际价格不匹配");
-        }
+    public String buildJSAPIRequestBody(Order order, String appid, String mchid, String notifyURL) {
+        ObjectId orderId = order.getId();
+        String openid = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class).getOpenid();
+        String description = getDescription(order);
+        Map<String, Object> map = new HashMap<>();
+        map.put("appid", appid);
+        map.put("mchid", mchid);
+        map.put("description", description);
+        map.put("out_trade_no", orderId.toHexString());
+        map.put("notify_url", notifyURL);
+        map.put("amount", String.format("{\"total\":%d,\"currency\":\"CNY\"}", order.getTotalPrice()));
+        map.put("payer", String.format("{\"openid\":\"%s\"}", openid));
+        return JSONObject.toJSONString(map);
     }
 
     public String getDescription(Order order) {
