@@ -7,6 +7,7 @@ import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.CouponRepository;
 import com.chimera.weapp.repository.PointsProductRepository;
 import com.chimera.weapp.service.BenefitService;
+import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.vo.PointsProductIns;
 import io.swagger.v3.oas.annotations.Operation;
 import org.bson.types.ObjectId;
@@ -50,6 +51,9 @@ public class PointsController {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private SecurityService securityService;
+
     @GetMapping
     @LoginRequired
     @Operation(summary = "获取积分兑换商品")
@@ -74,7 +78,7 @@ public class PointsController {
             ObjectId userObjectId = new ObjectId(userId);
             ObjectId couponObjectId = new ObjectId(couponId);
             benefitService.exchangePointsForCoupon(userObjectId, couponObjectId);
-            return ResponseEntity.ok("Coupon exchanged successfully");
+            return ResponseEntity.ok("兑换成功");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -92,10 +96,11 @@ public class PointsController {
             @RequestParam(required = false) String sendAddr,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date getDate) {
         try {
+            securityService.checkIdImitate(userId);
             ObjectId userObjectId = new ObjectId(userId);
             ObjectId productObjectId = new ObjectId(productId);
             benefitService.exchangePointsForPointsProduct(userObjectId, productObjectId, sendType, name, sendAddr, number, getDate);
-            return ResponseEntity.ok("Product redeemed successfully");
+            return ResponseEntity.ok("兑换成功");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

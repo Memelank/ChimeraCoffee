@@ -278,36 +278,36 @@ public class BenefitService {
         // Retrieve the User
         Optional<User> userOptional = userRepository.findById(userId);
         if (!userOptional.isPresent()) {
-            throw new Exception("User not found");
+            throw new Exception("用户不存在");
         }
         User user = userOptional.get();
 
         // Retrieve the Coupon
         Optional<Coupon> couponOptional = couponRepository.findById(couponId);
         if (!couponOptional.isPresent()) {
-            throw new Exception("Coupon not found");
+            throw new Exception("优惠券不存在");
         }
         Coupon coupon = couponOptional.get();
 
         // Check if the coupon is convertible
         if (!coupon.isConvertible()) {
-            throw new Exception("Coupon cannot be exchanged for points");
+            throw new Exception("优惠券不可兑换");
         }
 
         // Check the coupon's status
         if (coupon.getStatus() != 1) {
-            throw new Exception("Coupon is not active");
+            throw new Exception("优惠券已下架");
         }
 
         // Check if the coupon has expired
         Date now = new Date();
         if (coupon.getValidity() != null && coupon.getValidity().before(now)) {
-            throw new Exception("Coupon has expired");
+            throw new Exception("优惠券已过期");
         }
 
         // Check if user has enough points
         if (user.getPoints() < coupon.getCostPoints()) {
-            throw new Exception("User does not have enough points");
+            throw new Exception("积分不足");
         }
 
         // Deduct points from the user
@@ -343,25 +343,25 @@ public class BenefitService {
         // 检索用户
         Optional<User> userOptional = userRepository.findById(userId);
         if (!userOptional.isPresent()) {
-            throw new Exception("User not found");
+            throw new Exception("用户不存在");
         }
         User user = userOptional.get();
 
         // 检索积分商品
         Optional<PointsProduct> pointsProductOptional = pointsProductRepository.findById(pointsProductId);
         if (!pointsProductOptional.isPresent()) {
-            throw new Exception("Points product not found");
+            throw new Exception("积分商品不存在");
         }
         PointsProduct pointsProduct = pointsProductOptional.get();
 
         // 检查商品是否可兑换
         if (pointsProduct.getStatus() != 1) {
-            throw new Exception("Product is not available for redemption");
+            throw new Exception("积分商品已下架");
         }
 
         // 检查用户积分是否足够
         if (user.getPoints() < pointsProduct.getCostPoints()) {
-            throw new Exception("User does not have enough points to redeem this product");
+            throw new Exception("积分不足");
         }
 
         // 处理领取方式和邮递信息
@@ -369,17 +369,17 @@ public class BenefitService {
             if (name == null || name.isEmpty() ||
                     sendAddr == null || sendAddr.isEmpty() ||
                     number == null || number.isEmpty()) {
-                throw new Exception("Shipping information is required for delivery");
+                throw new Exception("邮递信息不完整");
             }
         } else if (sendType == 0) { // 自提
             if (name == null || name.isEmpty() || number == null || number.isEmpty()) {
-                throw new Exception("Name and number are required for self-pickup");
+                throw new Exception("自提信息不完整");
             }
             if (getDate == null) {
-                throw new Exception("Pickup date is required for self-pickup");
+                throw new Exception("日期未填写");
             }
         } else { // 非法的领取方式
-            throw new Exception("Invalid sendType. Must be 0 (self-pickup) or 1 (delivery)");
+            throw new Exception("领取方式错误");
         }
 
 
