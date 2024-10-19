@@ -78,7 +78,7 @@ public class PointsController {
             ObjectId userObjectId = new ObjectId(userId);
             ObjectId couponObjectId = new ObjectId(couponId);
             benefitService.exchangePointsForCoupon(userObjectId, couponObjectId);
-            return ResponseEntity.ok("Coupon exchanged successfully");
+            return ResponseEntity.ok("兑换成功");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

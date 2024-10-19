@@ -278,36 +278,36 @@ public class BenefitService {
         // Retrieve the User
         Optional<User> userOptional = userRepository.findById(userId);
         if (!userOptional.isPresent()) {
-            throw new Exception("User not found");
+            throw new Exception("用户不存在");
         }
         User user = userOptional.get();
 
         // Retrieve the Coupon
         Optional<Coupon> couponOptional = couponRepository.findById(couponId);
         if (!couponOptional.isPresent()) {
-            throw new Exception("Coupon not found");
+            throw new Exception("优惠券不存在");
         }
         Coupon coupon = couponOptional.get();
 
         // Check if the coupon is convertible
         if (!coupon.isConvertible()) {
-            throw new Exception("Coupon cannot be exchanged for points");
+            throw new Exception("优惠券不可兑换");
         }
 
         // Check the coupon's status
         if (coupon.getStatus() != 1) {
-            throw new Exception("Coupon is not active");
+            throw new Exception("优惠券已下架");
         }
 
         // Check if the coupon has expired
         Date now = new Date();
         if (coupon.getValidity() != null && coupon.getValidity().before(now)) {
-            throw new Exception("Coupon has expired");
+            throw new Exception("优惠券已过期");
         }
 
         // Check if user has enough points
         if (user.getPoints() < coupon.getCostPoints()) {
-            throw new Exception("User does not have enough points");
+            throw new Exception("积分不足");
         }
 
         // Deduct points from the user
