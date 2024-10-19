@@ -14,10 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
-public class OrderWebSocketHandler extends TextWebSocketHandler {
+public class OrderUpdateWebSocketHandler extends TextWebSocketHandler {
 
     // 存储orderId和WebSocketSession的映射
-    private static final Map<String, WebSocketSession> orderSessionMap = new ConcurrentHashMap<>();
+    private final Map<String, WebSocketSession> orderSessionMap = new ConcurrentHashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -39,7 +39,7 @@ public class OrderWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         // 可以在这里处理前端发送的消息
-        log.info("Received message: {}" , message.getPayload());
+        log.info("Received message: {}", message.getPayload());
     }
 
     @Override

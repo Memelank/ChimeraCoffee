@@ -18,17 +18,18 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 @Slf4j
-public class FixDeliveryApiParams {
-    @Schema(description = "取货时间")
-    private String time9;
-    @Schema(description = "收货地址")
-    private String thing17;
-    @Schema(description = "联系人手机号")
-    private String phone_number16;
+public class SupplyNoticeApiParams {
+    @Schema(description = "订单状态")
+    private String phrase19;
     @Schema(description = "温馨提示")
-    private String thing5;
-    @Schema(description = "取餐码")
-    private String character_string1;
+    private String thing11;
+    @Schema(description = "门店名称")
+    private String thing2;
+    @Schema(description = "取餐地址")
+    private String thing7;
+    @Schema(description = "取餐号码")
+    private String character_string4;
+
     @Override
     public String toString() {
         Map<String, Map<String, String>> jsonMap = new HashMap<>();

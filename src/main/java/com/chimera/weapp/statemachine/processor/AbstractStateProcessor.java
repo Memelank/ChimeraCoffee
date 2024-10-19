@@ -59,7 +59,7 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
             this.prepare(context);
 
             // 业务逻辑
-            result = this.action(context);
+            result = this.actionStep(context);
             if (!result.isSuccess()) {
                 return result;
             }

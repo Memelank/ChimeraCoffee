@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @Builder
 @Slf4j
-public class RefundApiParams {
+public class RefundApiNoticeParams {
     @Schema(description = "订单编号")
     private String character_string1;
     @Schema(description = "退款金额")
