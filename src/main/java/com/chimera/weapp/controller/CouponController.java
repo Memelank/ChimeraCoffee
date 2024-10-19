@@ -2,11 +2,19 @@ package com.chimera.weapp.controller;
 
 import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.annotation.RolesAllow;
+import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.Coupon;
+import com.chimera.weapp.entity.User;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.CouponRepository;
+import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.service.BenefitService;
+import com.chimera.weapp.service.SecurityService;
+import com.chimera.weapp.util.ThreadLocalUtil;
+import com.chimera.weapp.vo.CouponIns;
+import com.chimera.weapp.vo.PointsProductIns;
 import io.swagger.v3.oas.annotations.Operation;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +31,9 @@ public class CouponController {
 
     @Autowired
     private BenefitService benefitService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping
     @LoginRequired
@@ -65,6 +76,16 @@ public class CouponController {
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Coupon> createCoupon(@RequestBody Coupon entity) {
         return ResponseEntity.ok(repository.save(entity));
+    }
+
+    @GetMapping("/current_user")
+    @LoginRequired
+    @Operation(summary = "获取当前用户的所有优惠券实例")
+    public ResponseEntity<List<CouponIns>> getCouponInsOfAUser() {
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
+        String id = userDTO.getId();
+        User user = userRepository.findById(new ObjectId(id)).orElseThrow();
+        return ResponseEntity.ok(user.getCoupons());
     }
 
 //    @DeleteMapping("/{id}")

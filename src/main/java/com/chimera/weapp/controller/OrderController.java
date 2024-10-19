@@ -265,7 +265,6 @@ public class OrderController {
         StateContext<Object> context = new StateContext<>();
         setNormalContext(context, order);
         if (SceneEnum.FIX_DELIVERY.toString().equals(order.getScene())) {
-            //todo:把fixDeliveryContext里面的东西放一放
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
             context.setContext(fixDeliveryContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.SUPPLY_FIX_DELIVERY.toString(), context);
