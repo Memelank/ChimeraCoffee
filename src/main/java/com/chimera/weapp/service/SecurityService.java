@@ -2,6 +2,8 @@ package com.chimera.weapp.service;
 
 import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.User;
+import com.chimera.weapp.enums.RoleEnum;
+import com.chimera.weapp.exception.CompareTokenException;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.util.JwtUtils;
 import com.chimera.weapp.util.ThreadLocalUtil;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import static com.chimera.weapp.util.JwtUtils.REFRESH_TIME;
@@ -54,5 +57,32 @@ public class SecurityService {
             user.setJwt(newToken);
             userRepository.save(user);
         }
+    }
+
+    public void compareTokenWithMongoDBToken(String token, String userId) {
+        User user = userRepository.findById(new ObjectId(userId)).orElseThrow(() -> new RuntimeException("user not found"));
+        String jwt = user.getJwt();
+        if (jwt == null || jwt.isEmpty()) {
+            throw new CompareTokenException("Unauthorized - User had log out");
+        }
+        if (!token.equals(jwt)) {
+            throw new CompareTokenException("Unauthorized - Token is different");
+        }
+    }
+
+    /**
+     * @param role 输入角色
+     */
+    public boolean hasRequiredRole(String role, List<RoleEnum> roleEnumList) {
+        return roleEnumList.stream().anyMatch(roleEnum -> Objects.equals(role, roleEnum.toString()));
+    }
+
+    /**
+     * @param userId 输入用户id
+     */
+    public boolean hasRequiredRole(ObjectId userId, List<RoleEnum> roleEnumList) {
+        User user = userRepository.findById(userId).orElseThrow();
+        String role = user.getRole();
+        return hasRequiredRole(role, roleEnumList);
     }
 }

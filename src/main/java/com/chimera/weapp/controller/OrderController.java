@@ -1,13 +1,13 @@
 package com.chimera.weapp.controller;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.apiparams.OrderApiParams;
+import com.chimera.weapp.config.WebSocketConfig;
 import com.chimera.weapp.dto.PrePaidDTO;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.enums.RoleEnum;
-import com.chimera.weapp.handler.OrderUpdateWebSocketHandler;
-import com.chimera.weapp.handler.OrderCreateWebSocketHandler;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.ProductRepository;
 import com.chimera.weapp.service.BenefitService;
@@ -69,10 +69,7 @@ public class OrderController {
 //    private NotificationConfig notificationConfig;
 
     @Autowired
-    private OrderUpdateWebSocketHandler orderUpdateWebSocketHandler;
-
-    @Autowired
-    private OrderCreateWebSocketHandler orderCreateWebSocketHandler;
+    private WebSocketConfig webSocketConfig;
 
     @GetMapping
     @LoginRequired
@@ -121,7 +118,7 @@ public class OrderController {
         order.setState(StateEnum.PRE_PAID.toString());
         Order save = repository.save(order);
         PrePaidDTO prePaidDTO = weChatRequestService.jsapiTransaction(save);
-        orderCreateWebSocketHandler.sendMessage("单号[" + save.getOrderNum() + "]");
+        webSocketConfig.getOrderCreateWebSocketHandler().sendMessage("单号[" + save.getOrderNum() + "]");
         return prePaidDTO;
     }
 
@@ -247,7 +244,7 @@ public class OrderController {
 
         // 根据状态机的处理结果返回不同的响应
         if (serviceResult != null && serviceResult.isSuccess()) {
-//            orderCreateWebSocketHandler.sendMessage("单号[" + save.getOrderNum() + "]");要调试的话可以把这个和查单的鉴权注解注释掉，再用postman调建新单接口
+            webSocketConfig.getOrderCreateWebSocketHandler().sendMessage(JSONObject.toJSONString(save));//要调试的话可以把这个和查单的鉴权注解注释掉，再用postman调建新单接口
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);
@@ -279,7 +276,7 @@ public class OrderController {
         }
 
         if (serviceResult != null && serviceResult.isSuccess()) {
-            orderUpdateWebSocketHandler.sendMessageToOrder(order.getId().toHexString(), "已供餐");
+            webSocketConfig.getOrderUpdateWebSocketHandler().sendMessageToOrder(order.getId().toHexString(), "已供餐");
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);
@@ -301,7 +298,7 @@ public class OrderController {
         serviceResult = orderFsmEngine.sendEvent(EventEnum.REFUND.toString(), context);
 
         if (serviceResult != null && serviceResult.isSuccess()) {
-            orderUpdateWebSocketHandler.sendMessageToOrder(order.getId().toHexString(), "已退款");
+            webSocketConfig.getOrderUpdateWebSocketHandler().sendMessageToOrder(order.getId().toHexString(), "已退款");
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);

@@ -64,7 +64,7 @@ public class SecurityAspect {
             Claims claims = JwtUtils.parseToken(token);
 
             String subject = claims.getSubject();
-            compareTokenWithMongoDBToken(token, subject);
+            securityService.compareTokenWithMongoDBToken(token, subject);
 
             // 存储用户信息，以便后续使用
             ThreadLocalUtil.set(ThreadLocalUtil.USER_DTO, UserDTO.ofUser(repository.findById(new ObjectId(subject)).orElseThrow()).build());
@@ -93,17 +93,6 @@ public class SecurityAspect {
 
     }
 
-    private void compareTokenWithMongoDBToken(String token, String userId) throws Exception {
-        User user = repository.findById(new ObjectId(userId)).orElseThrow(() -> new Exception("user not found"));
-        String jwt = user.getJwt();
-        if (jwt == null || jwt.isEmpty()) {
-            throw new CompareTokenException("Unauthorized - User had log out");
-        }
-        if (!token.equals(jwt)) {
-            throw new CompareTokenException("Unauthorized - Token is different");
-        }
-    }
-
 
     // 鉴权切面，拦截 @RoleAllow 注解的方法
     @Around("onRolesAllow()")
@@ -115,9 +104,8 @@ public class SecurityAspect {
         }
         RolesAllow rolesAllow = getRolesAllow(pjp);
         String role = userDTO.getRole();
-        boolean hasRequiredRole = Arrays.stream(rolesAllow.value())
-                .map(Enum::name)
-                .anyMatch(roleAllow -> roleAllow.equals(role));
+        boolean hasRequiredRole =
+                securityService.hasRequiredRole(role, Arrays.asList(rolesAllow.value()));
 
 
         if (!hasRequiredRole) {

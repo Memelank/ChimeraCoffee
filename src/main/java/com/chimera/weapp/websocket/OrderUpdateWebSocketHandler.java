@@ -1,23 +1,25 @@
-package com.chimera.weapp.handler;
+package com.chimera.weapp.websocket;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
-@Component
-public class OrderUpdateWebSocketHandler extends TextWebSocketHandler {
+public class OrderUpdateWebSocketHandler  extends AuthenticatedWebSocketHandler  {
 
     // 存储orderId和WebSocketSession的映射
     private final Map<String, WebSocketSession> orderSessionMap = new ConcurrentHashMap<>();
+
+    public OrderUpdateWebSocketHandler(WebSocketAuthenticator authenticator, ScheduledExecutorService scheduler, long authTimeoutSeconds) {
+        super(authenticator, scheduler, authTimeoutSeconds);
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
