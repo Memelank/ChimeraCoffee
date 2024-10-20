@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
-public class OrderUpdateWebSocketHandler  extends BaseWebSocketHandler {
+public class OrderUpdateWebSocketHandler extends BaseWebSocketHandler {
 
     // 存储orderId和WebSocketSession的映射
     private final Map<String, WebSocketSession> orderSessionMap = new ConcurrentHashMap<>();
@@ -24,6 +24,7 @@ public class OrderUpdateWebSocketHandler  extends BaseWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        super.afterConnectionEstablished(session);
         URI uri = session.getUri();  // 获取 WebSocket 的 URI
 
         // 使用 UriComponentsBuilder 来解析查询参数
@@ -42,6 +43,7 @@ public class OrderUpdateWebSocketHandler  extends BaseWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status) throws Exception {
+        super.afterConnectionClosed(session, status);
         // 移除关闭连接的订单ID
         orderSessionMap.values().remove(session);
     }

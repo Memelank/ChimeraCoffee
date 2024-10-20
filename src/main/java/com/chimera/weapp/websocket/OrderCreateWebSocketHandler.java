@@ -26,12 +26,17 @@ public class OrderCreateWebSocketHandler extends BaseWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        super.afterConnectionClosed(session,status);
         // 移除关闭连接的订单ID
         sessions.remove(session);
     }
 
-    public void sendMessage(String message) throws IOException {
+    public void sendOrderId(String orderId) throws IOException {
+        sendMessage("order:" + orderId);
+    }
+
+    private void sendMessage(String message) throws IOException {
         for (WebSocketSession session : sessions) {
             session.sendMessage(new TextMessage(message));
         }

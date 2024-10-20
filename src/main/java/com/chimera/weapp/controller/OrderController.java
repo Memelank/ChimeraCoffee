@@ -118,7 +118,7 @@ public class OrderController {
         order.setState(StateEnum.PRE_PAID.toString());
         Order save = repository.save(order);
         PrePaidDTO prePaidDTO = weChatRequestService.jsapiTransaction(save);
-        webSocketConfig.getOrderCreateWebSocketHandler().sendMessage("单号[" + save.getOrderNum() + "]");
+        webSocketConfig.getOrderCreateWebSocketHandler().sendOrderId(order.getId().toHexString());
         return prePaidDTO;
     }
 
@@ -244,7 +244,7 @@ public class OrderController {
 
         // 根据状态机的处理结果返回不同的响应
         if (serviceResult != null && serviceResult.isSuccess()) {
-            webSocketConfig.getOrderCreateWebSocketHandler().sendMessage(JSONObject.toJSONString(save));//要调试的话可以把这个和查单的鉴权注解注释掉，再用postman调建新单接口
+            webSocketConfig.getOrderCreateWebSocketHandler().sendOrderId(save.getId().toHexString());//要调试的话可以把这个和查单的鉴权注解注释掉，再用postman调建新单接口
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);

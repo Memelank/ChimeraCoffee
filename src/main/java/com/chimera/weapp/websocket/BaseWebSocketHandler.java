@@ -38,12 +38,15 @@ public class BaseWebSocketHandler extends TextWebSocketHandler {
             if (now - lastHeartbeat > heartBeatTimeout * 1000) {
                 // 超时，关闭连接
                 try {
-                    session.sendMessage(new TextMessage("heartbeat timeout!"));
-                    session.close();
-                    sessionHeartbeatMap.remove(session);
-                    log.info("Closed session due to timeout: {}", session.getId());
+                    if (session.isOpen()) {
+                        session.sendMessage(new TextMessage("heartbeat timeout!"));
+                        session.close();
+                        log.info("Closed session due to timeout: {}", session.getId());
+                    }
                 } catch (Exception e) {
                     log.error("在断开在因心跳超时的连接时出错", e);
+                } finally {
+                    sessionHeartbeatMap.remove(session);
                 }
             }
         });
@@ -60,8 +63,10 @@ public class BaseWebSocketHandler extends TextWebSocketHandler {
             if (authenticated == null || !authenticated) {
                 try {
                     log.info("Authentication timed out. Closing session.");
-                    session.sendMessage(new TextMessage("authentication timeout!"));
-                    session.close(CloseStatus.NOT_ACCEPTABLE); // 超时未认证，关闭连接
+                    if (session.isOpen()) {
+                        session.sendMessage(new TextMessage("authentication timeout!"));
+                        session.close(CloseStatus.NOT_ACCEPTABLE); // 超时未认证，关闭连接
+                    }
                 } catch (Exception e) {
                     log.warn("关闭连接异常", e);
                 }
