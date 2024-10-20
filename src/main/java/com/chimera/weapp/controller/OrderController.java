@@ -91,7 +91,7 @@ public class OrderController {
 
 
     @GetMapping("/user/{userId}")
-    @Operation(summary = "根据userId查询Orders，当前端传递all=true时，返回所有，否则默认5条")
+    @Operation(summary = "根据userId查询Orders，当前端传递all=true时，返回所有，否则默认10条")
     public ResponseEntity<List<Order>> getOrdersByUserId(
             @PathVariable String userId,
             @org.springframework.web.bind.annotation.RequestParam(value = "all", required = false, defaultValue = "false") boolean all) {
