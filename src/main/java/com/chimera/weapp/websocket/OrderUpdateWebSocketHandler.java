@@ -12,14 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
-public class OrderUpdateWebSocketHandler  extends AuthenticatedWebSocketHandler  {
+public class OrderUpdateWebSocketHandler  extends BaseWebSocketHandler {
 
     // 存储orderId和WebSocketSession的映射
     private final Map<String, WebSocketSession> orderSessionMap = new ConcurrentHashMap<>();
 
-    public OrderUpdateWebSocketHandler(WebSocketAuthenticator authenticator, ScheduledExecutorService scheduler, long authTimeoutSeconds) {
-        super(authenticator, scheduler, authTimeoutSeconds);
+    public OrderUpdateWebSocketHandler(WebSocketAuthenticator authenticator, ScheduledExecutorService scheduler, long authTimeoutSeconds, int heartBeatTimeout) {
+        super(authenticator, scheduler, authTimeoutSeconds, heartBeatTimeout);
     }
+
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -38,11 +39,6 @@ public class OrderUpdateWebSocketHandler  extends AuthenticatedWebSocketHandler 
         }
     }
 
-    @Override
-    public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        // 可以在这里处理前端发送的消息
-        log.info("Received message: {}", message.getPayload());
-    }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status) throws Exception {

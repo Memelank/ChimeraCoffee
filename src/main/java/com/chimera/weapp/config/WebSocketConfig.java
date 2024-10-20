@@ -38,14 +38,14 @@ public class WebSocketConfig implements WebSocketConfigurer {
         orderUpdateWebSocketHandler = new OrderUpdateWebSocketHandler(
                 new JwtWebSocketAuthenticator(Arrays.asList(RoleEnum.values()), securityService),
                 scheduler,
-                10);
+                10, 30);
         registry.addHandler(orderUpdateWebSocketHandler, "/ws/order_update")
                 .setAllowedOrigins("*"); // 允许跨域
         orderCreateWebSocketHandler =
                 new OrderCreateWebSocketHandler(
                         new JwtWebSocketAuthenticator(List.of(RoleEnum.ADMIN), securityService),
                         scheduler,
-                        10);
+                        10, 30);
         registry.addHandler(orderCreateWebSocketHandler, "/ws/order_create")
                 .setAllowedOrigins("*");
 

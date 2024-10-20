@@ -24,6 +24,7 @@ public class JwtWebSocketAuthenticator implements WebSocketAuthenticator {
         try {
             Claims claims = JwtUtils.parseToken(token);
             String subject = claims.getSubject();
+            securityService.compareTokenWithMongoDBToken(token,subject);
             return securityService.hasRequiredRole(new ObjectId(subject), roleEnums);
         } catch (Exception e) {
             log.warn("jwt认证失败", e);
