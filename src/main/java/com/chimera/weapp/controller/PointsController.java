@@ -27,7 +27,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/points")
@@ -71,23 +73,29 @@ public class PointsController {
     @PostMapping("/exchangeCoupon")
     @LoginRequired
     @Operation(summary = "积分兑换优惠券接口")
-    public ResponseEntity<String> exchangeCoupon(
+    public ResponseEntity<Map<String, Object>> exchangeCoupon(
             @RequestParam String userId,
             @RequestParam String couponId) {
+        Map<String, Object> response = new HashMap<>();
         try {
             ObjectId userObjectId = new ObjectId(userId);
             ObjectId couponObjectId = new ObjectId(couponId);
             benefitService.exchangePointsForCoupon(userObjectId, couponObjectId);
-            return ResponseEntity.ok("兑换成功");
+
+            response.put("status", "success");
+            response.put("message", "兑换成功");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
     @PostMapping("/redeemProduct")
     @LoginRequired
     @Operation(summary = "使用积分兑换积分商品")
-    public ResponseEntity<String> redeemPointsProduct(
+    public ResponseEntity<Map<String, Object>> redeemPointsProduct(
             @RequestParam String userId,
             @RequestParam String productId,
             @RequestParam int sendType,
@@ -95,14 +103,19 @@ public class PointsController {
             @RequestParam String number,
             @RequestParam(required = false) String sendAddr,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date getDate) {
+        Map<String, Object> response = new HashMap<>();
         try {
             securityService.checkIdImitate(userId);
             ObjectId userObjectId = new ObjectId(userId);
             ObjectId productObjectId = new ObjectId(productId);
             benefitService.exchangePointsForPointsProduct(userObjectId, productObjectId, sendType, name, sendAddr, number, getDate);
-            return ResponseEntity.ok("兑换成功");
+            response.put("status", "success");
+            response.put("message", "兑换成功");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
