@@ -12,4 +12,5 @@ public interface ProductRepository extends MongoRepository<Product, ObjectId> {
     List<Product> findAllByDeleteIs(int delete);
     List<Product> findAllByDeleteIsAndStatusIs(int delete, int status);
 
+    List<Product> findByDelete(int i);
 }

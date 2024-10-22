@@ -26,13 +26,13 @@ public class ProductCateController {
     @GetMapping
     @Operation(summary = "获得所有ProductCates，用于菜单侧边栏分类")
     public ResponseEntity<List<ProductCate>> getAllProductCates() {
-        return ResponseEntity.ok(repository.findAllByDeleteIs(0));
+        return ResponseEntity.ok(repository.findAllByDeleteIsAndStatusIs(0, 1));
     }
 
     // 获取所有产品类别
     @GetMapping("/shop")
     public ResponseEntity<List<ProductCate>> getAllProductCatesShop() {
-        return ResponseEntity.ok(repository.findAllByDeleteIsAndStatusIs(0, 1));
+        return ResponseEntity.ok(repository.findAllByDeleteIs(0));
     }
 
     // 创建新产品类别
