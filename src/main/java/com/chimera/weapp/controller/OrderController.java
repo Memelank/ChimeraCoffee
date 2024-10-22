@@ -5,6 +5,7 @@ import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.apiparams.OrderApiParams;
 import com.chimera.weapp.config.WebSocketConfig;
+import com.chimera.weapp.dto.BatchSupplyOrderDTO;
 import com.chimera.weapp.dto.PrePaidDTO;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.enums.RoleEnum;
@@ -87,6 +88,38 @@ public class OrderController {
         List<Order> orders = repository.findByCreatedAtBetweenOrderByCreatedAtDesc(startTime, endTime);
 
         return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/getOrdersByDeliveryInfo")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
+    public ResponseEntity<?> getOrdersByDeliveryInfo(
+            @org.springframework.web.bind.annotation.RequestParam String school,
+            @org.springframework.web.bind.annotation.RequestParam String address,
+            @org.springframework.web.bind.annotation.RequestParam String time,
+            @org.springframework.web.bind.annotation.RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+        try {
+            // 设置开始和结束时间为当天
+            Date startTime = date;
+            startTime.setHours(0);
+            startTime.setMinutes(0);
+            startTime.setSeconds(0);
+
+            Date endTime = date;
+            endTime.setHours(23);
+            endTime.setMinutes(59);
+            endTime.setSeconds(59);
+
+            // 查找符合条件的订单
+            List<Order> orders = repository.findByDeliveryInfoAndCreatedAtBetween(
+                    school, address, time, startTime, endTime
+            );
+
+            return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            log.error("根据配送信息查找订单时发生错误:", e);
+            return ResponseEntity.internalServerError().body("获取订单失败：" + e.getMessage());
+        }
     }
 
 
@@ -283,6 +316,50 @@ public class OrderController {
         }
     }
 
+    @PostMapping("/batchSupply")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
+    public ResponseEntity<Map<String, Object>> batchSupplyOrders(@RequestBody BatchSupplyOrderDTO request) {
+        List<String> orderIds = request.getOrderIds();
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            for (String orderId : orderIds) {
+                Optional<Order> orderOptional = repository.findById(new ObjectId(orderId));
+                if (orderOptional.isEmpty()) {
+                    response.put("success", false);
+                    response.put("message", "订单 " + orderId + " 未找到");
+                    return ResponseEntity.badRequest().body(response);
+                }
+
+                Order order = orderOptional.get();
+
+                StateContext<Object> context = new StateContext<>();
+                setNormalContext(context, order);
+
+                FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
+                context.setContext(fixDeliveryContext);
+                ServiceResult<Object, ?> serviceResult = orderFsmEngine.sendEvent(EventEnum.SUPPLY_FIX_DELIVERY.toString(), context);
+
+                if (!serviceResult.isSuccess()) {
+                    response.put("success", false);
+                    response.put("message", serviceResult.getMsg());
+                    return ResponseEntity.internalServerError().body(response);
+                }
+            }
+
+            response.put("success", true);
+            response.put("message", "所有订单成功供餐");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("批量供餐时发生错误:", e);
+            response.put("success", false);
+            response.put("message", "批量供餐失败：" + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+
     @PostMapping(value = "/refund", consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
@@ -304,24 +381,6 @@ public class OrderController {
             return ResponseEntity.internalServerError().body(serviceResult);
         }
     }
-
-//    @PostMapping("/after_sale")
-//    @LoginRequired
-//    public ResponseEntity<ServiceResult> afterSale(@RequestBody Order order) throws Exception {
-//        ServiceResult<Object, ?> serviceResult = null;
-//
-//        StateContext<Object> context = new StateContext<>();
-//        setNormalContext(context, order);
-//        CallAfterSalesContext callAfterSalesContext = new CallAfterSalesContext();
-//        context.setContext(callAfterSalesContext);
-//        serviceResult = orderFsmEngine.sendEvent(EventEnum.CALL_AFTER_SALES.toString(), context);
-//
-//        if (serviceResult != null && serviceResult.isSuccess()) {
-//            return ResponseEntity.ok(serviceResult);
-//        } else {
-//            return ResponseEntity.internalServerError().body(serviceResult);
-//        }
-//    }
 
     private void setNormalContext(StateContext<?> context, Order save) {
         context.setOrderId(save.getId().toString());
