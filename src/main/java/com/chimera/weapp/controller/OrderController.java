@@ -123,6 +123,9 @@ public class OrderController {
     }
 
 
+    /**
+     * <a href="https://github.com/wechatpay-apiv3/wechatpay-java?tab=readme-ov-file#%E5%9B%9E%E8%B0%83%E9%80%9A%E7%9F%A5">链接</a>
+     */
     @PostMapping("/wxcreate_callback")
     @Operation(summary = "接收支付结果通知。是腾讯的微信支付系统调用的")
     public ResponseEntity<String> callback(@RequestBody String requestBody) throws Exception {
@@ -304,24 +307,6 @@ public class OrderController {
             return ResponseEntity.internalServerError().body(serviceResult);
         }
     }
-
-//    @PostMapping("/after_sale")
-//    @LoginRequired
-//    public ResponseEntity<ServiceResult> afterSale(@RequestBody Order order) throws Exception {
-//        ServiceResult<Object, ?> serviceResult = null;
-//
-//        StateContext<Object> context = new StateContext<>();
-//        setNormalContext(context, order);
-//        CallAfterSalesContext callAfterSalesContext = new CallAfterSalesContext();
-//        context.setContext(callAfterSalesContext);
-//        serviceResult = orderFsmEngine.sendEvent(EventEnum.CALL_AFTER_SALES.toString(), context);
-//
-//        if (serviceResult != null && serviceResult.isSuccess()) {
-//            return ResponseEntity.ok(serviceResult);
-//        } else {
-//            return ResponseEntity.internalServerError().body(serviceResult);
-//        }
-//    }
 
     private void setNormalContext(StateContext<?> context, Order save) {
         context.setOrderId(save.getId().toString());
