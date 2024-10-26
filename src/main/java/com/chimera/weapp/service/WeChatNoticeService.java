@@ -1,7 +1,7 @@
 package com.chimera.weapp.service;
 
 import com.chimera.weapp.apiparams.SupplyNoticeApiParams;
-import com.chimera.weapp.apiparams.RefundApiNoticeParams;
+import com.chimera.weapp.apiparams.RefundNoticeApiParams;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.repository.AppConfigurationRepository;
 import com.chimera.weapp.repository.OrderRepository;
@@ -90,7 +90,7 @@ public class WeChatNoticeService {
         String wxts = acRepo.findByKeyAndCategory(WXTS, REFUND).orElseThrow().getValue();
         String page = acRepo.findByKeyAndCategory(PAGE, REFUND).orElseThrow().getValue();
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, REFUND).orElseThrow().getValue();
-        RefundApiNoticeParams.RefundApiNoticeParamsBuilder builder = RefundApiNoticeParams.builder()
+        RefundNoticeApiParams.RefundNoticeApiParamsBuilder builder = RefundNoticeApiParams.builder()
                 .character_string1(Integer.toString(order.getOrderNum()))
                 .amount2(Integer.toString(order.getTotalPrice()))
                 .time3(DateUtil.formatDate(new Date()))

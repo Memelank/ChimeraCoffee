@@ -156,20 +156,6 @@ public class OrderService {
         return calendar.getTime();
     }
 
-    public String buildJSAPIRequestBody(Order order, String appid, String mchid, String notifyURL) {
-        ObjectId orderId = order.getId();
-        String openid = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class).getOpenid();
-        String description = getDescription(order);
-        Map<String, Object> map = new HashMap<>();
-        map.put("appid", appid);
-        map.put("mchid", mchid);
-        map.put("description", description);
-        map.put("out_trade_no", orderId.toHexString());
-        map.put("notify_url", notifyURL);
-        map.put("amount", String.format("{\"total\":%d,\"currency\":\"CNY\"}", order.getTotalPrice()));
-        map.put("payer", String.format("{\"openid\":\"%s\"}", openid));
-        return JSONObject.toJSONString(map);
-    }
 
     public String getDescription(Order order) {
         TreeMap<String, Integer> treeMap = new TreeMap<>();
