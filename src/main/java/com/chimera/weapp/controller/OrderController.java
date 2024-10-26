@@ -3,6 +3,7 @@ package com.chimera.weapp.controller;
 import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.apiparams.OrderApiParams;
+import com.chimera.weapp.apiparams.RefundApplyApiParams;
 import com.chimera.weapp.config.WebSocketConfig;
 import com.chimera.weapp.dto.BatchSupplyOrderDTO;
 import com.chimera.weapp.dto.PrePaidDTO;
@@ -21,9 +22,13 @@ import com.chimera.weapp.statemachine.enums.EventEnum;
 import com.chimera.weapp.statemachine.enums.SceneEnum;
 import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
+import com.wechat.pay.java.core.notification.NotificationConfig;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.jsapi.model.Transaction;
+import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
+import com.wechat.pay.java.service.refund.model.RefundNotification;
+import com.wechat.pay.java.service.refund.model.Status;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -67,8 +72,8 @@ public class OrderController {
     @Autowired
     private BenefitService benefitService;
 
-//    @Autowired
-//    private NotificationConfig notificationConfig;
+    @Autowired
+    private NotificationConfig notificationConfig;
 
     @Autowired
     private WebSocketConfig webSocketConfig;
@@ -145,23 +150,26 @@ public class OrderController {
 
     @PostMapping("/wxcreate")
     @LoginRequired
-    @Operation(summary = "创建预支付订单。小程序先调用这个，再调用wx.requestPayment")
-    public PrePaidDTO create(@RequestBody OrderApiParams orderApiParams) throws URISyntaxException, IOException {
+    @Operation(summary = "创建预支付订单。小程序先调用这个，再调用wx.requestPayment。response包含了调起支付所需的所有参数，可直接用于前端调起支付\n" +
+            "<a href=https://github.com/wechatpay-apiv3/wechatpay-java/blob/main/service/src/example/java/com/wechat/pay/java/service/refund/RefundServiceExample.java>链接</a>")
+    public PrepayWithRequestPaymentResponse create(@RequestBody OrderApiParams orderApiParams) throws URISyntaxException, IOException {
         securityService.checkIdImitate(orderApiParams.getUserId());
         Order order = orderService.buildOrderByApiParams(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
         Order save = repository.save(order);
-        PrePaidDTO prePaidDTO = weChatRequestService.jsapiTransaction(save);
+        PrepayWithRequestPaymentResponse response = weChatRequestService.jsapiTransaction(save);
         webSocketConfig.getOrderCreateWebSocketHandler().sendOrderId(order.getId().toHexString());
-        return prePaidDTO;
+        return response;
     }
 
 
+    /**
+     * <a href="https://github.com/wechatpay-apiv3/wechatpay-java?tab=readme-ov-file#%E5%9B%9E%E8%B0%83%E9%80%9A%E7%9F%A5">链接</a>
+     */
     @PostMapping("/wxcreate_callback")
     @Operation(summary = "接收支付结果通知。是腾讯的微信支付系统调用的")
     public ResponseEntity<String> callback(@RequestBody String requestBody) throws Exception {
-//        NotificationParser parser = new NotificationParser(notificationConfig);
-        NotificationParser parser = new NotificationParser();
+        NotificationParser parser = new NotificationParser(notificationConfig);
         RequestParam requestParam = buildRequestParam(requestBody);
         Transaction transaction = parser.parse(requestParam, Transaction.class);
         String outTradeNo = transaction.getOutTradeNo();
@@ -176,13 +184,17 @@ public class OrderController {
             StateContext<Object> context = new StateContext<>();
             setNormalContext(context, order);
 
-            PrePayContext prePayContext = new PrePayContext();
-            context.setContext(prePayContext);
+            NotifyPrePayContext notifyPrePayContext = new NotifyPrePayContext();
+            notifyPrePayContext.setTransaction(transaction);
+            context.setContext(notifyPrePayContext);
             ServiceResult<Object, Object> prePaidFSMResult = orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
             if (!prePaidFSMResult.isSuccess()) {
                 return ResponseEntity.internalServerError().body(
                         String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", prePaidFSMResult.getMsg())
                 );
+            }
+            if(Objects.equals(context.getOrderState(),StateEnum.ABNORMAL_END.toString())){
+                return ResponseEntity.ok("");//这里用户其实没有支付成功，是告诉微信这个通知已经正常处理的
             }
             //核销优惠
             if (order.getCoupon() != null) {
@@ -245,8 +257,8 @@ public class OrderController {
         //1.预支付到支付状态，过一遍积分的逻辑
         StateContext<Object> context = new StateContext<>();
         setNormalContext(context, save);
-        PrePayContext prePayContext = new PrePayContext();
-        context.setContext(prePayContext);
+        NotifyPrePayContext notifyPrePayContext = new NotifyPrePayContext();
+        context.setContext(notifyPrePayContext);
         orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
 
         //核销优惠  TODO:上线后可去掉
@@ -391,6 +403,28 @@ public class OrderController {
             return ResponseEntity.internalServerError().body(serviceResult);
         }
     }
+
+    @PostMapping(value = "/refund_apply")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
+    public ResponseEntity<ServiceResult> refundApply(@RequestBody RefundApplyApiParams body){
+
+        return null;
+    }
+
+    @PostMapping(value = "/refund_callback")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
+    public ResponseEntity<ServiceResult> refundCallback(@RequestBody String body){
+        RequestParam requestParam = buildRequestParam(body);
+        NotificationParser parser = new NotificationParser(notificationConfig);
+        RefundNotification refundNotification = parser.parse(requestParam, RefundNotification.class);
+        Status refundStatus = refundNotification.getRefundStatus();
+
+        return null;
+    }
+
+
 
     private void setNormalContext(StateContext<?> context, Order save) {
         context.setOrderId(save.getId().toString());

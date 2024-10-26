@@ -5,7 +5,15 @@ import com.chimera.weapp.dto.*;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.util.CaffeineCacheUtil;
-import com.chimera.weapp.util.ThreadLocalUtil;
+import com.wechat.pay.java.core.Config;
+import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
+import com.wechat.pay.java.service.payments.jsapi.model.Amount;
+import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
+import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
+import com.wechat.pay.java.service.refund.RefundService;
+import com.wechat.pay.java.service.refund.model.AmountReq;
+import com.wechat.pay.java.service.refund.model.CreateRequest;
+import com.wechat.pay.java.service.refund.model.Refund;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
@@ -15,15 +23,12 @@ import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.net.URIBuilder;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -36,14 +41,18 @@ public class WeChatRequestService {
     private String appid;
     @Value("${wx-mini-program.secret}")
     private String secret;
-    @Value("${wx-mini-program.notify_url}")
-    private String notifyURL;
+    @Value("${wx-mini-program.prepay.notify_url}")
+    private String prepayNotifyURL;
+    @Value("${wx-mini-program.refund.notify_url}")
+    private String refundNotifyURL;
     @Value("${wx-mini-program.mchid}")
     private String mchid;
     @Value("${wx-mini-program.state")
     private String miniprogram_state;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private Config config;
 
     private static final String ACCESS_TOKEN = "access_token";
 
@@ -76,19 +85,40 @@ public class WeChatRequestService {
     }
 
     /**
-     * JSAPI下单
-     * 商户系统先调用该接口在微信支付服务后台生成预支付交易单，返回正确的预支付交易会话标识后再按Native、JSAPI、APP等不同场景生成交易串调起支付。
-     * <a href="https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_1.shtml">链接</a>
+     * JSAPI 支付和 APP 支付推荐使用服务拓展类 JsapiServiceExtension 和 AppServiceExtension，两者包含了下单并返回调起支付参数方法。
+     * <a href="https://github.com/wechatpay-apiv3/wechatpay-java/tree/main?tab=readme-ov-file#%E4%B8%8B%E5%8D%95%E5%B9%B6%E7%94%9F%E6%88%90%E8%B0%83%E8%B5%B7%E6%94%AF%E4%BB%98%E7%9A%84%E5%8F%82%E6%95%B0">链接</a>
      */
-    public PrePaidDTO jsapiTransaction(Order save) throws URISyntaxException, IOException {
-        URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi");
+    public PrepayWithRequestPaymentResponse jsapiTransaction(Order order) {
 
-        ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
-                .setEntity(orderService.buildJSAPIRequestBody(save, appid, mchid, notifyURL))
-                .build();
+        JsapiServiceExtension service = new JsapiServiceExtension.Builder().config(config).build();
+        PrepayRequest request = new PrepayRequest();
+        Amount amount = new Amount();
+        amount.setTotal(100);
+        request.setAmount(amount);
+        request.setAppid(appid);
+        request.setMchid(mchid);
+        request.setDescription(orderService.getDescription(order));
+        request.setNotifyUrl(prepayNotifyURL);
+        request.setOutTradeNo(order.getId().toHexString());
+        return service.prepayWithRequestPayment(request);
+    }
 
-        String body = sendHttpRequest(uriBuilder, httpRequest);
-        return JSONObject.parseObject(body, PrePaidDTO.class);
+    /**
+     * 退款申请
+     * <a href="https://github.com/wechatpay-apiv3/wechatpay-java/blob/main/service/src/example/java/com/wechat/pay/java/service/refund/RefundServiceExample.java">链接</a>
+     */
+    public Refund createRefund(Order order, String reason) {
+        RefundService service = new RefundService.Builder().config(config).build();
+        CreateRequest createRequest = new CreateRequest();
+        createRequest.setOutTradeNo(order.getId().toHexString());
+        createRequest.setOutRefundNo(order.getId().toHexString());
+        createRequest.setReason(reason);
+        createRequest.setNotifyUrl(refundNotifyURL);
+        AmountReq amountReq = new AmountReq();
+        amountReq.setRefund(Integer.toUnsignedLong(order.getTotalPrice()));
+        amountReq.setTotal(Integer.toUnsignedLong(order.getTotalPrice()));// 当前退款金额即原订单金额
+        amountReq.setCurrency("CNY");
+        return service.create(createRequest);
     }
 
     /**
