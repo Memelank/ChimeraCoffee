@@ -4,9 +4,11 @@ import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.dto.*;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.repository.UserRepository;
+import com.chimera.weapp.util.CaffeineCacheUtil;
 import com.chimera.weapp.util.ThreadLocalUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
+import lombok.Data;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.*;
@@ -23,6 +25,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 
 @Service
@@ -58,6 +61,7 @@ public class WeChatRequestService {
     /**
      * 2.调用 auth.code2Session 接口，换取 用户唯一标识 OpenID 、 用户在微信开放平台账号下的唯一标识UnionID（若当前小程序已绑定到微信开放平台账号） 和 会话密钥 session_key
      * <a href="https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/login.html">链接</a>
+     *
      * @param code 1.调用 wx.login() 获取 临时登录凭证code ，并回传到开发者服务器。
      */
     public JSONObject code2session(String code) throws IOException, URISyntaxException {
@@ -75,7 +79,6 @@ public class WeChatRequestService {
      * JSAPI下单
      * 商户系统先调用该接口在微信支付服务后台生成预支付交易单，返回正确的预支付交易会话标识后再按Native、JSAPI、APP等不同场景生成交易串调起支付。
      * <a href="https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_1.shtml">链接</a>
-     *
      */
     public PrePaidDTO jsapiTransaction(Order save) throws URISyntaxException, IOException {
         URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi");
@@ -93,18 +96,33 @@ public class WeChatRequestService {
      * <a href="https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/mp-access-token/getAccessToken.html">链接</a>
      */
     private String getAccessToken() throws URISyntaxException, IOException {
-        URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/cgi-bin/token");
-        uriBuilder.addParameter("grant_type", WeChatRequestService.GRANT_TYPE)
-                .addParameter("appid", appid)
-                .addParameter("secret", secret);
-        ClassicHttpRequest httpRequest = ClassicRequestBuilder.get(uriBuilder.build()).build();
+        Optional<Object> optional = CaffeineCacheUtil.get("access_token");
+        if (optional.isPresent()) {
+            return (String) optional.get();
+        }
+
+        URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/cgi-bin/stable_token");
+        StableTokenApiParams apiParams = StableTokenApiParams.builder().grant_type(WeChatRequestService.GRANT_TYPE).appid(appid).secret(secret).build();
+        ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build()).setEntity(JSONObject.toJSONString(apiParams)).build();
         String body = sendHttpRequest(uriBuilder, httpRequest);
         JSONObject jsonObject = JSONObject.parseObject(body);
-        String errcode = jsonObject.getString("errcode");
-        if (Objects.nonNull(errcode)) {
-            throw new RuntimeException("调用https://api.weixin.qq.com/cgi-bin/token。grant失败：" + body);
+        String accessToken = jsonObject.getString("access_token");
+        if (Objects.nonNull(accessToken)) {
+            Long expiresIn = jsonObject.getLong("expires_in");
+            CaffeineCacheUtil.put("access_token", accessToken, expiresIn * 1000);
+            return accessToken;
+        } else {
+            throw new RuntimeException(String.format("调用 https://api.weixin.qq.com/cgi-bin/token 失败,body: %s", body));
         }
-        return body;
+    }
+
+    @Builder
+    @Data
+    public static class StableTokenApiParams {
+        String grant_type;
+        String appid;
+        String secret;
+        String force_refresh;
     }
 
     /**
@@ -125,6 +143,7 @@ public class WeChatRequestService {
 
 
     @Builder
+    @Data
     public static class WxCheckStudentIdentityApiParams {
         @NotNull
         String openid;
@@ -140,16 +159,15 @@ public class WeChatRequestService {
      * @param page        跳转页面
      * @param template_id 模板id
      * @param touser      接收者（用户）id
-     * @param <T>         内容类型
      */
-    public <T> void subscribeSend(T content, String page, String template_id, String touser) throws URISyntaxException, IOException {
+    public void subscribeSend(String content, String page, String template_id, String touser) throws URISyntaxException, IOException {
         URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/cgi-bin/message/subscribe/send");
         String grant = getAccessToken();
         uriBuilder.addParameter(ACCESS_TOKEN, grant);
         WxSubscribeSendApiParams.WxSubscribeSendApiParamsBuilder builder = WxSubscribeSendApiParams.builder()
                 .template_id(template_id)
                 .touser(touser)
-                .data(content.toString())
+                .data(content)
                 .miniprogram_state(miniprogram_state)
                 .lang("zh_CN");
         if (Objects.nonNull(page) || !template_id.isBlank()) {
@@ -168,6 +186,7 @@ public class WeChatRequestService {
     }
 
     @Builder
+    @Data
     static class WxSubscribeSendApiParams {
         @NotNull
         String template_id;

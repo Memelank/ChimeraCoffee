@@ -26,6 +26,7 @@ import java.util.List;
 @Schema(description = "就是订单呀")
 public class Order {
     @Id
+    @NotNull
     private ObjectId id;
     @NotNull
     private ObjectId userId;

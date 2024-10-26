@@ -1,12 +1,12 @@
 package com.chimera.weapp.controller;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.apiparams.OrderApiParams;
 import com.chimera.weapp.config.WebSocketConfig;
 import com.chimera.weapp.dto.BatchSupplyOrderDTO;
 import com.chimera.weapp.dto.PrePaidDTO;
+import com.chimera.weapp.dto.ResponseBodyDTO;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.OrderRepository;
@@ -33,6 +33,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -285,10 +286,17 @@ public class OrderController {
     }
 
 
-    @PostMapping(value = "/supply", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/supply")
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<ServiceResult> supplyOrder(@RequestBody Order order) throws Exception {
+    public ResponseEntity<ResponseBodyDTO<ServiceResult>> supplyOrder(@org.springframework.web.bind.annotation.RequestParam("orderId") String orderId) throws Exception {
+        Optional<Order> optionalOrder = repository.findById(new ObjectId(orderId));
+        ResponseBodyDTO<ServiceResult> dto = new ResponseBodyDTO<>();
+        if (optionalOrder.isEmpty()) {
+            dto.setMsg("根据id没找到相应的订单");
+            return ResponseEntity.internalServerError().body(dto);
+        }
+        Order order = optionalOrder.get();
         ServiceResult<Object, ?> serviceResult = null;
 
         StateContext<Object> context = new StateContext<>();
@@ -309,9 +317,13 @@ public class OrderController {
 
         if (serviceResult != null && serviceResult.isSuccess()) {
             webSocketConfig.getOrderUpdateWebSocketHandler().sendMessageToOrder(order.getId().toHexString(), "已供餐");
-            return ResponseEntity.ok(serviceResult);
+            dto.setMsg("已供餐");
+            dto.setData(serviceResult);
+            return ResponseEntity.ok(dto);
         } else {
-            return ResponseEntity.internalServerError().body(serviceResult);
+            dto.setMsg("状态机出问题了");
+            dto.setData(serviceResult);
+            return ResponseEntity.internalServerError().body(dto);
         }
     }
 

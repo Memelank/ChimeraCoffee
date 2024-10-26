@@ -2,6 +2,7 @@ package com.chimera.weapp.statemachine.processor;
 
 
 import com.chimera.weapp.statemachine.context.StateContext;
+import com.chimera.weapp.statemachine.exception.FsmException;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,8 +82,8 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
             return result;
         } catch (Exception e) {
             // 记录日志
-            logger.error(String.format("failed at step [%s]", step), e);
-            throw e;
+            logger.error(String.format("State Machine failed at step [%s],orderId [%s]", step, context.getOrderId()), e);
+            throw new FsmException(step);
         }
     }
 

@@ -50,8 +50,7 @@ public class SecurityAspect {
     // 认证切面，拦截 @LoginRequired 注解的方法
     @Around("onLoginRequired()")
     @Order(1)
-    public Object checkLogin(ProceedingJoinPoint pjp) throws Exception {
-        log.info("{} before checkLogin args are {}", pjp.getSignature().toString(), pjp.getArgs());
+    public Object checkLogin(ProceedingJoinPoint pjp) throws Throwable {
         boolean canRefresh = false;
         try {
 
@@ -78,10 +77,7 @@ public class SecurityAspect {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch (Throwable e) {
             canRefresh = false;
-            log.error("exception on method was not properly caught", e);
-            return ResponseEntity
-                    .internalServerError()
-                    .body("服务器未知错误!");
+            throw e;
         } finally {
             if (canRefresh) {
                 Claims claims = ThreadLocalUtil.get(ThreadLocalUtil.CLAIMS, Claims.class);

@@ -1,5 +1,6 @@
 package com.chimera.weapp.service;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.apiparams.SupplyNoticeApiParams;
 import com.chimera.weapp.apiparams.RefundApiNoticeParams;
 import com.chimera.weapp.entity.Order;
@@ -52,7 +53,7 @@ public class WeChatNoticeService {
                 .thing7(shopAddress)
                 .character_string4(Integer.toString(orderNum));
         try {
-            weChatRequestService.subscribeSend(builder.build(), page, templateId, openid);
+            weChatRequestService.subscribeSend(JSONObject.toJSONString(builder.build()), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
             log.error("发送通知[提醒顾客来取餐]失败", e);
             throw new RuntimeException(e);
@@ -76,7 +77,7 @@ public class WeChatNoticeService {
                 .thing7(deliveryAddress)
                 .character_string4(Integer.toString(orderNum));
         try {
-            weChatRequestService.subscribeSend(builder.build(), page, templateId, openid);
+            weChatRequestService.subscribeSend(JSONObject.toJSONString(builder.build()), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
             log.error("发送通知[提醒顾客定时达消息]失败", e);
             throw new RuntimeException(e);
@@ -97,7 +98,7 @@ public class WeChatNoticeService {
                 .thing4(reason)
                 .thing5(wxts);
         try {
-            weChatRequestService.subscribeSend(builder.build(), page, templateId, openid);
+            weChatRequestService.subscribeSend(JSONObject.toJSONString(builder.build()), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
             log.error("发送通知[提醒顾客定时达消息]失败", e);
             throw new RuntimeException(e);

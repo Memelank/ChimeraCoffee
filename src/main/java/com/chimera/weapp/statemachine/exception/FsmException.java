@@ -4,5 +4,10 @@ import com.chimera.weapp.statemachine.enums.ErrorCodeEnum;
 
 public class FsmException extends RuntimeException {
     public FsmException(ErrorCodeEnum errCode) {
+        super(errCode.toString());
+    }
+
+    public FsmException(String step) {
+        super(String.format("状态机失败在[%s]", step));
     }
 }
