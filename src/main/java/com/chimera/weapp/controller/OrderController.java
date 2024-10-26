@@ -289,7 +289,6 @@ public class OrderController {
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<ServiceResult> supplyOrder(@RequestBody Order order) throws Exception {
-        securityService.checkIdImitate(order.getUserId());
         ServiceResult<Object, ?> serviceResult = null;
 
         StateContext<Object> context = new StateContext<>();
@@ -364,7 +363,6 @@ public class OrderController {
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<ServiceResult> refundOrder(@RequestBody Order save) throws Exception {
-        securityService.checkIdImitate(save.getUserId());
         Order order = repository.save(save);
         ServiceResult<Object, ?> serviceResult = null;
 
