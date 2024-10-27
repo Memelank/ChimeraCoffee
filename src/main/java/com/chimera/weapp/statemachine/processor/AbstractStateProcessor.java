@@ -81,6 +81,9 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
             step = "after";
             this.after(context);
             return result;
+        } catch (FsmException e) {
+            logger.error(String.format("State Machine failed at step [%s],orderId [%s]", step, context.getOrderId()), e);
+            throw new FsmException(step,e);
         } catch (Exception e) {
             // 记录日志
             logger.error(String.format("State Machine failed at step [%s],orderId [%s]", step, context.getOrderId()), e);

@@ -5,7 +5,9 @@ import com.chimera.weapp.service.WeChatNoticeService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
 import com.chimera.weapp.statemachine.context.TakeOutContext;
 import com.chimera.weapp.statemachine.context.StateContext;
+import com.chimera.weapp.statemachine.enums.ErrorCodeEnum;
 import com.chimera.weapp.statemachine.enums.StateEnum;
+import com.chimera.weapp.statemachine.exception.FsmException;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +50,12 @@ public class SupplyTakeOut extends AbstractStateProcessor<String, TakeOutContext
 
     @Override
     public void after(StateContext<TakeOutContext> context) {
-        weChatNoticeService.dineInOrTakeOutNotice(context.getOrderId(), context
-                .getOrderState());
+        try {
+            weChatNoticeService.dineInOrTakeOutNotice(context.getOrderId(), context
+                    .getOrderState());
+        } catch (Exception e) {
+            throw new FsmException(ErrorCodeEnum.SEND_NOTIFICATION_FAILED);
+        }
+
     }
 }

@@ -7,7 +7,9 @@ import com.chimera.weapp.service.WeChatNoticeService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
 import com.chimera.weapp.statemachine.context.FixDeliveryContext;
 import com.chimera.weapp.statemachine.context.StateContext;
+import com.chimera.weapp.statemachine.enums.ErrorCodeEnum;
 import com.chimera.weapp.statemachine.enums.StateEnum;
+import com.chimera.weapp.statemachine.exception.FsmException;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import com.chimera.weapp.vo.DeliveryInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +58,10 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
     public void after(StateContext<FixDeliveryContext> context) {
         Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
         DeliveryInfo deliveryInfo = order.getDeliveryInfo();
-        weChatNoticeService.fixDeliveryNotice(context.getOrderId(), deliveryInfo.getTime().toString(), context.getOrderState(), deliveryInfo.getAddress());
+        try {
+            weChatNoticeService.fixDeliveryNotice(context.getOrderId(), deliveryInfo.getTime().toString(), context.getOrderState(), deliveryInfo.getAddress());
+        } catch (Exception e) {
+            throw new FsmException(ErrorCodeEnum.SEND_NOTIFICATION_FAILED);
+        }
     }
 }
