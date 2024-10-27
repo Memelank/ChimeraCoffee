@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -173,19 +172,16 @@ public class OrderController {
         String outTradeNo = transaction.getOutTradeNo();
         synchronized (outTradeNo.intern()) {
             //第一次调用状态机。发送PRE_PAID事件
-            Order order = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
-            if (Objects.equals(order.getState(), StateEnum.PRE_PAID.toString()) ||
-                    Objects.equals(order.getScene(), StateEnum.PAID.toString())) {
+            Order order1 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
+            if (Objects.equals(order1.getState(), StateEnum.PRE_PAID.toString()) ||
+                    Objects.equals(order1.getScene(), StateEnum.PAID.toString())) {
                 log.warn("微信重复发送通知给订单号为{}的订单,已默认成功", outTradeNo);
                 return ResponseEntity.ok("");
             }
-            StateContext<Object> context = new StateContext<>();
-            setNormalContext(context, order);
-
             NotifyPrePayContext notifyPrePayContext = new NotifyPrePayContext();
             notifyPrePayContext.setTransaction(transaction);
-            context.setContext(notifyPrePayContext);
-            ServiceResult<Object, Object> prePaidFSMResult = orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
+            StateContext<NotifyPrePayContext> context = new StateContext<>(order1, notifyPrePayContext);
+            ServiceResult<Object, NotifyPrePayContext> prePaidFSMResult = orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
             if (!prePaidFSMResult.isSuccess()) {
                 return ResponseEntity.internalServerError().body(
                         String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", prePaidFSMResult.getMsg())
@@ -195,27 +191,27 @@ public class OrderController {
                 return ResponseEntity.ok("");//warning 这里用户其实没有支付成功，是告诉微信这个通知已经正常处理的
             }
             //核销优惠
-            if (order.getCoupon() != null) {
-                String orderCouponUUID = order.getCoupon().getUuid();
-                ObjectId userId = order.getUserId();
+            if (order1.getCoupon() != null) {
+                String orderCouponUUID = order1.getCoupon().getUuid();
+                ObjectId userId = order1.getUserId();
                 benefitService.redeemUserCoupon(userId, orderCouponUUID);
             }
 
             //第二次调用状态机。从PAID状态转变
-            Order order1 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
+            Order order2 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
             ServiceResult<Object, ?> serviceResult = new ServiceResult<>();
-            if (SceneEnum.FIX_DELIVERY.toString().equals(order1.getScene())) {
+            if (SceneEnum.FIX_DELIVERY.toString().equals(order2.getScene())) {
                 FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
-                context.setContext(fixDeliveryContext);
-                serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context);
-            } else if (SceneEnum.DINE_IN.toString().equals(order1.getScene())) {
+                StateContext<FixDeliveryContext> context2 = new StateContext<>(order2, fixDeliveryContext);
+                serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context2);
+            } else if (SceneEnum.DINE_IN.toString().equals(order2.getScene())) {
                 DineInContext dineInContext = new DineInContext();
-                context.setContext(dineInContext);
-                serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_DINE_IN.toString(), context);
-            } else if (SceneEnum.TAKE_OUT.toString().equals(order1.getScene())) {
+                StateContext<DineInContext> context2 = new StateContext<>(order2, dineInContext);
+                serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_DINE_IN.toString(), context2);
+            } else if (SceneEnum.TAKE_OUT.toString().equals(order2.getScene())) {
                 TakeOutContext takeOutContext = new TakeOutContext();
-                context.setContext(takeOutContext);
-                serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_TAKE_OUT.toString(), context);
+                StateContext<TakeOutContext> context2 = new StateContext<>(order2, takeOutContext);
+                serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_TAKE_OUT.toString(), context2);
             }
 
             if (serviceResult.isSuccess()) {
@@ -251,14 +247,12 @@ public class OrderController {
         Order order = orderService.buildOrderByApiParamsShop(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
         // 保存订单
-        Order save = repository.save(order);
+        Order order1 = repository.save(order);
         // FSM 状态机处理
         //1.预支付到支付状态，过一遍积分的逻辑
-        StateContext<Object> context = new StateContext<>();
-        setNormalContext(context, save);
         NotifyPrePayContext notifyPrePayContext = new NotifyPrePayContext();
-        context.setContext(notifyPrePayContext);
-        orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
+        StateContext<NotifyPrePayContext> context1 = new StateContext<>(order1, notifyPrePayContext);
+        orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context1);
 
         //核销优惠  TODO:上线后可去掉
         if (order.getCoupon() != null) {
@@ -268,28 +262,26 @@ public class OrderController {
         }
 
         //2.支付状态到其它别的状态
-        Order orderAfterFirstProcess = repository.findById(save.getId()).orElseThrow();
-        setNormalContext(context, orderAfterFirstProcess);
+        Order order2 = repository.findById(order1.getId()).orElseThrow();
         ServiceResult<Object, ?> serviceResult = null;
         // 根据不同的场景设置上下文并发送事件
-        if (SceneEnum.FIX_DELIVERY.toString().equals(orderAfterFirstProcess.getScene())) {
+        if (SceneEnum.FIX_DELIVERY.toString().equals(order2.getScene())) {
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
-            context.setContext(fixDeliveryContext);
-            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context);
-        } else if (SceneEnum.DINE_IN.toString().equals(orderAfterFirstProcess.getScene())) {
+            StateContext<FixDeliveryContext> context2 = new StateContext<>(order2, fixDeliveryContext);
+            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_FIX_DELIVERY.toString(), context2);
+        } else if (SceneEnum.DINE_IN.toString().equals(order2.getScene())) {
             DineInContext dineInContext = new DineInContext();
-            context.setContext(dineInContext);
-            System.out.println(context);
-            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_DINE_IN.toString(), context);
-        } else if (SceneEnum.TAKE_OUT.toString().equals(orderAfterFirstProcess.getScene())) {
+            StateContext<DineInContext> context2 = new StateContext<>(order2, dineInContext);
+            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_DINE_IN.toString(), context2);
+        } else if (SceneEnum.TAKE_OUT.toString().equals(order2.getScene())) {
             TakeOutContext takeOutContext = new TakeOutContext();
-            context.setContext(takeOutContext);
-            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_TAKE_OUT.toString(), context);
+            StateContext<TakeOutContext> context2 = new StateContext<>(order2, takeOutContext);
+            serviceResult = orderFsmEngine.sendEvent(EventEnum.NEED_TAKE_OUT.toString(), context2);
         }
 
         // 根据状态机的处理结果返回不同的响应
         if (serviceResult != null && serviceResult.isSuccess()) {
-            webSocketConfig.getOrderCreateWebSocketHandler().sendOrderId(save.getId().toHexString());//要调试的话可以把这个和查单的鉴权注解注释掉，再用postman调建新单接口
+            webSocketConfig.getOrderCreateWebSocketHandler().sendOrderId(order2.getId().toHexString());
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);
@@ -310,19 +302,17 @@ public class OrderController {
         Order order = optionalOrder.get();
         ServiceResult<Object, ?> serviceResult = null;
 
-        StateContext<Object> context = new StateContext<>();
-        setNormalContext(context, order);
         if (SceneEnum.FIX_DELIVERY.toString().equals(order.getScene())) {
             FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
-            context.setContext(fixDeliveryContext);
+            StateContext<FixDeliveryContext> context = new StateContext<>(order, fixDeliveryContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.SUPPLY_FIX_DELIVERY.toString(), context);
         } else if (SceneEnum.DINE_IN.toString().equals(order.getScene())) {
             DineInContext dineInContext = new DineInContext();
-            context.setContext(dineInContext);
+            StateContext<DineInContext> context = new StateContext<>(order, dineInContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.SUPPLY_DINE_IN.toString(), context);
         } else if (SceneEnum.TAKE_OUT.toString().equals(order.getScene())) {
             TakeOutContext takeOutContext = new TakeOutContext();
-            context.setContext(takeOutContext);
+            StateContext<TakeOutContext> context = new StateContext<>(order, takeOutContext);
             serviceResult = orderFsmEngine.sendEvent(EventEnum.SUPPLY_TAKE_OUT.toString(), context);
         }
 
@@ -356,11 +346,9 @@ public class OrderController {
 
                 Order order = orderOptional.get();
 
-                StateContext<Object> context = new StateContext<>();
-                setNormalContext(context, order);
 
                 FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
-                context.setContext(fixDeliveryContext);
+                StateContext<FixDeliveryContext> context = new StateContext<>(order, fixDeliveryContext);
                 ServiceResult<Object, ?> serviceResult = orderFsmEngine.sendEvent(EventEnum.SUPPLY_FIX_DELIVERY.toString(), context);
 
                 if (!serviceResult.isSuccess()) {
@@ -396,12 +384,10 @@ public class OrderController {
             return ResponseEntity.badRequest().body(dto);
         }
         Order order = orderOptional.get();
-        StateContext<Object> context = new StateContext<>();
-        setNormalContext(context, order);
         RefundApplyContext refundApplyContext = new RefundApplyContext();
         refundApplyContext.setReason(reason);
-        context.setContext(refundApplyContext);
-        ServiceResult<Object, Object> result = orderFsmEngine.sendEvent(EventEnum.REFUND_APPLY.toString(), context);
+        StateContext<RefundApplyContext> context = new StateContext<>(order, refundApplyContext);
+        ServiceResult<Object, RefundApplyContext> result = orderFsmEngine.sendEvent(EventEnum.REFUND_APPLY.toString(), context);
 
         if (result != null && result.isSuccess()) {
             dto.setData(result);
@@ -441,14 +427,5 @@ public class OrderController {
             }
 
         }
-    }
-
-
-    private void setNormalContext(StateContext<?> context, Order save) {
-        context.setOrderId(save.getId().toString());
-        context.setUserId(save.getUserId().toString());
-        context.setOrderState(save.getState());
-        context.setCustomerType(save.getCustomerType());
-        context.setScene(save.getScene());
     }
 }
