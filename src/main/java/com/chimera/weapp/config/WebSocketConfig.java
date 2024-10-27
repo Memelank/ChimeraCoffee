@@ -51,12 +51,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
                         10, 30);
         registry.addHandler(orderCreateWebSocketHandler, "/ws/order_create")
                 .setAllowedOrigins("*");
-        orderCreateWebSocketHandler =
+        orderEndWebSocketHandler =
                 new OrderCreateOrEndWebSocketHandler(
                         new JwtWebSocketAuthenticator(List.of(RoleEnum.ADMIN), securityService),
                         scheduler,
                         10, 30);
-        registry.addHandler(orderCreateWebSocketHandler, "/ws/order_end")
+        registry.addHandler(orderEndWebSocketHandler, "/ws/order_end")
                 .setAllowedOrigins("*");
 
     }
