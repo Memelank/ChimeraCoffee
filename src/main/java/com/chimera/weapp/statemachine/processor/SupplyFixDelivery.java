@@ -61,7 +61,7 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
         try {
             weChatNoticeService.fixDeliveryNotice(context.getOrderId(), deliveryInfo.getTime().toString(), context.getOrderState(), deliveryInfo.getAddress());
         } catch (Exception e) {
-            throw new FsmException(ErrorCodeEnum.SEND_NOTIFICATION_FAILED);
+            throw new FsmException(ErrorCodeEnum.SEND_NOTIFICATION_FAILED, e);
         }
     }
 }

@@ -11,6 +11,10 @@ public class FsmException extends RuntimeException {
         super(errCode.toString());
     }
 
+    public FsmException(ErrorCodeEnum errCode, Exception e) {
+        super(errCode.toString(), e);
+    }
+
     public FsmException(String step) {
         super(String.format("状态机失败在[%s]", step));
     }

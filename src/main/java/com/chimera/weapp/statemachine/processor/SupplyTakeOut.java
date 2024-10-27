@@ -54,7 +54,7 @@ public class SupplyTakeOut extends AbstractStateProcessor<String, TakeOutContext
             weChatNoticeService.dineInOrTakeOutNotice(context.getOrderId(), context
                     .getOrderState());
         } catch (Exception e) {
-            throw new FsmException(ErrorCodeEnum.SEND_NOTIFICATION_FAILED);
+            throw new FsmException(ErrorCodeEnum.SEND_NOTIFICATION_FAILED, e);
         }
 
     }
