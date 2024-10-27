@@ -1,5 +1,6 @@
 package com.chimera.weapp.statemachine.processor;
 
+import com.chimera.weapp.config.WebSocketConfig;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.repository.OrderRepository;
@@ -27,6 +28,8 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
     private WeChatNoticeService weChatNoticeService;
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private WebSocketConfig webSocketConfig;
 
     @Override
     public boolean filter(StateContext<FixDeliveryContext> context) {
@@ -56,6 +59,7 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
 
     @Override
     public void after(StateContext<FixDeliveryContext> context) {
+        webSocketConfig.getOrderUpdateWebSocketHandler().sendMessageToOrder(context.getOrderId(), "已供餐");
         Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
         DeliveryInfo deliveryInfo = order.getDeliveryInfo();
         try {

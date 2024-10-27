@@ -317,7 +317,6 @@ public class OrderController {
         }
 
         if (serviceResult != null && serviceResult.isSuccess()) {
-            webSocketConfig.getOrderUpdateWebSocketHandler().sendMessageToOrder(order.getId().toHexString(), "已供餐");
             dto.setMsg("已供餐");
             dto.setData(serviceResult);
             return ResponseEntity.ok(dto);

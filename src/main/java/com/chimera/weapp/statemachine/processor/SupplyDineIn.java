@@ -1,5 +1,6 @@
 package com.chimera.weapp.statemachine.processor;
 
+import com.chimera.weapp.config.WebSocketConfig;
 import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.service.WeChatNoticeService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
@@ -21,6 +22,8 @@ public class SupplyDineIn extends AbstractStateProcessor<String, DineInContext> 
     private CustomRepository repository;
     @Autowired
     private WeChatNoticeService weChatNoticeService;
+    @Autowired
+    private WebSocketConfig webSocketConfig;
 
     @Override
     public boolean filter(StateContext<DineInContext> context) {
@@ -50,6 +53,7 @@ public class SupplyDineIn extends AbstractStateProcessor<String, DineInContext> 
 
     @Override
     public void after(StateContext<DineInContext> context) {
+        webSocketConfig.getOrderUpdateWebSocketHandler().sendMessageToOrder(context.getOrderId(), "已供餐");
         try {
             weChatNoticeService.dineInOrTakeOutNotice(context.getOrderId(), context
                     .getOrderState());
