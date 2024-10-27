@@ -6,7 +6,7 @@ public enum StateEnum {
     WAITING_DINE_IN("待出餐"),
     WAITING_FIX_DELIVERY("待配送"),
     WAITING_TAKE_OUT("待出餐"),
-    NORMAL_END("已完成"),
+    NORMAL_END("正常结束"),
     WAITING_REFUND_NOTIFICATION("等待退款通知"),
     ABNORMAL_END("异常结束"),
     REFUNDED("已退款");

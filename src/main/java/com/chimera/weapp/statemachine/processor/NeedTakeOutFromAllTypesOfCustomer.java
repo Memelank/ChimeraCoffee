@@ -45,7 +45,6 @@ public class NeedTakeOutFromAllTypesOfCustomer extends AbstractStateProcessor<St
 
     @Override
     public void after(StateContext<TakeOutContext> context) {
-        //TODO 提醒店员做单了
 
     }
 

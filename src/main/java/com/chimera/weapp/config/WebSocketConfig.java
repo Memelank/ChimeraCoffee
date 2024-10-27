@@ -4,7 +4,7 @@ import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.websocket.JwtWebSocketAuthenticator;
 import com.chimera.weapp.websocket.OrderUpdateWebSocketHandler;
-import com.chimera.weapp.websocket.OrderCreateWebSocketHandler;
+import com.chimera.weapp.websocket.OrderCreateOrEndWebSocketHandler;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +25,10 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Getter
-    private OrderCreateWebSocketHandler orderCreateWebSocketHandler;
+    private OrderCreateOrEndWebSocketHandler orderCreateWebSocketHandler;
+
+    @Getter
+    private OrderCreateOrEndWebSocketHandler orderEndWebSocketHandler;
 
     @Getter
     private OrderUpdateWebSocketHandler orderUpdateWebSocketHandler;
@@ -42,11 +45,18 @@ public class WebSocketConfig implements WebSocketConfigurer {
         registry.addHandler(orderUpdateWebSocketHandler, "/ws/order_update")
                 .setAllowedOrigins("*"); // 允许跨域
         orderCreateWebSocketHandler =
-                new OrderCreateWebSocketHandler(
+                new OrderCreateOrEndWebSocketHandler(
                         new JwtWebSocketAuthenticator(List.of(RoleEnum.ADMIN), securityService),
                         scheduler,
                         10, 30);
         registry.addHandler(orderCreateWebSocketHandler, "/ws/order_create")
+                .setAllowedOrigins("*");
+        orderCreateWebSocketHandler =
+                new OrderCreateOrEndWebSocketHandler(
+                        new JwtWebSocketAuthenticator(List.of(RoleEnum.ADMIN), securityService),
+                        scheduler,
+                        10, 30);
+        registry.addHandler(orderCreateWebSocketHandler, "/ws/order_end")
                 .setAllowedOrigins("*");
 
     }

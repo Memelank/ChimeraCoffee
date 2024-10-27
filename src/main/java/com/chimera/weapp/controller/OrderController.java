@@ -6,7 +6,6 @@ import com.chimera.weapp.apiparams.OrderApiParams;
 import com.chimera.weapp.apiparams.RefundApplyApiParams;
 import com.chimera.weapp.config.WebSocketConfig;
 import com.chimera.weapp.dto.BatchSupplyOrderDTO;
-import com.chimera.weapp.dto.PrePaidDTO;
 import com.chimera.weapp.dto.ResponseBodyDTO;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.enums.RoleEnum;
@@ -28,7 +27,6 @@ import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.jsapi.model.Transaction;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
 import com.wechat.pay.java.service.refund.model.RefundNotification;
-import com.wechat.pay.java.service.refund.model.Status;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -193,8 +191,8 @@ public class OrderController {
                         String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", prePaidFSMResult.getMsg())
                 );
             }
-            if(Objects.equals(context.getOrderState(),StateEnum.ABNORMAL_END.toString())){
-                return ResponseEntity.ok("");//这里用户其实没有支付成功，是告诉微信这个通知已经正常处理的
+            if (Objects.equals(context.getOrderState(), StateEnum.ABNORMAL_END.toString())) {
+                return ResponseEntity.ok("");//warning 这里用户其实没有支付成功，是告诉微信这个通知已经正常处理的
             }
             //核销优惠
             if (order.getCoupon() != null) {
@@ -223,6 +221,7 @@ public class OrderController {
             if (serviceResult.isSuccess()) {
                 return ResponseEntity.ok("");
             } else {
+                log.warn("竟然走到了这个分支！当接收到了通知之后是不应该再返回500让微信再发的");
                 return ResponseEntity.internalServerError().body(
                         String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", serviceResult.getMsg())
                 );
@@ -383,47 +382,66 @@ public class OrderController {
         }
     }
 
-    @PostMapping(value = "/refund", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @LoginRequired
-    @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<ServiceResult> refundOrder(@RequestBody Order save) throws Exception {
-        Order order = repository.save(save);
-        ServiceResult<Object, ?> serviceResult = null;
-
-        StateContext<Object> context = new StateContext<>();
-        setNormalContext(context, order);
-        RefundContext refundContext = new RefundContext();//todo 往refundContext上添加退款原因
-        context.setContext(refundContext);
-        serviceResult = orderFsmEngine.sendEvent(EventEnum.REFUND.toString(), context);
-
-        if (serviceResult != null && serviceResult.isSuccess()) {
-            webSocketConfig.getOrderUpdateWebSocketHandler().sendMessageToOrder(order.getId().toHexString(), "已退款");
-            return ResponseEntity.ok(serviceResult);
-        } else {
-            return ResponseEntity.internalServerError().body(serviceResult);
-        }
-    }
-
     @PostMapping(value = "/refund_apply")
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<ServiceResult> refundApply(@RequestBody RefundApplyApiParams body){
+    public ResponseEntity<ResponseBodyDTO<ServiceResult>> refundApply(@RequestBody RefundApplyApiParams body) throws Exception {
+        ResponseBodyDTO<ServiceResult> dto = new ResponseBodyDTO<>();
 
-        return null;
+        String orderId = body.getOrderId();
+        String reason = body.getReason();
+        Optional<Order> orderOptional = repository.findById(new ObjectId(orderId));
+        if (orderOptional.isEmpty()) {
+            dto.setMsg("订单 " + orderId + " 未找到");
+            return ResponseEntity.badRequest().body(dto);
+        }
+        Order order = orderOptional.get();
+        StateContext<Object> context = new StateContext<>();
+        setNormalContext(context, order);
+        RefundApplyContext refundApplyContext = new RefundApplyContext();
+        refundApplyContext.setReason(reason);
+        context.setContext(refundApplyContext);
+        ServiceResult<Object, Object> result = orderFsmEngine.sendEvent(EventEnum.REFUND_APPLY.toString(), context);
+
+        if (result != null && result.isSuccess()) {
+            dto.setData(result);
+            return ResponseEntity.ok(dto);
+        } else {
+            dto.setMsg("状态机出问题了");
+            dto.setData(result);
+            return ResponseEntity.internalServerError().body(dto);
+        }
     }
 
     @PostMapping(value = "/refund_callback")
-    @LoginRequired
-    @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<ServiceResult> refundCallback(@RequestBody String body){
+    @Operation(summary = "接收退款结果通知。是腾讯的微信支付系统调用的")
+    public ResponseEntity<String> refundCallback(@RequestBody String body) throws Exception {
         RequestParam requestParam = buildRequestParam(body);
         NotificationParser parser = new NotificationParser(notificationConfig);
         RefundNotification refundNotification = parser.parse(requestParam, RefundNotification.class);
-        Status refundStatus = refundNotification.getRefundStatus();
+        String outRefundNo = refundNotification.getOutRefundNo();
+        synchronized (outRefundNo.intern()) {
+            Order order = repository.findById(new ObjectId(outRefundNo)).orElseThrow();
+            if (Objects.equals(order.getState(), StateEnum.WAITING_REFUND_NOTIFICATION.toString())) {
+                log.warn("微信重复发送通知给订单号为{}的订单,已默认成功", outRefundNo);
+                return ResponseEntity.ok("");
+            }
+            StateContext<NotifyRefundResultContext> context = new StateContext<>(order, new NotifyRefundResultContext(refundNotification));
+            ServiceResult<Object, NotifyRefundResultContext> result = orderFsmEngine.sendEvent(EventEnum.NOTIFY_REFUND_RESULT.toString(), context);
+            if (Objects.equals(context.getOrderState(), StateEnum.ABNORMAL_END.toString())) {
+                return ResponseEntity.ok("");//warning 这里其实没有退款成功，是告诉微信这个通知已经正常处理的
+            }
+            if (result != null && result.isSuccess()) {
+                return ResponseEntity.ok("");
+            } else {
+                log.warn("竟然走到了这个分支！当接收到了通知之后是不应该再返回500让微信再发的");
+                return ResponseEntity.internalServerError().body(
+                        String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", result != null ? result.getMsg() : "状态机结果为空")
+                );
+            }
 
-        return null;
+        }
     }
-
 
 
     private void setNormalContext(StateContext<?> context, Order save) {

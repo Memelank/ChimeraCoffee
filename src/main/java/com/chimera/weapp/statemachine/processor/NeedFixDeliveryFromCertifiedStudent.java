@@ -2,7 +2,6 @@ package com.chimera.weapp.statemachine.processor;
 
 import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
-import com.chimera.weapp.statemachine.context.DineInContext;
 import com.chimera.weapp.statemachine.context.FixDeliveryContext;
 import com.chimera.weapp.statemachine.context.StateContext;
 import com.chimera.weapp.statemachine.enums.StateEnum;
@@ -46,7 +45,6 @@ public class NeedFixDeliveryFromCertifiedStudent extends AbstractStateProcessor<
 
     @Override
     public void after(StateContext<FixDeliveryContext> context) {
-        //TODO 提醒店员做单并提醒派送员准备派送
 
     }
 }

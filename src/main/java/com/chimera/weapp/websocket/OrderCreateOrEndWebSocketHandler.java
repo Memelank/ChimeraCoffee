@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
-public class OrderCreateWebSocketHandler extends BaseWebSocketHandler {
+public class OrderCreateOrEndWebSocketHandler extends BaseWebSocketHandler {
     private final List<WebSocketSession> sessions = new ArrayList<>();
 
-    public OrderCreateWebSocketHandler(WebSocketAuthenticator authenticator, ScheduledExecutorService scheduler, long authTimeoutSeconds, int heartBeatTimeout) {
+    public OrderCreateOrEndWebSocketHandler(WebSocketAuthenticator authenticator, ScheduledExecutorService scheduler, long authTimeoutSeconds, int heartBeatTimeout) {
         super(authenticator, scheduler, authTimeoutSeconds, heartBeatTimeout);
     }
 
@@ -27,18 +27,22 @@ public class OrderCreateWebSocketHandler extends BaseWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        super.afterConnectionClosed(session,status);
+        super.afterConnectionClosed(session, status);
         // 移除关闭连接的订单ID
         sessions.remove(session);
     }
 
-    public void sendOrderId(String orderId) throws IOException {
+    public void sendOrderId(String orderId) {
         sendMessage("order:" + orderId);
     }
 
-    private void sendMessage(String message) throws IOException {
+    private void sendMessage(String message) {
         for (WebSocketSession session : sessions) {
-            session.sendMessage(new TextMessage(message));
+            try {
+                session.sendMessage(new TextMessage(message));
+            } catch (IOException e) {
+                log.error("websocket中发送消息失败", e);
+            }
         }
     }
 }

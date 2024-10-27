@@ -45,7 +45,6 @@ public class NeedDineInFromAllTypesOfCustomer extends AbstractStateProcessor<Str
 
     @Override
     public void after(StateContext<DineInContext> context) {
-        //TODO 提醒店员做单了
     }
 
 }

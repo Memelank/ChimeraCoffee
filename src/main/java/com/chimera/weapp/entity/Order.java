@@ -62,4 +62,10 @@ public class Order {
     @CreatedDate
     @Schema(description = "自动填充创建时间")
     private Date createdAt;
+
+    @Schema(description = "退款原因")
+    private String refundReason;
+
+    @Schema(description = "异常结束原因")
+    private String abNormalEndReason;
 }

@@ -2,6 +2,9 @@ package com.chimera.weapp.config;
 
 import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
+import com.wechat.pay.java.core.auth.Credential;
+import com.wechat.pay.java.core.auth.Validator;
+import com.wechat.pay.java.core.cipher.*;
 import com.wechat.pay.java.core.notification.NotificationConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +29,27 @@ public class WxConfig {
 //                .merchantSerialNumber(merchantSerialNumber)
 //                .apiV3Key(apiV3Key)
 //                .build();
-        return null;
+        return new NotificationConfig() {
+            @Override
+            public String getSignType() {
+                return "";
+            }
+
+            @Override
+            public String getCipherType() {
+                return "";
+            }
+
+            @Override
+            public Verifier createVerifier() {
+                return null;
+            }
+
+            @Override
+            public AeadCipher createAeadCipher() {
+                return null;
+            }
+        };
     }
 
     @Bean
@@ -37,6 +60,31 @@ public class WxConfig {
 //                .merchantSerialNumber(merchantSerialNumber)
 //                .apiV3Key(apiV3Key)
 //                .build();
-        return null;
+        return new Config() {
+            @Override
+            public PrivacyEncryptor createEncryptor() {
+                return null;
+            }
+
+            @Override
+            public PrivacyDecryptor createDecryptor() {
+                return null;
+            }
+
+            @Override
+            public Credential createCredential() {
+                return null;
+            }
+
+            @Override
+            public Validator createValidator() {
+                return null;
+            }
+
+            @Override
+            public Signer createSigner() {
+                return null;
+            }
+        };
     }
 }

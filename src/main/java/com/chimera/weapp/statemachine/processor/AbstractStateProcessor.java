@@ -49,35 +49,36 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
         String step = "";
         try {
             // 参数校验器
-            step = "参数校验";
+            step = "check";
             result = check(context);
             if (!result.isSuccess()) {
                 return result;
             }
 
             // 数据准备
-            step = "数据准备";
+            step = "prepare";
             this.prepare(context);
 
             // 业务逻辑
+            step = "actionStep";
             result = this.actionStep(context);
             if (!result.isSuccess()) {
                 return result;
             }
 
             // nextState应在prepare和action都运行结束后获得
-            step = "获取下一个状态";
+            step = "getNextState";
             String nextState = this.getNextState(context).toString();
             context.setOrderState(nextState);
 
             // 持久化
-            step = "持久化";
+            step = "save";
             result = this.save(nextState, context);
             if (!result.isSuccess()) {
                 return result;
             }
             // after
-            step = "后续动作";
+            step = "after";
             this.after(context);
             return result;
         } catch (Exception e) {

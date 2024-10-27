@@ -8,7 +8,8 @@ public enum EventEnum {
     SUPPLY_DINE_IN("提供堂食"),
     SUPPLY_TAKE_OUT("提供外带"),
     SUPPLY_FIX_DELIVERY("提供定时达"),
-    REFUND("退款"),
+    REFUND_APPLY("退款申请"),
+    NOTIFY_REFUND_RESULT("退款结果通知")
     ;
     private final String state;
 

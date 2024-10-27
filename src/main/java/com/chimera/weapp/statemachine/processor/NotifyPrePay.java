@@ -1,5 +1,6 @@
 package com.chimera.weapp.statemachine.processor;
 
+import com.chimera.weapp.config.WebSocketConfig;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.repository.CustomRepository;
@@ -28,6 +29,8 @@ public class NotifyPrePay extends AbstractStateProcessor<String, NotifyPrePayCon
     private UserRepository userRepository;
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private WebSocketConfig webSocketConfig;
 
     @Override
     public boolean filter(StateContext<NotifyPrePayContext> context) {
@@ -37,8 +40,7 @@ public class NotifyPrePay extends AbstractStateProcessor<String, NotifyPrePayCon
 
     @Override
     public ServiceResult<String, NotifyPrePayContext> actionStep(StateContext<NotifyPrePayContext> context) throws Exception {
-        Transaction transaction = context.getContext().getTransaction();
-        if (transaction != null) { //兼容商户端下单，商户端下单不检查transaction
+        if (payIsNotSucceed(context)) {
             ServiceResult<String, NotifyPrePayContext> emptySuccess = new ServiceResult<>();
             emptySuccess.setSuccess(true);
             return emptySuccess;// 因为要让走到持久化那一步，且不更改用户的积分
@@ -59,13 +61,9 @@ public class NotifyPrePay extends AbstractStateProcessor<String, NotifyPrePayCon
 
     @Override
     public StateEnum getNextState(StateContext<NotifyPrePayContext> context) {
-        Transaction transaction = context.getContext().getTransaction();
-        if (transaction != null) { //非空再往下走是为了兼容商户端下单，商户端下单不检查transaction
-            Transaction.TradeStateEnum tradeState = transaction.getTradeState();
-            if (!Objects.equals(tradeState, Transaction.TradeStateEnum.SUCCESS)) {
-                log.warn("微信系统返回的支付通知显示结果并非成功,需要客户和店员另想办法了，context:{}", context);
-                return StateEnum.ABNORMAL_END;
-            }
+        if (payIsNotSucceed(context)) {
+            log.warn("微信系统返回的支付通知显示结果并非成功,当前还不能处理这种情况需要客户和店员另想办法了，context:{}", context);
+            return StateEnum.ABNORMAL_END;
         }
         return StateEnum.PAID;
 
@@ -79,6 +77,18 @@ public class NotifyPrePay extends AbstractStateProcessor<String, NotifyPrePayCon
 
     @Override
     public void after(StateContext<NotifyPrePayContext> context) {
+        if (Objects.equals(context.getOrderState(), StateEnum.ABNORMAL_END.toString())) {
+            //todo 当遇到异常结束订单时，需要有通知店员的机制
+            webSocketConfig.getOrderEndWebSocketHandler().sendOrderId(context.getOrderId());
+        }
+    }
 
+    private boolean payIsNotSucceed(StateContext<NotifyPrePayContext> context) {
+        Transaction transaction = context.getContext().getTransaction();
+        if (transaction != null) { //兼容商户端下单，商户端下单不检查transaction
+            Transaction.TradeStateEnum tradeState = transaction.getTradeState();
+            return !Objects.equals(tradeState, Transaction.TradeStateEnum.SUCCESS);
+        }
+        return false;
     }
 }
