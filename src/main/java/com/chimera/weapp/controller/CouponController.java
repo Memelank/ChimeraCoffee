@@ -46,7 +46,7 @@ public class CouponController {
     @LoginRequired
     @Operation(summary = "获取积分兑换优惠券列表,在\"我的-积分\"页面使用")
     public ResponseEntity<List<Coupon>> getAllCouponsForPoints() {
-        return ResponseEntity.ok(repository.findAllByConvertibleIs(true));
+        return ResponseEntity.ok(repository.findAllByConvertibleAndStatus(true, 1));
     }
 
     @Operation(summary = "给某个顾客发金条，商铺端专用")
