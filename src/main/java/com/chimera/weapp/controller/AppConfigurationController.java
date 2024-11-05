@@ -5,6 +5,7 @@ import com.chimera.weapp.entity.AppConfiguration;
 import com.chimera.weapp.repository.AppConfigurationRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,7 +34,7 @@ public class AppConfigurationController {
     @PutMapping
     @LoginRequired
     @Operation(description = "对单个做修改")
-    public ResponseEntity<AppConfiguration> updateConfiguration(@RequestBody AppConfiguration appConfiguration) {
+    public ResponseEntity<AppConfiguration> updateConfiguration(@Valid @RequestBody AppConfiguration appConfiguration) {
         AppConfiguration save = repository.save(appConfiguration);
         return ResponseEntity.ok(save);
     }
@@ -58,7 +59,7 @@ public class AppConfigurationController {
     @PostMapping
     @LoginRequired
     @Operation(description = "新增一个")
-    public ResponseEntity<AppConfiguration> addConfiguration(@RequestBody AppConfigurationApiParams apiParams) {
+    public ResponseEntity<AppConfiguration> addConfiguration(@Valid @RequestBody AppConfigurationApiParams apiParams) {
         AppConfiguration save = repository.save(AppConfiguration.builder()
                 .key(apiParams.key)
                 .value(apiParams.value)

@@ -6,6 +6,7 @@ import com.chimera.weapp.entity.Product;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.ProductRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +78,7 @@ public class ProductController {
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<Product> updateProduct(@RequestBody Product entity) {
+    public ResponseEntity<Product> updateProduct(@Valid  @RequestBody Product entity) {
         // Save the updated product information
         entity.setImgURL(url + "product/" + entity.getImgURL());
         return ResponseEntity.ok(repository.save(entity));
@@ -86,7 +87,7 @@ public class ProductController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<Product> createProduct(@RequestBody Product entity) {
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product entity) {
         // Save the product information to the database
         entity.setImgURL(url + "product/" + entity.getImgURL());
         return ResponseEntity.ok(repository.save(entity));
@@ -94,7 +95,7 @@ public class ProductController {
 
     // 判断cateId分类是否在使用
     @GetMapping("/existsByCateId")
-    public ResponseEntity<Boolean> existsByCateId(@RequestParam String cateId) {
+    public ResponseEntity<Boolean> existsByCateId(@Valid @RequestParam String cateId) {
         ObjectId objectId;
         try {
             objectId = new ObjectId(cateId);

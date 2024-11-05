@@ -29,6 +29,7 @@ import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPayment
 import com.wechat.pay.java.service.refund.model.RefundNotification;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,7 +150,7 @@ public class OrderController {
     @LoginRequired
     @Operation(summary = "创建预支付订单。小程序先调用这个，再调用wx.requestPayment。response包含了调起支付所需的所有参数，可直接用于前端调起支付\n" +
             "<a href=https://github.com/wechatpay-apiv3/wechatpay-java/blob/main/service/src/example/java/com/wechat/pay/java/service/refund/RefundServiceExample.java>链接</a>")
-    public PrepayWithRequestPaymentResponse create(@RequestBody OrderApiParams orderApiParams) throws URISyntaxException, IOException {
+    public PrepayWithRequestPaymentResponse create(@Valid @RequestBody OrderApiParams orderApiParams) throws URISyntaxException, IOException {
         securityService.checkIdImitate(orderApiParams.getUserId());
         Order order = orderService.buildOrderByApiParams(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
@@ -242,7 +243,7 @@ public class OrderController {
     @PostMapping("/create")
     @LoginRequired // TODO 上线要限制ADMIN
     @Operation(summary = "用于商铺端创建订单，不走微信支付，微信支付未办理前小程序也可先调用这个")
-    public ResponseEntity<ServiceResult> createOrderInStore(@RequestBody OrderApiParams orderApiParams) throws Exception {
+    public ResponseEntity<ServiceResult> createOrderInStore(@Valid @RequestBody OrderApiParams orderApiParams) throws Exception {
         securityService.checkIdImitate(orderApiParams.getUserId());
         Order order = orderService.buildOrderByApiParamsShop(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
@@ -372,7 +373,7 @@ public class OrderController {
     @PostMapping(value = "/refund_apply")
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
-    public ResponseEntity<ResponseBodyDTO<ServiceResult>> refundApply(@RequestBody RefundApplyApiParams body) throws Exception {
+    public ResponseEntity<ResponseBodyDTO<ServiceResult>> refundApply(@Valid @RequestBody RefundApplyApiParams body) throws Exception {
         ResponseBodyDTO<ServiceResult> dto = new ResponseBodyDTO<>();
 
         String orderId = body.getOrderId();

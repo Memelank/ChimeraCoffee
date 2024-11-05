@@ -1,4 +1,5 @@
 package com.chimera.weapp.entity;
+
 import com.chimera.weapp.vo.CouponIns;
 import com.chimera.weapp.vo.PointsProductIns;
 import io.swagger.v3.oas.annotations.media.Schema;
