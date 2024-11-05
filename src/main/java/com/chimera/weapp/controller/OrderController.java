@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -92,6 +93,45 @@ public class OrderController {
 
         return ResponseEntity.ok(orders);
     }
+
+    @GetMapping("/getById")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
+    public ResponseEntity<?> getOrderById(@org.springframework.web.bind.annotation.RequestParam String orderId) {
+        Map<String, Object> response = new HashMap<>();
+
+        // Validate the orderId to ensure it's a valid format
+        if (orderId == null || orderId.isEmpty()) {
+            response.put("status", "error");
+            response.put("message", "Invalid order ID");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Convert orderId to ObjectId for MongoDB query
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(orderId);
+        } catch (IllegalArgumentException e) {
+            response.put("status", "error");
+            response.put("message", "Invalid order ID format");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Fetch the order from the repository by its ID
+        Optional<Order> orderOptional = repository.findById(objectId);
+
+        if (orderOptional.isPresent()) {
+            // Return the order if found
+            return ResponseEntity.ok(orderOptional.get());
+        } else {
+            // Return 404 if the order is not found
+            response.put("status", "error");
+            response.put("message", "Order not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+
 
     @GetMapping("/getOrdersByDeliveryInfo")
     @LoginRequired
