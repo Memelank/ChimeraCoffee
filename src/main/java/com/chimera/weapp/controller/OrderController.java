@@ -96,7 +96,6 @@ public class OrderController {
 
     @GetMapping("/getById")
     @LoginRequired
-    @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<?> getOrderById(@org.springframework.web.bind.annotation.RequestParam String orderId) {
         Map<String, Object> response = new HashMap<>();
 
