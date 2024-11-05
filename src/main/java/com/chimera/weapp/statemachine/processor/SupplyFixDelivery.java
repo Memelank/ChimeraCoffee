@@ -13,6 +13,8 @@ import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.exception.FsmException;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import com.chimera.weapp.vo.DeliveryInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,8 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
     private OrderRepository orderRepository;
     @Autowired
     private WebSocketConfig webSocketConfig;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public boolean filter(StateContext<FixDeliveryContext> context) {
@@ -59,8 +63,13 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
 
     @Override
     public void after(StateContext<FixDeliveryContext> context) {
-        webSocketConfig.getOrderUpdateWebSocketHandler().sendMessageToOrder(context.getOrderId(), "已供餐");
         Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
+        try {
+            webSocketConfig.getOrderUpdateWebSocketHandler().sendOrderJson(context.getOrderId(), objectMapper.writeValueAsString(order));
+        } catch (JsonProcessingException e) {
+            log.error("序列化order时竟然出错！", e);
+            throw new RuntimeException(e);
+        }
         DeliveryInfo deliveryInfo = order.getDeliveryInfo();
         try {
             weChatNoticeService.fixDeliveryNotice(context.getOrderId(), deliveryInfo.getTime().toString(), context.getOrderState(), deliveryInfo.getAddress());

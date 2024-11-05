@@ -1,7 +1,9 @@
 package com.chimera.weapp.statemachine.processor;
 
 import com.chimera.weapp.config.WebSocketConfig;
+import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.repository.CustomRepository;
+import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.service.WeChatNoticeService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
 import com.chimera.weapp.statemachine.context.DineInContext;
@@ -10,7 +12,10 @@ import com.chimera.weapp.statemachine.enums.ErrorCodeEnum;
 import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.exception.FsmException;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +29,10 @@ public class SupplyDineIn extends AbstractStateProcessor<String, DineInContext> 
     private WeChatNoticeService weChatNoticeService;
     @Autowired
     private WebSocketConfig webSocketConfig;
+    @Autowired
+    private OrderRepository orderRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public boolean filter(StateContext<DineInContext> context) {
@@ -53,7 +62,13 @@ public class SupplyDineIn extends AbstractStateProcessor<String, DineInContext> 
 
     @Override
     public void after(StateContext<DineInContext> context) {
-        webSocketConfig.getOrderUpdateWebSocketHandler().sendMessageToOrder(context.getOrderId(), "已供餐");
+        Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
+        try {
+            webSocketConfig.getOrderUpdateWebSocketHandler().sendOrderJson(context.getOrderId(), objectMapper.writeValueAsString(order));
+        } catch (JsonProcessingException e) {
+            log.error("序列化order时竟然出错！", e);
+            throw new RuntimeException(e);
+        }
         try {
             weChatNoticeService.dineInOrTakeOutNotice(context.getOrderId(), context
                     .getOrderState());

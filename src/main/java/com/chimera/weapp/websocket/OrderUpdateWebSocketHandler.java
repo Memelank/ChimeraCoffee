@@ -61,6 +61,10 @@ public class OrderUpdateWebSocketHandler extends BaseWebSocketHandler {
             log.warn("order {} 的webSocket不存在或已关闭", orderId);
         }
     }
+
+    public void sendOrderJson(String orderId, String orderJson) {
+        sendMessageToOrder(orderId,"order_json"+orderJson);
+    }
 }
 
 
