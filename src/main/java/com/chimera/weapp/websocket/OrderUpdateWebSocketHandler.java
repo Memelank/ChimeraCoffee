@@ -63,7 +63,7 @@ public class OrderUpdateWebSocketHandler extends BaseWebSocketHandler {
     }
 
     public void sendOrderJson(String orderId, String orderJson) {
-        sendMessageToOrder(orderId,"order_json"+orderJson);
+        sendMessageToOrder(orderId,"order_json:"+orderJson);
     }
 }
 
