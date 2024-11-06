@@ -24,6 +24,7 @@ public class UserDTO {
     private Boolean studentCert;
     private String school;
     private String role;
+    private String number;
     private int points;
     private List<CouponIns> coupons;
     private List<PointsProductIns> pointsProducts;
@@ -37,6 +38,7 @@ public class UserDTO {
                 .school(user.getSchool())
                 .points(user.getPoints())
                 .coupons(user.getCoupons())
+                .number(user.getNumber())
                 .pointsProducts(user.getPointsProducts())
                 .role(user.getRole());
     }

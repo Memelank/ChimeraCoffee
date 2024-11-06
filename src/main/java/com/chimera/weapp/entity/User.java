@@ -39,6 +39,8 @@ public class User {
     private int orderNum;
     @Schema(description = "持有积分")
     private int points;
+    @Schema(description = "电话号码")
+    private String number;
 
     @Schema(description = "用户持有的优惠券实例")
     private List<CouponIns> coupons;
