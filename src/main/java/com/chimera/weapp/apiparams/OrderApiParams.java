@@ -18,7 +18,7 @@ import java.util.List;
 public class OrderApiParams {
     @NotNull
     private ObjectId userId;
-    @Schema(description = "顾客类型，可选：\"北大学生业务\"，\"清华学生业务\"，\"未认证为学生身份的用户业务\"")
+    @Schema(description = "顾客类型，可选：\"北大学生业务\"，\"清华学生业务\"，\"未学生认证业务\"")
     @NotNull
     private String customerType;
     @Schema(description = "场景，可选：\"堂食\"，\"外带\"，\"定时达\"")

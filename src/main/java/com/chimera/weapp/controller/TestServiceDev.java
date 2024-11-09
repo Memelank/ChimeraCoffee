@@ -28,7 +28,7 @@ public class TestServiceDev {
                 .id(new ObjectId())  // 自动生成的ObjectId
                 .state("预支付")  // 设置默认状态为NEW
                 .event("支付成功")  // 设置默认事件
-                .customerTypes(new String[]{"北大学生业务", "清华学生业务", "未认证为学生身份的用户业务"})  // 样例客户类型
+                .customerTypes(new String[]{"北大学生业务", "清华学生业务", "未学生认证业务"})  // 样例客户类型
                 .scenes(new String[]{"堂食", "外带", "定时达"})  // 样例场景
                 .processorIds(new int[]{0})  // 样例处理器ID
                 .build();
@@ -46,7 +46,7 @@ public class TestServiceDev {
                 .id(new ObjectId())  // 自动生成的ObjectId
                 .userId(new ObjectId("66f157e249b56d25d48bf329")) //lemo
                 .state("已支付")
-                .customerType("未认证为学生身份的用户业务")
+                .customerType("未学生认证业务")
                 .scene("堂食")
                 .items(createDefaultOrderItems())
                 .build();
