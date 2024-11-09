@@ -41,4 +41,6 @@ public class Product {
     private int delete; // 1是删除，0是正常
     @Schema(description = "加购商品的可选项, key=ProductOption.id")
     private Map<String, List<OptionValue>> productOptions; // String为option的objectId
+    @Schema(description = "是否只限堂食，为true时定时达页面不显示该商品")
+    private Boolean onlyDining;
 }
