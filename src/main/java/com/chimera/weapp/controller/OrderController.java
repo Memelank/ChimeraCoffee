@@ -38,9 +38,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.*;
 
 @RestController
@@ -132,7 +129,6 @@ public class OrderController {
     }
 
 
-
     @GetMapping("/getOrdersByDeliveryInfo")
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
@@ -189,7 +185,7 @@ public class OrderController {
     @LoginRequired
     @Operation(summary = "创建预支付订单。小程序先调用这个，再调用wx.requestPayment。response包含了调起支付所需的所有参数，可直接用于前端调起支付\n" +
             "<a href=https://github.com/wechatpay-apiv3/wechatpay-java/blob/main/service/src/example/java/com/wechat/pay/java/service/refund/RefundServiceExample.java>链接</a>")
-    public PrepayWithRequestPaymentResponse create(@Valid @RequestBody OrderApiParams orderApiParams) throws URISyntaxException, IOException {
+    public PrepayWithRequestPaymentResponse create(@Valid @RequestBody OrderApiParams orderApiParams) {
         securityService.checkIdImitate(orderApiParams.getUserId());
         Order order = orderService.buildOrderByApiParams(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
@@ -210,12 +206,11 @@ public class OrderController {
         RequestParam requestParam = buildRequestParam(requestBody);
         Transaction transaction = parser.parse(requestParam, Transaction.class);
         String outTradeNo = transaction.getOutTradeNo();
-        synchronized (outTradeNo.intern()) {
-            //第一次调用状态机。发送PRE_PAID事件
+        synchronized (outTradeNo.intern()) {//在对业务数据进行状态检查和处理之前，要采用数据锁进行并发控制，以避免函数重入造成的数据混乱。
+            //第一次调用状态机。发送NOTIFY_PRE_PAID事件
             Order order1 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
-            if (Objects.equals(order1.getState(), StateEnum.PRE_PAID.toString()) ||
-                    Objects.equals(order1.getScene(), StateEnum.PAID.toString())) {
-                log.warn("微信重复发送通知给订单号为{}的订单,已默认成功", outTradeNo);
+            if (!Objects.equals(order1.getState(), StateEnum.PRE_PAID.toString())) {//已处理，则直接返回结果成功
+                log.warn("[支付]微信重复发送通知给订单号为{}的订单。已处理，则直接返回结果成功", outTradeNo);
                 return ResponseEntity.ok("");
             }
             NotifyPrePayContext notifyPrePayContext = new NotifyPrePayContext();
@@ -228,7 +223,7 @@ public class OrderController {
                 );
             }
             if (Objects.equals(context.getOrderState(), StateEnum.ABNORMAL_END.toString())) {
-                return ResponseEntity.ok("");//warning 这里用户其实没有支付成功，是告诉微信这个通知已经正常处理的
+                return ResponseEntity.internalServerError().body(String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", "交易状态非‘支付成功’（建议重新下单），当前状态：" + transaction.getTradeState()));
             }
             //核销优惠
             if (order1.getCoupon() != null) {
@@ -257,7 +252,7 @@ public class OrderController {
             if (serviceResult.isSuccess()) {
                 return ResponseEntity.ok("");
             } else {
-                log.warn("竟然走到了这个分支！当接收到了通知之后是不应该再返回500让微信再发的");
+                log.warn("竟然走到了这个分支！当支付成功之后状态机理应顺畅成功");
                 return ResponseEntity.internalServerError().body(
                         String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", serviceResult.getMsg())
                 );
@@ -447,19 +442,19 @@ public class OrderController {
         String outRefundNo = refundNotification.getOutRefundNo();
         synchronized (outRefundNo.intern()) {
             Order order = repository.findById(new ObjectId(outRefundNo)).orElseThrow();
-            if (Objects.equals(order.getState(), StateEnum.WAITING_REFUND_NOTIFICATION.toString())) {
-                log.warn("微信重复发送通知给订单号为{}的订单,已默认成功", outRefundNo);
+            if (!Objects.equals(order.getState(), StateEnum.WAITING_REFUND_NOTIFICATION.toString())) {
+                log.warn("[退款]微信重复发送通知给订单号为{}的订单。已处理，则直接返回结果成功", outRefundNo);
                 return ResponseEntity.ok("");
             }
             StateContext<NotifyRefundResultContext> context = new StateContext<>(order, new NotifyRefundResultContext(refundNotification));
             ServiceResult<Object, NotifyRefundResultContext> result = orderFsmEngine.sendEvent(EventEnum.NOTIFY_REFUND_RESULT.toString(), context);
             if (Objects.equals(context.getOrderState(), StateEnum.ABNORMAL_END.toString())) {
-                return ResponseEntity.ok("");//warning 这里其实没有退款成功，是告诉微信这个通知已经正常处理的
+                return ResponseEntity.internalServerError().body(String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", "退款状态非‘退款成功’，当前状态：" + refundNotification.getRefundStatus()));
             }
             if (result != null && result.isSuccess()) {
                 return ResponseEntity.ok("");
             } else {
-                log.warn("竟然走到了这个分支！当接收到了通知之后是不应该再返回500让微信再发的");
+                log.warn("[退款]竟然走到了这个分支！退款成功之后状态机理应顺畅成功");
                 return ResponseEntity.internalServerError().body(
                         String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", result != null ? result.getMsg() : "状态机结果为空")
                 );

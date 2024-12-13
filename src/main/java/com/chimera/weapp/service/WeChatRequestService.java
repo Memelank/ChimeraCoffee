@@ -93,7 +93,7 @@ public class WeChatRequestService {
         JsapiServiceExtension service = new JsapiServiceExtension.Builder().config(config).build();
         PrepayRequest request = new PrepayRequest();
         Amount amount = new Amount();
-        amount.setTotal(100);
+        amount.setTotal(order.getTotalPrice());
         request.setAmount(amount);
         request.setAppid(appid);
         request.setMchid(mchid);

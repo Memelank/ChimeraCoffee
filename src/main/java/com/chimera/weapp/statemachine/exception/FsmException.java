@@ -11,6 +11,10 @@ public class FsmException extends RuntimeException {
         super(errCode.toString());
     }
 
+    public FsmException(ErrorCodeEnum errCode, String msg) {
+        super(errCode.toString() + msg);
+    }
+
     public FsmException(ErrorCodeEnum errCode, Exception e) {
         super(errCode.toString(), e);
     }

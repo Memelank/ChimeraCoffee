@@ -14,14 +14,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class DefaultStateProcessRegistryTest {
+public class StateProcessorTest {
     @Autowired
     private DefaultOrderFsmEngine defaultOrderFsmEngine;
 
     @Test
     public void registry_AfterApplicationStart_CanMaintainMap() {
-        Assert.assertEquals(1, defaultOrderFsmEngine.acquireStateProcessor(StateEnum.PAID.toString(),
-                EventEnum.NEED_DINE_IN.toString(), CustomerTypeEnum.FOR_TSINGHUA_STUDENT.toString(), SceneEnum.DINE_IN.toString()).size());
+        Assert.assertEquals(1, defaultOrderFsmEngine.acquireStateProcessor(new DefaultOrderFsmEngine.AcquireProcessorApiParams(StateEnum.PAID.toString(),
+                EventEnum.NEED_DINE_IN.toString(), CustomerTypeEnum.FOR_TSINGHUA_STUDENT.toString(), SceneEnum.DINE_IN.toString())).size());
 
     }
 }
