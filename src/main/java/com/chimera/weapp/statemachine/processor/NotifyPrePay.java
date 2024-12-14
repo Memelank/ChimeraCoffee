@@ -78,7 +78,7 @@ public class NotifyPrePay extends AbstractStateProcessor<String, NotifyPrePayCon
     @Override
     public void after(StateContext<NotifyPrePayContext> context) {
         if (Objects.equals(context.getOrderState(), StateEnum.ABNORMAL_END.toString())) {
-            //todo 当遇到异常结束订单时，需要有通知店员的机制
+            //todo 关单
             webSocketConfig.getOrderEndWebSocketHandler().sendOrderId(context.getOrderId());
         }
     }

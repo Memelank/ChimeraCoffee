@@ -4,6 +4,7 @@ import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.service.WeChatRequestService;
+import com.chimera.weapp.service.WechatPaymentService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
 import com.chimera.weapp.statemachine.context.RefundApplyContext;
 import com.chimera.weapp.statemachine.context.StateContext;
@@ -19,7 +20,7 @@ public class RefundApply extends AbstractStateProcessor<String, RefundApplyConte
     @Autowired
     private CustomRepository repository;
     @Autowired
-    private WeChatRequestService weChatRequestService;
+    private WechatPaymentService wechatPaymentService;
     @Autowired
     private OrderRepository orderRepository;
 
@@ -31,7 +32,7 @@ public class RefundApply extends AbstractStateProcessor<String, RefundApplyConte
     @Override
     public ServiceResult<String, RefundApplyContext> actionStep(StateContext<RefundApplyContext> context) throws Exception {
         Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
-        weChatRequestService.createRefund(order, context.getContext().getReason());//todo 或许可以拿着返回值干点别的事
+        wechatPaymentService.createRefund(order, context.getContext().getReason());//todo 或许可以拿着返回值干点别的事
         ServiceResult<String, RefundApplyContext> result = new ServiceResult<>();
         result.setContext(context.getContext());
         result.setMsg("success");

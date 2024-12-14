@@ -6,6 +6,7 @@ import com.wechat.pay.java.core.notification.NotificationConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class WxConfig {
@@ -17,24 +18,33 @@ public class WxConfig {
     private String merchantSerialNumber;
     @Value("${wx-mini-program.api-v3-key}")
     private String apiV3Key;
-//
-//    @Bean
-//    public NotificationConfig build() {//todo 成为商户后才能有这四个值
-//        return new RSAAutoCertificateConfig.Builder()
-//                .merchantId(merchantId)
-//                .privateKeyFromPath(privateKeyPath)
-//                .merchantSerialNumber(merchantSerialNumber)
-//                .apiV3Key(apiV3Key)
-//                .build();
-//    }
 
-    @Bean
-    public Config createConfig() {//todo 成为商户后才能有这四个值
+
+    /**
+     * 构建通用的 RSAAutoCertificateConfig.Builder，用于减少重复代码
+     */
+    private RSAAutoCertificateConfig.Builder getCommonBuilder() {
         return new RSAAutoCertificateConfig.Builder()
                 .merchantId(merchantId)
                 .privateKeyFromPath(privateKeyPath)
                 .merchantSerialNumber(merchantSerialNumber)
-                .apiV3Key(apiV3Key)
-                .build();
+                .apiV3Key(apiV3Key);
+    }
+
+    /**
+     * 创建 NotificationConfig Bean
+     */
+    @Bean
+    public NotificationConfig wechatPayNotificationConfig() {
+        return getCommonBuilder().build();
+    }
+
+    /**
+     * 创建 Config Bean
+     */
+    @Bean
+    @Primary
+    public Config wechatPayConfig() {
+        return getCommonBuilder().build();
     }
 }
