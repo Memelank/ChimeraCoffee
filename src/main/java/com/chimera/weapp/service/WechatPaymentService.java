@@ -1,6 +1,8 @@
 package com.chimera.weapp.service;
 
+import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.Order;
+import com.chimera.weapp.util.ThreadLocalUtil;
 import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.service.payments.jsapi.JsapiService;
 import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
@@ -10,6 +12,7 @@ import com.wechat.pay.java.service.refund.RefundService;
 import com.wechat.pay.java.service.refund.model.AmountReq;
 import com.wechat.pay.java.service.refund.model.CreateRequest;
 import com.wechat.pay.java.service.refund.model.Refund;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -50,6 +53,11 @@ public class WechatPaymentService {
         PrepayRequest request = new PrepayRequest();
         Amount amount = new Amount();
         amount.setTotal(order.getTotalPrice());
+        Payer payer = new Payer();
+        ObjectId userId = order.getUserId();
+        UserDTO userDTO = ThreadLocalUtil.get(userId.toHexString(), UserDTO.class);
+        payer.setOpenid(userDTO.getOpenid());
+        request.setPayer(payer);
         request.setAmount(amount);
         request.setAppid(appid);
         request.setMchid(mchid);
@@ -116,6 +124,7 @@ public class WechatPaymentService {
         amountReq.setRefund(Integer.toUnsignedLong(order.getTotalPrice()));
         amountReq.setTotal(Integer.toUnsignedLong(order.getTotalPrice()));// 当前退款金额即原订单金额
         amountReq.setCurrency("CNY");
+        createRequest.setAmount(amountReq);
         return service.create(createRequest);
     }
 }
