@@ -136,7 +136,7 @@ public class AuthController {
     @RolesAllow(RoleEnum.ADMIN)
     @Operation(description = "一个纯粹的管理员身份校验，输入请求头中的Authorization，输出响应头中的可能刷新的token，响应体中的用户基本信息")
     public ResponseEntity<ResponseBodyDTO<UserDTO>> validate() {
-        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         User user = repository.findById(new ObjectId(userDTO.getId())).orElseThrow();
         return new ResponseEntity<>(new ResponseBodyDTO<>("登陆成功",
                 UserDTO.ofUser(user).build()), HttpStatus.OK);
@@ -146,7 +146,7 @@ public class AuthController {
     @LoginRequired
     @Operation
     public ResponseEntity<WxStudentCheckDTO> checkStudentIdentity(@Valid CheckStudentIdentityApiParams apiParams) throws URISyntaxException, IOException {
-        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         String openid = userDTO.getOpenid();
         WxStudentCheckDTO wxStudentCheckDTO = weChatRequestService.checkStudentIdentity(
                 WeChatRequestService.WxCheckStudentIdentityApiParams.builder()

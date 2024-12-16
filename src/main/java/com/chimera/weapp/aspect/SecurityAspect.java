@@ -2,7 +2,6 @@ package com.chimera.weapp.aspect;
 
 import com.chimera.weapp.annotation.RolesAllow;
 import com.chimera.weapp.dto.UserDTO;
-import com.chimera.weapp.entity.User;
 import com.chimera.weapp.exception.CompareTokenException;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.service.SecurityService;
@@ -80,7 +79,7 @@ public class SecurityAspect {
             throw e;
         } finally {
             if (canRefresh) {
-                Claims claims = ThreadLocalUtil.get(ThreadLocalUtil.CLAIMS, Claims.class);
+                Claims claims = ThreadLocalUtil.get(ThreadLocalUtil.CLAIMS);
 
                 securityService.tryToRefreshToken(claims);
             }
@@ -94,7 +93,7 @@ public class SecurityAspect {
     @Around("onRolesAllow()")
     @Order(2)
     public Object checkRole(ProceedingJoinPoint pjp) throws Throwable {
-        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         if (userDTO == null) {
             return new ResponseEntity<>("Unauthorized - No userDTO found", HttpStatus.UNAUTHORIZED);
         }

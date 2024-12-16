@@ -1,6 +1,5 @@
 package com.chimera.weapp.service;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.apiparams.OrderApiParams;
 import com.chimera.weapp.apiparams.OrderItemApiParams;
 import com.chimera.weapp.dto.UserDTO;
@@ -40,7 +39,7 @@ public class OrderService {
                 .merchantNote(orderApiParams.getMerchantNote());
 
         int orderItemPriceSum = orderItems.stream().map(OrderItem::getPrice).reduce(Integer::sum).orElseThrow();
-        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         if (!Objects.isNull(orderApiParams.getCouponInsUUID())) {
             CouponIns couponIns = getCouponInsFromUserByUUID(userDTO.getId(), orderApiParams.getCouponInsUUID(),
                     orderApiParams.getItems().stream().map(OrderItemApiParams::getProductId).toList());
@@ -70,7 +69,7 @@ public class OrderService {
                 .disPrice(orderApiParams.getDisPrice());
 
         int orderItemPriceSum = orderItems.stream().map(OrderItem::getPrice).reduce(Integer::sum).orElseThrow();
-        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         if (!Objects.isNull(orderApiParams.getCouponInsUUID())) {
             CouponIns couponIns = getCouponInsFromUserByUUID(userDTO.getId(), orderApiParams.getCouponInsUUID(),
                     orderApiParams.getItems().stream().map(OrderItemApiParams::getProductId).toList());

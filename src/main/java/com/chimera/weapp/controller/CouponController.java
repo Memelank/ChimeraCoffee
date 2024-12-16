@@ -9,10 +9,8 @@ import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.CouponRepository;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.service.BenefitService;
-import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.util.ThreadLocalUtil;
 import com.chimera.weapp.vo.CouponIns;
-import com.chimera.weapp.vo.PointsProductIns;
 import io.swagger.v3.oas.annotations.Operation;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +80,7 @@ public class CouponController {
     @LoginRequired
     @Operation(summary = "获取当前用户的所有优惠券实例")
     public ResponseEntity<List<CouponIns>> getCouponInsOfAUser() {
-        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO, UserDTO.class);
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         String id = userDTO.getId();
         User user = userRepository.findById(new ObjectId(id)).orElseThrow();
         return ResponseEntity.ok(user.getCoupons());

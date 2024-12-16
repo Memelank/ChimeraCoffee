@@ -17,7 +17,7 @@ public class ThreadLocalUtil {
     }
 
     // 从ThreadLocal中的Map获取值
-    public static <T> T get(String key,Class<T> tClass) {
+    public static <T> T get(String key) {
         return (T) threadLocalMap.get().get(key);
     }
 

@@ -55,7 +55,7 @@ public class WechatPaymentService {
         amount.setTotal(order.getTotalPrice());
         Payer payer = new Payer();
         ObjectId userId = order.getUserId();
-        UserDTO userDTO = ThreadLocalUtil.get(userId.toHexString(), UserDTO.class);
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         payer.setOpenid(userDTO.getOpenid());
         request.setPayer(payer);
         request.setAmount(amount);
