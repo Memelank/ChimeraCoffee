@@ -12,16 +12,15 @@ import com.wechat.pay.java.service.refund.RefundService;
 import com.wechat.pay.java.service.refund.model.AmountReq;
 import com.wechat.pay.java.service.refund.model.CreateRequest;
 import com.wechat.pay.java.service.refund.model.Refund;
-import org.bson.types.ObjectId;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
+@Slf4j
 public class WechatPaymentService {
 
     @Value("${wx-mini-program.appid}")
@@ -36,7 +35,7 @@ public class WechatPaymentService {
     private String prepayNotifyURL;
     @Value("${wx-mini-program.refund.notify_url}")
     private String refundNotifyURL;
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
 
     public WechatPaymentService(Config config) {
         jsapiService = new JsapiService.Builder().config(config).build();
@@ -54,7 +53,6 @@ public class WechatPaymentService {
         Amount amount = new Amount();
         amount.setTotal(order.getTotalPrice());
         Payer payer = new Payer();
-        ObjectId userId = order.getUserId();
         UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         payer.setOpenid(userDTO.getOpenid());
         request.setPayer(payer);
@@ -70,28 +68,21 @@ public class WechatPaymentService {
     public void closeIfNotPaid(String orderId) {
         // 查询间隔（以毫秒为单位）
         int[] intervals = {5000, 30000, 60000, 180000, 300000, 600000, 1800000};
-        AtomicBoolean paymentSuccess = new AtomicBoolean(false);
-
-        for (int i = 0; i < intervals.length; i++) {
-            final int attempt = i + 1;
-            scheduler.schedule(() -> {
-                if (paymentSuccess.get()) {
-                    return; // 如果已经支付成功，跳过查询
+        new Thread(() -> {
+            for (int interval : intervals) {
+                try {
+                    Thread.sleep(interval);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
                 boolean result = callWeChatPayQueryAPI(orderId); // 调用查询接口
-                System.out.println("Attempt " + attempt + ": Query Result = " + result);
-
                 if (result) {
-                    paymentSuccess.set(true);
-                    System.out.println("Payment successful for Order: " + orderId);
-                    scheduler.shutdown(); // 支付成功后终止所有任务
-                } else if (attempt == intervals.length) {
-                    System.out.println("Payment failed. Closing order: " + orderId);
-                    callWeChatPayCloseAPI(orderId); // 调用关单接口
-                    scheduler.shutdown(); // 关闭线程池
+                    return;
                 }
-            }, intervals[i], TimeUnit.MILLISECONDS);
-        }
+            }
+            log.info("对{}调用关单接口", orderId);
+            callWeChatPayCloseAPI(orderId); // 调用关单接口
+        }).start();
     }
 
     private boolean callWeChatPayQueryAPI(String orderId) {
