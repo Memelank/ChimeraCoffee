@@ -1,28 +1,22 @@
 package com.chimera.weapp.apiparams;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
 @Builder
-@Slf4j
-public class RefundNoticeApiParams {
+public class RefundNoticeApiParams extends NoticeApiParams{
     @Schema(description = "订单编号")
-    private String character_string1;
+    private String number1;
     @Schema(description = "退款金额")
-    private String amount2;
+    private String amount3;
     @Schema(description = "退款时间")
-    private String time3;
+    private String time2;
     @Schema(description = "退款原因")
     private String thing4;
     @Schema(description = "温馨提示")
-    private String thing5;
+    private String thing8;
 
 }
 

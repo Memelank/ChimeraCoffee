@@ -47,13 +47,13 @@ public class WeChatNoticeService {
         String page = acRepo.findByKeyAndCategory(PAGE, DINE_IN_OR_TAKE_OUT).orElseThrow().getValue();
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, DINE_IN_OR_TAKE_OUT).orElseThrow().getValue();
         SupplyNoticeApiParams.SupplyNoticeApiParamsBuilder builder = SupplyNoticeApiParams.builder()
-                .phrase19(orderState)
-                .thing11(wxts)
-                .thing2(shopName)
-                .thing7(shopAddress)
-                .character_string4(Integer.toString(orderNum));
+                .phrase16(orderState)
+                .thing7(wxts)
+                .thing23(shopName)
+                .thing27(shopAddress)
+                .character_string19(Integer.toString(orderNum));
         try {
-            weChatRequestService.subscribeSend(JSONObject.toJSONString(builder.build()), page, templateId, openid);
+            weChatRequestService.subscribeSend(builder.build().toString(), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
             log.error("发送通知[提醒顾客来取餐]失败", e);
             throw new RuntimeException(e);
@@ -71,15 +71,16 @@ public class WeChatNoticeService {
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, FIX_DELIVERY).orElseThrow().getValue();
         String phoneNumber = acRepo.findByKey(CONTACT_PHONE_NUMBER).orElseThrow().getValue();
         SupplyNoticeApiParams.SupplyNoticeApiParamsBuilder builder = SupplyNoticeApiParams.builder()
-                .phrase19(orderState)
-                .thing11(wxts + String.format("\n(指定时间为:%s,配送员电话号码为:%s)", time, phoneNumber))
-                .thing2(shopName)
-                .thing7(deliveryAddress)
-                .character_string4(Integer.toString(orderNum));
+                .phrase16(orderState)
+                .thing7(wxts + String.format("\n(指定时间为:%s,配送员电话号码为:%s)", time, phoneNumber))
+                .thing23(shopName)
+                .thing27(deliveryAddress)
+                .character_string19(Integer.toString(orderNum));
         try {
-            weChatRequestService.subscribeSend(JSONObject.toJSONString(builder.build()), page, templateId, openid);
+            log.info("准备发送订阅消息[提醒]，订单号{}",orderId);
+            weChatRequestService.subscribeSend(builder.build().toString(), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
-            log.error("发送通知[提醒顾客定时达消息]失败", e);
+            log.error("发送订阅消息[提醒]失败", e);
             throw new RuntimeException(e);
         }
     }
@@ -92,15 +93,16 @@ public class WeChatNoticeService {
         String page = acRepo.findByKeyAndCategory(PAGE, REFUND).orElseThrow().getValue();
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, REFUND).orElseThrow().getValue();
         RefundNoticeApiParams.RefundNoticeApiParamsBuilder builder = RefundNoticeApiParams.builder()
-                .character_string1(Integer.toString(order.getOrderNum()))
-                .amount2(Integer.toString(order.getTotalPrice()))
-                .time3(DateUtil.formatDate(new Date()))
+                .number1(Integer.toString(order.getOrderNum()))
+                .amount3(Integer.toString(order.getTotalPrice()))
+                .time2(DateUtil.formatDate(new Date()))
                 .thing4(reason)
-                .thing5(wxts);
+                .thing8(wxts);
         try {
-            weChatRequestService.subscribeSend(JSONObject.toJSONString(builder.build()), page, templateId, openid);
+            log.info("准备发送订阅消息[退款]，订单号{}",orderId);
+            weChatRequestService.subscribeSend(builder.toString(), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
-            log.error("发送通知[提醒顾客定时达消息]失败", e);
+            log.error("发送订阅消息[退款]失败", e);
             throw new RuntimeException(e);
         }
     }
