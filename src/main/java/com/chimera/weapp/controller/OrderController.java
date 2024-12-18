@@ -9,6 +9,7 @@ import com.chimera.weapp.dto.BatchSupplyOrderDTO;
 import com.chimera.weapp.dto.ResponseBodyDTO;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.enums.RoleEnum;
+import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.ProductRepository;
 import com.chimera.weapp.service.*;
@@ -49,6 +50,9 @@ public class OrderController {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CustomRepository customRepository;
 
     @Autowired
     private WeChatRequestService weChatRequestService;
@@ -192,7 +196,7 @@ public class OrderController {
         Order save = repository.save(order);
         PrepayWithRequestPaymentResponse response = wechatPaymentService.jsapiTransaction(save);
         webSocketConfig.getOrderCreateWebSocketHandler().sendOrderId(order.getId().toHexString());
-        wechatPaymentService.closeIfNotPaid(save.getId().toHexString());
+        wechatPaymentService.closeIfNotPaid(save.getId().toHexString(), customRepository);
         return response;
     }
 

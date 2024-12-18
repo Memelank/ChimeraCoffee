@@ -2,6 +2,8 @@ package com.chimera.weapp.service;
 
 import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.Order;
+import com.chimera.weapp.repository.CustomRepository;
+import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.util.ThreadLocalUtil;
 import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.service.payments.jsapi.JsapiService;
@@ -22,20 +24,18 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class WechatPaymentService {
-
+    @Autowired
+    private OrderService orderService;
     @Value("${wx-mini-program.appid}")
     private String appid;
     @Value("${wx-mini-program.mchid}")
     private String mchid;
-    private Config config;
-    @Autowired
-    private OrderService orderService;
-    private final JsapiService jsapiService;
     @Value("${wx-mini-program.prepay.notify_url}")
     private String prepayNotifyURL;
     @Value("${wx-mini-program.refund.notify_url}")
     private String refundNotifyURL;
-
+    private Config config;
+    private final JsapiService jsapiService;
 
     public WechatPaymentService(Config config) {
         jsapiService = new JsapiService.Builder().config(config).build();
@@ -65,9 +65,9 @@ public class WechatPaymentService {
         return service.prepayWithRequestPayment(request);
     }
 
-    public void closeIfNotPaid(String orderId) {
+    public void closeIfNotPaid(String orderId, CustomRepository customRepository) {
         // 查询间隔（以毫秒为单位）
-        int[] intervals = {5000, 30000, 60000, 180000, 300000, 600000, 1800000};
+        int[] intervals = {5000, 30000, 60000, 180000, 300000, 600000, 1800000};//5 30 60 180 300 600 1800 总共2975s约50min
         new Thread(() -> {
             for (int interval : intervals) {
                 try {
@@ -82,6 +82,7 @@ public class WechatPaymentService {
             }
             log.info("对{}调用关单接口", orderId);
             callWeChatPayCloseAPI(orderId); // 调用关单接口
+            customRepository.updateOrderStateById(orderId, StateEnum.ORDER_CLOSED.toString());
         }).start();
     }
 

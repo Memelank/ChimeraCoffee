@@ -44,7 +44,7 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
 
     @Transactional
     @Override
-    public final ServiceResult<T, C> action(StateContext<C> context) throws Exception {
+    public final ServiceResult<T, C> action(StateContext<C> context) {
         ServiceResult<T, C> result;
         String step = "";
         try {
@@ -81,13 +81,9 @@ public abstract class AbstractStateProcessor<T, C> implements StateProcessor<T, 
             step = "after";
             this.after(context);
             return result;
-        } catch (FsmException e) {
+        } catch (Exception e) {
             logger.error(String.format("State Machine failed at step [%s],orderId [%s]", step, context.getOrderId()), e);
             throw new FsmException(step,e);
-        } catch (Exception e) {
-            // 记录日志
-            logger.error(String.format("State Machine failed at step [%s],orderId [%s]", step, context.getOrderId()), e);
-            throw new FsmException(step);
         }
     }
 
