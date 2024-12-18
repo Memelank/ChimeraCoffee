@@ -34,12 +34,35 @@ public class ProductOptionController {
         return ResponseEntity.ok(repository.save(entity));
     }
 
+    public void updateOptionValuesInProducts(String optionId, List<OptionValue> updatedValues) {
+        List<Product> products = productRepository.findAll();
+        products.forEach(product -> {
+            Map<String, List<OptionValue>> options = product.getProductOptions();
+            if (options != null && options.containsKey(optionId)) {
+                List<OptionValue> currentValues = options.get(optionId);
+                currentValues.forEach(currentValue -> {
+                    updatedValues.forEach(updatedValue -> {
+                        if (currentValue.getUuid().equals(updatedValue.getUuid())) {
+                            currentValue.setValue(updatedValue.getValue());
+                            currentValue.setPriceAdjustment(updatedValue.getPriceAdjustment());
+                        }
+                    });
+                });
+                productRepository.save(product);
+            }
+        });
+    }
+
+
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<ProductOption> updateProductOption(@RequestBody ProductOption entity) {
-        return ResponseEntity.ok(repository.save(entity));
+        ProductOption updatedOption = repository.save(entity);
+        updateOptionValuesInProducts(updatedOption.getId().toString(), entity.getValues());
+        return ResponseEntity.ok(updatedOption);
     }
+
 
     @GetMapping
     @Operation(summary = "获得所有ProductOptions，用于选择商品具体选项，如：“规格”，“温度”")
