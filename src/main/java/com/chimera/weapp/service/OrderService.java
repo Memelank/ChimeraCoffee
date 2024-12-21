@@ -28,7 +28,7 @@ public class OrderService {
     @Autowired
     private CouponRepository couponRepository;
 
-    public Order buildOrderByApiParams(OrderApiParams orderApiParams) {
+    public Order buildOrderByApiParams(OrderApiParams orderApiParams) throws Exception  {
         List<OrderItem> orderItems = buildItemsByApiParams(orderApiParams.getItems());
         Order.OrderBuilder orderBuilder = Order.builder().userId(orderApiParams.getUserId())
                 .customerType(orderApiParams.getCustomerType())
@@ -52,6 +52,11 @@ public class OrderService {
         if (!Objects.isNull(orderApiParams.getCouponInsUUID())) {
             CouponIns couponIns = getCouponInsFromUserByUUID(userDTO.getId(), orderApiParams.getCouponInsUUID(),
                     orderApiParams.getItems().stream().map(OrderItemApiParams::getProductId).toList());
+
+            if (couponIns.getStatus() != 0) {
+                throw new Exception("Coupon has already been used");
+            }
+
             orderBuilder.coupon(couponIns);
             orderBuilder.totalPrice(orderItemPriceSum - couponIns.getDePrice());
         }

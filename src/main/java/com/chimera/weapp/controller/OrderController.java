@@ -190,7 +190,7 @@ public class OrderController {
     @LoginRequired
     @Operation(summary = "创建预支付订单。小程序先调用这个，再调用wx.requestPayment。response包含了调起支付所需的所有参数，可直接用于前端调起支付\n" +
             "<a href=https://github.com/wechatpay-apiv3/wechatpay-java/blob/main/service/src/example/java/com/wechat/pay/java/service/refund/RefundServiceExample.java>链接</a>")
-    public PrepayWithRequestPaymentResponse create(@Valid @RequestBody OrderApiParams orderApiParams) {
+    public PrepayWithRequestPaymentResponse create(@Valid @RequestBody OrderApiParams orderApiParams) throws Exception {
         securityService.checkIdImitate(orderApiParams.getUserId());
         Order order = orderService.buildOrderByApiParams(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
