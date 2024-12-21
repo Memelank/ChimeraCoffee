@@ -1,8 +1,7 @@
 package com.chimera.weapp.apiparams;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -31,7 +30,5 @@ public class NoticeApiParams {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-
     }
 }

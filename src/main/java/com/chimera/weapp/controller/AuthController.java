@@ -18,9 +18,14 @@ import com.chimera.weapp.util.PasswordUtils;
 import com.chimera.weapp.util.ThreadLocalUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,7 +150,7 @@ public class AuthController {
     @PostMapping("/wx/checkstudentidentity")
     @LoginRequired
     @Operation
-    public ResponseEntity<WxStudentCheckDTO> checkStudentIdentity(@Valid CheckStudentIdentityApiParams apiParams) throws URISyntaxException, IOException {
+    public ResponseEntity<WxStudentCheckDTO> checkStudentIdentity(@Valid @RequestBody CheckStudentIdentityApiParams apiParams) throws URISyntaxException, IOException {
         UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         String openid = userDTO.getOpenid();
         WxStudentCheckDTO wxStudentCheckDTO = weChatRequestService.checkStudentIdentity(
@@ -164,6 +169,7 @@ public class AuthController {
     }
 
 
+    @Data
     public static class CheckStudentIdentityApiParams {
         @NotNull
         String wx_student_check_code;
