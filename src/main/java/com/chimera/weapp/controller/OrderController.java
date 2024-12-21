@@ -8,10 +8,12 @@ import com.chimera.weapp.config.WebSocketConfig;
 import com.chimera.weapp.dto.BatchSupplyOrderDTO;
 import com.chimera.weapp.dto.ResponseBodyDTO;
 import com.chimera.weapp.entity.Order;
+import com.chimera.weapp.entity.User;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.ProductRepository;
+import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.service.*;
 import com.chimera.weapp.statemachine.context.*;
 import com.chimera.weapp.statemachine.engine.OrderFsmEngine;
@@ -31,6 +33,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,7 +52,7 @@ public class OrderController {
     private OrderRepository repository;
 
     @Autowired
-    private ProductRepository productRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private CustomRepository customRepository;
@@ -194,6 +197,7 @@ public class OrderController {
         Order order = orderService.buildOrderByApiParams(orderApiParams);
         order.setState(StateEnum.PRE_PAID.toString());
         Order save = repository.save(order);
+
         PrepayWithRequestPaymentResponse response = wechatPaymentService.jsapiTransaction(save);
         webSocketConfig.getOrderCreateWebSocketHandler().sendOrderId(order.getId().toHexString());
         wechatPaymentService.closeIfNotPaid(save.getId().toHexString(), customRepository);
@@ -237,6 +241,13 @@ public class OrderController {
                     ObjectId userId = order1.getUserId();
                     benefitService.redeemUserCoupon(userId, orderCouponUUID);
                 }
+
+                //消费统计
+                User user = userRepository.findById(order1.getUserId()).orElseThrow();
+                user.setOrderNum(user.getOrderNum() + 1);
+                user.setExpend(user.getExpend() + order1.getTotalPrice());
+                userRepository.save(user);
+
 
                 //第二次调用状态机。从PAID状态转变
                 Order order2 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();

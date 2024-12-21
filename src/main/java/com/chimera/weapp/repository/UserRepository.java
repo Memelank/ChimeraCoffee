@@ -21,4 +21,6 @@ public interface UserRepository extends MongoRepository<User, ObjectId> {
     @Query("{ 'createdAt': { $gte: ?0, $lte: ?1 }, 'role': { $ne: ?2 } }")
     List<User> findUsersByCreatedAtBetween(LocalDateTime startTime, LocalDateTime endTime, RoleEnum adminRole);
 
+    List<User> findByStudentCert(boolean studentCert);
+
 }

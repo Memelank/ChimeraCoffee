@@ -38,6 +38,15 @@ public class OrderService {
                 .remark(orderApiParams.getRemark())
                 .merchantNote(orderApiParams.getMerchantNote());
 
+        // 如果 DeliveryInfo 不为空，更新用户的电话号码
+        if (orderApiParams.getDeliveryInfo() != null && orderApiParams.getDeliveryInfo().getNumber() != null) {
+            User user = userRepository.findById(orderApiParams.getUserId()).orElse(null);
+            if (user != null) {
+                user.setNumber(orderApiParams.getDeliveryInfo().getNumber());
+                userRepository.save(user);
+            }
+        }
+
         int orderItemPriceSum = orderItems.stream().map(OrderItem::getPrice).reduce(Integer::sum).orElseThrow();
         UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         if (!Objects.isNull(orderApiParams.getCouponInsUUID())) {
