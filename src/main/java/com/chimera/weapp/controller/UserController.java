@@ -2,10 +2,13 @@ package com.chimera.weapp.controller;
 
 import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.annotation.RolesAllow;
+import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.service.SecurityService;
+import io.swagger.v3.oas.annotations.Operation;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,5 +76,34 @@ public class UserController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+
+    /**
+     * 根据用户 ID 获取 UserDTO
+     *
+     * @param id 用户的唯一标识符
+     * @return UserDTO 对象
+     */
+    @GetMapping("/dto/{id}")
+    @LoginRequired
+    @Operation(summary = "根据userId查询用户信息，结果为UserDTO")
+    public ResponseEntity<UserDTO> getUserDTOById(@PathVariable("id") String id) {
+        try {
+
+            ObjectId userObjectId = new ObjectId(id);
+
+            Optional<User> userOpt = repository.findById(userObjectId);
+            if (userOpt.isPresent()) {
+                UserDTO dto = UserDTO.ofUser(userOpt.get()).build();
+                return ResponseEntity.ok(dto);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+        } catch (IllegalArgumentException e) {
+            // 例如，ID 格式不正确
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+
 }
 
