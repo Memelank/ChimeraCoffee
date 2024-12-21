@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
-public class OrderCreateOrEndWebSocketHandler extends BaseWebSocketHandler {
+public class OrderPaidOrEndWebSocketHandler extends BaseWebSocketHandler {
     private final List<WebSocketSession> sessions = new ArrayList<>();
 
-    public OrderCreateOrEndWebSocketHandler(WebSocketAuthenticator authenticator, ScheduledExecutorService scheduler, long authTimeoutSeconds, int heartBeatTimeout) {
+    public OrderPaidOrEndWebSocketHandler(WebSocketAuthenticator authenticator, ScheduledExecutorService scheduler, long authTimeoutSeconds, int heartBeatTimeout) {
         super(authenticator, scheduler, authTimeoutSeconds, heartBeatTimeout);
     }
 

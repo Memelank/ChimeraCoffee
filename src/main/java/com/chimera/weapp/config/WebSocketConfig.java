@@ -4,7 +4,7 @@ import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.service.SecurityService;
 import com.chimera.weapp.websocket.JwtWebSocketAuthenticator;
 import com.chimera.weapp.websocket.OrderUpdateWebSocketHandler;
-import com.chimera.weapp.websocket.OrderCreateOrEndWebSocketHandler;
+import com.chimera.weapp.websocket.OrderPaidOrEndWebSocketHandler;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -25,10 +25,10 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Getter
-    private OrderCreateOrEndWebSocketHandler orderCreateWebSocketHandler;
+    private OrderPaidOrEndWebSocketHandler orderPaidWebSocketHandler;
 
     @Getter
-    private OrderCreateOrEndWebSocketHandler orderEndWebSocketHandler;
+    private OrderPaidOrEndWebSocketHandler orderEndWebSocketHandler;
 
     @Getter
     private OrderUpdateWebSocketHandler orderUpdateWebSocketHandler;
@@ -44,15 +44,15 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 10, 30);
         registry.addHandler(orderUpdateWebSocketHandler, "/ws/order_update")
                 .setAllowedOrigins("*"); // 允许跨域
-        orderCreateWebSocketHandler =
-                new OrderCreateOrEndWebSocketHandler(
+        orderPaidWebSocketHandler =
+                new OrderPaidOrEndWebSocketHandler(
                         new JwtWebSocketAuthenticator(List.of(RoleEnum.ADMIN), securityService),
                         scheduler,
                         10, 30);
-        registry.addHandler(orderCreateWebSocketHandler, "/ws/order_create")
+        registry.addHandler(orderPaidWebSocketHandler, "/ws/order_create")
                 .setAllowedOrigins("*");
         orderEndWebSocketHandler =
-                new OrderCreateOrEndWebSocketHandler(
+                new OrderPaidOrEndWebSocketHandler(
                         new JwtWebSocketAuthenticator(List.of(RoleEnum.ADMIN), securityService),
                         scheduler,
                         10, 30);

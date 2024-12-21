@@ -78,8 +78,9 @@ public class NotifyPrePay extends AbstractStateProcessor<String, NotifyPrePayCon
     @Override
     public void after(StateContext<NotifyPrePayContext> context) {
         if (Objects.equals(context.getOrderState(), StateEnum.ABNORMAL_END.toString())) {
-            //todo 关单
             webSocketConfig.getOrderEndWebSocketHandler().sendOrderId(context.getOrderId());
+        }else if(Objects.equals(context.getOrderState(), StateEnum.PAID.toString())){
+            webSocketConfig.getOrderPaidWebSocketHandler().sendOrderId(context.getOrderId());
         }
     }
 

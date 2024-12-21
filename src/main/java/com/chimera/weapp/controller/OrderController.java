@@ -12,7 +12,6 @@ import com.chimera.weapp.entity.User;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.repository.OrderRepository;
-import com.chimera.weapp.repository.ProductRepository;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.service.*;
 import com.chimera.weapp.statemachine.context.*;
@@ -33,7 +32,6 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -199,7 +197,6 @@ public class OrderController {
         Order save = repository.save(order);
 
         PrepayWithRequestPaymentResponse response = wechatPaymentService.jsapiTransaction(save);
-        webSocketConfig.getOrderCreateWebSocketHandler().sendOrderId(order.getId().toHexString());
         wechatPaymentService.closeIfNotPaid(save.getId().toHexString(), customRepository);
         return response;
     }
@@ -339,7 +336,7 @@ public class OrderController {
 
         // 根据状态机的处理结果返回不同的响应
         if (serviceResult != null && serviceResult.isSuccess()) {
-            webSocketConfig.getOrderCreateWebSocketHandler().sendOrderId(order2.getId().toHexString());
+            webSocketConfig.getOrderPaidWebSocketHandler().sendOrderId(order2.getId().toHexString());
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);
