@@ -88,6 +88,44 @@ public class BenefitService {
         couponRepository.save(coupon);
     }
 
+    public int distributeCouponToStudents(String couponId) throws Exception {
+        ObjectId couponObjectId;
+        try {
+            couponObjectId = new ObjectId(couponId);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid couponId");
+        }
+
+        // 确认优惠券存在并有效
+        Optional<Coupon> couponOptional = couponRepository.findById(couponObjectId);
+        if (!couponOptional.isPresent()) {
+            throw new Exception("Coupon not found");
+        }
+        Coupon coupon = couponOptional.get();
+
+        // 确认优惠券活跃且未过期
+        if (coupon.getStatus() != 1 || (coupon.getValidity() != null && coupon.getValidity().before(new Date()))) {
+            throw new Exception("Coupon is not active or expired");
+        }
+
+        // 找到所有认证为学生的用户
+        List<User> students = userRepository.findByStudentCert(true);
+        int count = 0;
+
+        for (User user : students) {
+            try {
+                addCouponToUser(user.getId().toHexString(), couponId);
+                count++;
+            } catch (Exception e) {
+                // 处理每个用户可能的发放异常
+                System.err.println("Failed to distribute coupon to user " + user.getId().toHexString() + ": " + e.getMessage());
+            }
+        }
+
+        return count;
+    }
+
+
     public User issueNewCustomerCouponsToUser(ObjectId userObjectId) throws Exception {
 
         // Find the User

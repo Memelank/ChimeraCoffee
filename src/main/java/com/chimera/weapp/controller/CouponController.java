@@ -62,6 +62,20 @@ public class CouponController {
         }
     }
 
+    @Operation(summary = "给所有认证为学生的用户发放优惠券，商铺端专用")
+    @PostMapping("/distribute_coupon_to_students")
+    @LoginRequired
+    @RolesAllow(RoleEnum.ADMIN)
+    public ResponseEntity<?> distributeCouponToStudents(@RequestParam String couponId) {
+        try {
+            int distributedCount = benefitService.distributeCouponToStudents(couponId);
+            return ResponseEntity.ok("Coupon distributed to " + distributedCount + " students successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+
     @PutMapping
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)

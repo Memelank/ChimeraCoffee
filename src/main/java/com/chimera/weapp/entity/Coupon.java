@@ -24,7 +24,7 @@ public class Coupon {
     private String cateId;
     @Schema(description = "名称")
     private String name;
-    @Schema(description = "类型，可选：\"新客\"，\"兑换\"，\"活动\"，\"临时\"")
+    @Schema(description = "类型，可选：\"新客\"，\"兑换\"，\"活动\"，\"学生\"，\"临时\"")
     private String type;
     @Schema(description = "抵扣金额。单位为分。")
     private int dePrice;
