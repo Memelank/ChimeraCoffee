@@ -66,6 +66,7 @@ public class ActivityController {
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Activity> updateActivity(@RequestBody Activity entity) {
         entity.setImgURL(url + "activity/" + entity.getImgURL());
+        entity.setImgURL_menu(url + "activity/" + entity.getImgURL_menu());
         return ResponseEntity.ok(repository.save(entity));
     }
 
@@ -100,28 +101,8 @@ public class ActivityController {
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Activity> createEntity(@RequestBody Activity entity) {
         entity.setImgURL(url + "activity/" + entity.getImgURL());
+        entity.setImgURL_menu(url + "activity/" + entity.getImgURL_menu());
         return ResponseEntity.ok(repository.save(entity));
     }
-
-//    @PostMapping(consumes = {"multipart/form-data"})
-//    @LoginRequired
-//    @RolesAllow(RoleEnum.ADMIN)
-//    public ResponseEntity<Activity> createActivity(
-//            @RequestPart("activity") Activity entity,
-//            @RequestPart("image") MultipartFile imageFile) throws IOException {
-//
-//        // 上传文件到服务器
-//        if (!imageFile.isEmpty()) {
-//            String filename = imageFile.getOriginalFilename();
-//            File destinationFile = new File(uploadDirectory + "activity/" + filename);
-//            imageFile.transferTo(destinationFile);
-//
-//            // 将上传后的文件路径或URL存储到imgURL中
-//            entity.setImgURL(url + "activity/" + filename);  // 可以根据实际情况调整URL前缀
-//        }
-//
-//        // 保存产品信息到数据库
-//        return ResponseEntity.ok(repository.save(entity));
-//    }
 
 }

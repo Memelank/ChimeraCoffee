@@ -23,18 +23,16 @@ public class Activity {
     private ObjectId id;
     @Schema(description = "活动名")
     private String title;
-    @Schema(description = "活动图片URL")
+    @Schema(description = "首页/我的，竖样式活动图片URL")
     private String imgURL;
+    @Schema(description = "菜单，横样式活动图片URL")
+    private String imgURL_menu;
     @Schema(description = "活动介绍")
     private String describe;
     @Schema(description = "活动开始时间")
     private Date startTime;
     @Schema(description = "活动结束时间，到时自动下架")
     private Date endTime;
-    @Schema(description = "活动优惠抵扣价格，对于cateIds对应类的所有商品，减去这个价格。单位为分。")
-    private int dePrice;
-    @Schema(description = "适用商品类，对应ProductCate.id，当用户点击活动时，跳转到cateIds[0]对应的侧边栏")
-    private List<String> cateIds;
     @Schema(description = "0为下架，1为上架。=0时不返回给小程序")
     private int status;
     @Schema(description = "伪删除，=1时后端不返回")
