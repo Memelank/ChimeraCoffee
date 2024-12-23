@@ -103,8 +103,7 @@ public class WeChatRequestService {
     public WxStudentCheckDTO checkStudentIdentity(WxCheckStudentIdentityApiParams apiParams) throws URISyntaxException, IOException {
         URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/intp/quickcheckstudentidentity");
         String grant = getAccessToken();
-        WxGrantAccessTokenDTO wxGrantAccessTokenDTO = JSONObject.parseObject(grant, WxGrantAccessTokenDTO.class);
-        uriBuilder.addParameter(ACCESS_TOKEN, wxGrantAccessTokenDTO.getAccess_token());
+        uriBuilder.addParameter(ACCESS_TOKEN, grant);
         ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
                 .setEntity(JSONObject.toJSONString(apiParams))
                 .build();
