@@ -13,7 +13,9 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 @Component
 public class OrderService {
@@ -60,7 +62,9 @@ public class OrderService {
             orderBuilder.coupon(couponIns);
             orderBuilder.totalPrice(orderItemPriceSum - couponIns.getDePrice());
         }
-        orderBuilder.totalPrice(orderItemPriceSum);
+        else {
+            orderBuilder.totalPrice(orderItemPriceSum);
+        }
 
         // 获取当前日期的开始时间（0点）
         Date startOfDay = getStartOfDay(new Date());
