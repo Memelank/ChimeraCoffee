@@ -80,12 +80,9 @@ public class RefundCallBack extends AbstractStateProcessor<String, NotifyRefundR
 
     @Override
     public void after(StateContext<NotifyRefundResultContext> context) {
-        if (Objects.equals(context.getOrderState(), StateEnum.REFUNDED.toString())) {
-            Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
-            weChatNoticeService.refundNotice(context.getOrderId(), order.getRefundReason());
-        } else if (Objects.equals(context.getOrderState(), StateEnum.ABNORMAL_END.toString())) {
-            webSocketConfig.getOrderEndWebSocketHandler().sendOrderId(context.getOrderId());
-        }
+        Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
+        webSocketConfig.getOrdersWebSocketHandler().sendOrderWSDTO(order);
+        weChatNoticeService.refundNotice(context.getOrderId(), order.getRefundReason());
     }
 
     private boolean refundIsNotSucceed(StateContext<NotifyRefundResultContext> context) {

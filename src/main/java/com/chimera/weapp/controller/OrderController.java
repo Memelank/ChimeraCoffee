@@ -336,7 +336,7 @@ public class OrderController {
 
         // 根据状态机的处理结果返回不同的响应
         if (serviceResult != null && serviceResult.isSuccess()) {
-            webSocketConfig.getOrderPaidWebSocketHandler().sendOrderId(order2.getId().toHexString());
+            webSocketConfig.getOrdersWebSocketHandler().sendOrderWSDTO(order);
             return ResponseEntity.ok(serviceResult);
         } else {
             return ResponseEntity.internalServerError().body(serviceResult);

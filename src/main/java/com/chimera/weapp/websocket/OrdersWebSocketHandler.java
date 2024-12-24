@@ -1,5 +1,9 @@
 package com.chimera.weapp.websocket;
 
+import com.chimera.weapp.dto.OrderWSDTO;
+import com.chimera.weapp.entity.Order;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -11,10 +15,11 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
-public class OrderPaidOrEndWebSocketHandler extends BaseWebSocketHandler {
+public class OrdersWebSocketHandler extends BaseWebSocketHandler {
     private final List<WebSocketSession> sessions = new ArrayList<>();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public OrderPaidOrEndWebSocketHandler(WebSocketAuthenticator authenticator, ScheduledExecutorService scheduler, long authTimeoutSeconds, int heartBeatTimeout) {
+    public OrdersWebSocketHandler(WebSocketAuthenticator authenticator, ScheduledExecutorService scheduler, long authTimeoutSeconds, int heartBeatTimeout) {
         super(authenticator, scheduler, authTimeoutSeconds, heartBeatTimeout);
     }
 
@@ -32,8 +37,15 @@ public class OrderPaidOrEndWebSocketHandler extends BaseWebSocketHandler {
         sessions.remove(session);
     }
 
-    public void sendOrderId(String orderId) {
-        sendMessage("order:" + orderId);
+    public void sendOrderWSDTO(Order order)   {
+        OrderWSDTO orderWSDTO = OrderWSDTO.ofOrder(order).build();
+
+        try {
+            sendMessage(objectMapper.writeValueAsString(orderWSDTO));
+        } catch (JsonProcessingException e) {
+            log.error("序列化OrderWSDTO时竟然出错！", e);
+            throw new RuntimeException(e);
+        }
     }
 
     private void sendMessage(String message) {
