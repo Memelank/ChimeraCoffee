@@ -7,6 +7,7 @@ import com.chimera.weapp.util.CaffeineCacheUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.*;
@@ -23,6 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 
+@Slf4j
 @Service
 public class WeChatRequestService {
     @Value("${wx-mini-program.appid}")
@@ -110,7 +112,9 @@ public class WeChatRequestService {
                 .setEntity(JSONObject.toJSONString(apiParams))
                 .build();
         String body = sendHttpRequest(uriBuilder, httpRequest);
-        return JSONObject.parseObject(body, WxStudentCheckDTO.class);
+        WxStudentCheckDTO wxStudentCheckDTO = JSONObject.parseObject(body, WxStudentCheckDTO.class);
+        log.info("获取学生身份API响应:{},转成dto后的结果:{}", body, wxStudentCheckDTO);
+        return wxStudentCheckDTO;
     }
 
 
@@ -127,7 +131,7 @@ public class WeChatRequestService {
     /**
      * 发送订阅消息 <a href="https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/mp-message-management/subscribe-message/sendMessage.html">链接</a>
      *
-     * @param data     内容
+     * @param data        内容
      * @param page        跳转页面
      * @param template_id 模板id
      * @param touser      接收者（用户）id
