@@ -53,7 +53,7 @@ public class WeChatNoticeService {
                 .thing27(shopAddress)
                 .character_string19(Integer.toString(orderNum));
         try {
-            weChatRequestService.subscribeSend(builder.build().toString(), page, templateId, openid);
+            weChatRequestService.subscribeSend(builder.build().buildGouCaoData(), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
             log.error("发送通知[提醒顾客来取餐]失败", e);
             throw new RuntimeException(e);
@@ -78,7 +78,7 @@ public class WeChatNoticeService {
                 .character_string19(Integer.toString(orderNum));
         try {
             log.info("准备发送订阅消息[提醒]，订单号{}",orderId);
-            weChatRequestService.subscribeSend(builder.build().toString(), page, templateId, openid);
+            weChatRequestService.subscribeSend(builder.build().buildGouCaoData(), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
             log.error("发送订阅消息[提醒]失败", e);
             throw new RuntimeException(e);
@@ -100,7 +100,7 @@ public class WeChatNoticeService {
                 .thing8(wxts);
         try {
             log.info("准备发送订阅消息[退款]，订单号{}",orderId);
-            weChatRequestService.subscribeSend(builder.toString(), page, templateId, openid);
+            weChatRequestService.subscribeSend(builder.build().buildGouCaoData(), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
             log.error("发送订阅消息[退款]失败", e);
             throw new RuntimeException(e);

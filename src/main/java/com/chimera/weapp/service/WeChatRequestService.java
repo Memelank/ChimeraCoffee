@@ -1,6 +1,7 @@
 package com.chimera.weapp.service;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.chimera.weapp.apiparams.SupplyNoticeApiParams;
 import com.chimera.weapp.dto.*;
 import com.chimera.weapp.util.CaffeineCacheUtil;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -125,19 +127,19 @@ public class WeChatRequestService {
     /**
      * 发送订阅消息 <a href="https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/mp-message-management/subscribe-message/sendMessage.html">链接</a>
      *
-     * @param content     内容
+     * @param data     内容
      * @param page        跳转页面
      * @param template_id 模板id
      * @param touser      接收者（用户）id
      */
-    public void subscribeSend(String content, String page, String template_id, String touser) throws URISyntaxException, IOException {
+    public void subscribeSend(Map<String, Map<String, String>> data, String page, String template_id, String touser) throws URISyntaxException, IOException {
         URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/cgi-bin/message/subscribe/send");
         String grant = getAccessToken();
         uriBuilder.addParameter(ACCESS_TOKEN, grant);
         WxSubscribeSendApiParams.WxSubscribeSendApiParamsBuilder builder = WxSubscribeSendApiParams.builder()
                 .template_id(template_id)
                 .touser(touser)
-                .data(content)
+                .data(data)
                 .miniprogram_state(miniprogram_state)
                 .lang("zh_CN");
         if (Objects.nonNull(page) || !template_id.isBlank()) {
@@ -164,7 +166,7 @@ public class WeChatRequestService {
         @NotNull
         String touser;
         @NotNull
-        String data;
+        Map<String, Map<String, String>> data;
         @NotNull
         String miniprogram_state;
         @NotNull

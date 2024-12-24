@@ -8,8 +8,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NoticeApiParams {
-    @Override
-    public String toString() {
+    /***
+     * 构造这个沟槽data
+     * 发送订阅消息 <a href="https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/mp-message-management/subscribe-message/sendMessage.html#%E8%AF%B7%E6%B1%82%E6%95%B0%E6%8D%AE%E7%A4%BA%E4%BE%8B">链接</a>
+     */
+    public Map<String, Map<String, String>> buildGouCaoData() {
         Map<String, Map<String, String>> jsonMap = new HashMap<>();
         Field[] fields = this.getClass().getDeclaredFields();
 
@@ -25,8 +28,7 @@ public class NoticeApiParams {
                 jsonMap.put(fieldName, valueMap);
             }
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(jsonMap);
+            return jsonMap;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
