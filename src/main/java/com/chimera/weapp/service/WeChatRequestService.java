@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -154,6 +156,7 @@ public class WeChatRequestService {
         log.info("发送订阅消息请求的body是:{}", jsonString);
         ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
                 .setEntity(jsonString)
+                .setCharset(StandardCharsets.UTF_8)
                 .build();
         String body = sendHttpRequest(uriBuilder, httpRequest);
         log.info("发送订阅消息响应的body是:{}", body);
