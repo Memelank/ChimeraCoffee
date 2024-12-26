@@ -33,7 +33,7 @@ public class WeChatRequestService {
     private String secret;
     @Value("${wx-mini-program.mchid}")
     private String mchid;
-    @Value("${wx-mini-program.state")
+    @Value("${wx-mini-program.state}")
     private String miniprogram_state;
 
     private static final String ACCESS_TOKEN = "access_token";
