@@ -150,10 +150,13 @@ public class WeChatRequestService {
             builder.page(page);
         }
 
+        String jsonString = JSONObject.toJSONString(builder.build());
+        log.info("发送订阅消息请求的body是:{}", jsonString);
         ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
-                .setEntity(JSONObject.toJSONString(builder.build()))
+                .setEntity(jsonString)
                 .build();
         String body = sendHttpRequest(uriBuilder, httpRequest);
+        log.info("发送订阅消息响应的body是:{}", jsonString);
         JSONObject jsonObject = JSONObject.parseObject(body);
         String errcode = jsonObject.getString("errcode");
         if (Objects.nonNull(errcode)) {
