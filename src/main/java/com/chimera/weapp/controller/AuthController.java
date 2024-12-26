@@ -18,14 +18,10 @@ import com.chimera.weapp.util.PasswordUtils;
 import com.chimera.weapp.util.ThreadLocalUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,7 +154,7 @@ public class AuthController {
                         .openid(openid)
                         .wx_studentcheck_code(apiParams.wx_student_check_code).build());
         int bindStatus = wxStudentCheckDTO.getBind_status();
-        boolean student = wxStudentCheckDTO.is_student();
+        Boolean student = wxStudentCheckDTO.getIs_student();
         if (bindStatus == 3 && student) {
             User user = repository.findByOpenid(openid).orElseThrow();
             user.setStudentCert(true);

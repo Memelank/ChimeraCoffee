@@ -1,5 +1,6 @@
 package com.chimera.weapp.dto;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,5 +14,5 @@ public class WxStudentCheckDTO {
     private int errcode;
     private String errmsg;
     private int bind_status;
-    private boolean is_student;
+    private Boolean is_student;
 }
