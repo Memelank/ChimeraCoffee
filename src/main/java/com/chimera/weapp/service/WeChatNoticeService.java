@@ -8,6 +8,7 @@ import com.chimera.weapp.repository.AppConfigurationRepository;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.util.DateUtil;
+import com.chimera.weapp.util.DecimalUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +78,7 @@ public class WeChatNoticeService {
                 .thing27(deliveryAddress)
                 .character_string19(Integer.toString(orderNum));
         try {
-            log.info("准备发送订阅消息[提醒]，订单号{}",orderId);
+            log.info("准备发送订阅消息[提醒]，订单号{}", orderId);
             weChatRequestService.subscribeSend(builder.build().buildGouCaoData(), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
             log.error("发送订阅消息[提醒]失败", e);
@@ -94,12 +95,12 @@ public class WeChatNoticeService {
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, REFUND).orElseThrow().getValue();
         RefundNoticeApiParams.RefundNoticeApiParamsBuilder builder = RefundNoticeApiParams.builder()
                 .number1(Integer.toString(order.getOrderNum()))
-                .amount3(Integer.toString(order.getTotalPrice()))
+                .amount3(DecimalUtil.shiftDecimalPointLeft(Integer.toString(order.getTotalPrice()), 2)+"元")
                 .time2(DateUtil.formatDate(new Date()))
                 .thing4(reason)
                 .thing8(wxts);
         try {
-            log.info("准备发送订阅消息[退款]，订单号{}",orderId);
+            log.info("准备发送订阅消息[退款]，订单号{}", orderId);
             weChatRequestService.subscribeSend(builder.build().buildGouCaoData(), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
             log.error("发送订阅消息[退款]失败", e);

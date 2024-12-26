@@ -158,8 +158,8 @@ public class WeChatRequestService {
         String body = sendHttpRequest(uriBuilder, httpRequest);
         log.info("发送订阅消息响应的body是:{}", body);
         JSONObject jsonObject = JSONObject.parseObject(body);
-        String errcode = jsonObject.getString("errcode");
-        if (Objects.nonNull(errcode)) {
+        String errmsg = jsonObject.getString("errmsg");
+        if (!Objects.equals("ok", errmsg)) {
             throw new RuntimeException("调用https://api.weixin.qq.com/cgi-bin/message/subscribe/send。subscribeSend失败：" + body);
         }
     }
