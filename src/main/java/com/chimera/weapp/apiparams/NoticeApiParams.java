@@ -1,7 +1,6 @@
 package com.chimera.weapp.apiparams;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;

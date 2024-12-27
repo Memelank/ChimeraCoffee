@@ -70,8 +70,7 @@ public class SupplyTakeOut extends AbstractStateProcessor<String, TakeOutContext
             throw new RuntimeException(e);
         }
         try {
-            weChatNoticeService.dineInOrTakeOutNotice(context.getOrderId(), context
-                    .getOrderState());
+            weChatNoticeService.dineInOrTakeOutNotice(order);
         } catch (Exception e) {
             throw new FsmException(ErrorCodeEnum.SEND_NOTIFICATION_FAILED, e);
         }

@@ -13,7 +13,6 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -27,8 +26,6 @@ public class OrderService {
     private ProductOptionRepository productOptionRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private CouponRepository couponRepository;
 
     public Order buildOrderByApiParams(OrderApiParams orderApiParams) throws Exception  {
         List<OrderItem> orderItems = buildItemsByApiParams(orderApiParams.getItems());
@@ -191,7 +188,6 @@ public class OrderService {
             list.add(str);
         }
         String[] array = list.toArray(new String[0]);
-        String str = String.join(",", array);
-        return str + "\n" + order.getScene();
+        return String.join(",", array);
     }
 }

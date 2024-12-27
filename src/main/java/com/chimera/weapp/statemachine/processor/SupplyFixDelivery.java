@@ -12,7 +12,6 @@ import com.chimera.weapp.statemachine.enums.ErrorCodeEnum;
 import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.exception.FsmException;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
-import com.chimera.weapp.vo.DeliveryInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -70,9 +69,8 @@ public class SupplyFixDelivery extends AbstractStateProcessor<String, FixDeliver
             log.error("序列化order时竟然出错！", e);
             throw new RuntimeException(e);
         }
-        DeliveryInfo deliveryInfo = order.getDeliveryInfo();
         try {
-            weChatNoticeService.fixDeliveryNotice(context.getOrderId(), deliveryInfo.getTime().toString(), context.getOrderState(), deliveryInfo.getAddress());
+            weChatNoticeService.fixDeliveryNotice(order);
         } catch (Exception e) {
             throw new FsmException(ErrorCodeEnum.SEND_NOTIFICATION_FAILED, e);
         }

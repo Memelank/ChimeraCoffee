@@ -8,10 +8,9 @@ import java.util.Optional;
 
 public interface AppConfigurationRepository extends MongoRepository<AppConfiguration, ObjectId> {
     // 根据键名查询配置
-    String CONTACT_PHONE_NUMBER = "delivery_people_phone_number";
+    String CONTACT_PHONE_NUMBER = "contact_phone_number";
     String WXTS = "wxts";
     String TEMPLATE_ID = "templateID";
-    String SHOP_NAME = "shopName";
     String SHOP_ADDRESS = "shop_address";
     String PAGE = "page";
     Optional<AppConfiguration> findByKey(String key);

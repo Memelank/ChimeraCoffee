@@ -82,7 +82,7 @@ public class RefundCallBack extends AbstractStateProcessor<String, NotifyRefundR
     public void after(StateContext<NotifyRefundResultContext> context) {
         Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
         webSocketConfig.getOrdersWebSocketHandler().sendOrderWSDTO(order);
-        weChatNoticeService.refundNotice(context.getOrderId(), order.getRefundReason());
+        weChatNoticeService.refundNotice(order);
     }
 
     private boolean refundIsNotSucceed(StateContext<NotifyRefundResultContext> context) {
