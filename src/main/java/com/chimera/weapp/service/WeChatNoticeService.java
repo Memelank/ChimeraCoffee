@@ -1,6 +1,5 @@
 package com.chimera.weapp.service;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.apiparams.SupplyNoticeApiParams;
 import com.chimera.weapp.apiparams.RefundNoticeApiParams;
 import com.chimera.weapp.entity.Order;
@@ -96,7 +95,7 @@ public class WeChatNoticeService {
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, REFUND).orElseThrow().getValue();
         RefundNoticeApiParams.RefundNoticeApiParamsBuilder builder = RefundNoticeApiParams.builder()
                 .number1(Integer.toString(order.getOrderNum()))
-                .amount3(DecimalUtil.shiftDecimalPointLeft(Integer.toString(order.getTotalPrice()), 2) + "元")
+                .amount3(DecimalUtil.convertYuanToFen(Integer.toString(order.getTotalPrice())) + "元")
                 .time2(DateUtil.formatDate(new Date()))
                 .thing4(reason)
                 .thing8(wxts);
