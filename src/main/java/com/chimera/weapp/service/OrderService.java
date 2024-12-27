@@ -210,15 +210,17 @@ public class OrderService {
             new Thread(() -> {
                 try {
                     Order order = orderRepository.findById(orderId).orElseThrow();
+                    log.info("定时发送事件进入等待,id:{}", order.getId().toHexString());
                     Thread.sleep(Long.parseLong(timeValue));
                     orderFsmEngine.sendEvent(event, new StateContext<>(order, new StateContext<>()));
+                    log.info("定时发送事件完成,id:{}", order.getId().toHexString());
                 } catch (FsmException e) {
                     if (Objects.equals(e.getMessage(), ErrorCodeEnum.NOT_FOUND_PROCESSOR.toString()) ||
                             Objects.equals(e.getMessage(), ErrorCodeEnum.FILTER_NOT_FOUND_PROCESSOR.toString()) ||
                             Objects.equals(e.getMessage(), ErrorCodeEnum.FOUND_MORE_PROCESSOR.toString())) {
-                        log.info("定时发送事件失败，因为没到对应的状态机,id{}", orderId.toHexString(), e);
+                        log.info("定时发送事件失败，因为没到对应的状态机,id:{}", orderId.toHexString(), e);
                     } else {
-                        log.error("定时发送事件失败，订单id为{}", orderId.toHexString());
+                        log.error("定时发送事件失败，id:{}", orderId.toHexString());
                         throw new RuntimeException(e);
                     }
                 } catch (Exception e) {
