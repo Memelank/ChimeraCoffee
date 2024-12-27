@@ -260,7 +260,7 @@ public class BenefitService {
         return userRepository.save(user);
     }
 
-    public void redeemUserCoupon(ObjectId userId, String couponUuid) throws Exception {
+    public int redeemUserCoupon(ObjectId userId, String couponUuid) throws Exception {
         // Retrieve the User
         Optional<User> userOptional = userRepository.findById(userId);
         if (!userOptional.isPresent()) {
@@ -310,6 +310,8 @@ public class BenefitService {
             coupon.setUseNum(coupon.getUseNum() + 1);
             couponRepository.save(coupon);
         }
+
+        return targetCouponIns.getDePrice();
     }
 
     public void exchangePointsForCoupon(ObjectId userId, ObjectId couponId) throws Exception {

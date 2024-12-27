@@ -30,15 +30,15 @@ public class User {
     private String sessionKey;
     private String name;
     @Schema(description = "学生认证后设为True")
-    private Boolean studentCert;
+    private Boolean studentCert = false;
     @Schema(description = "学生认证结果")
     private String school;
     @Schema(description = "总消费金额")
-    private double expend;
+    private double expend = 0;
     @Schema(description = "下单次数")
-    private int orderNum;
+    private int orderNum = 0;
     @Schema(description = "持有积分")
-    private int points;
+    private int points = 0;
     @Schema(description = "电话号码")
     private String number;
 

@@ -7,9 +7,11 @@ import com.chimera.weapp.apiparams.RefundApplyApiParams;
 import com.chimera.weapp.config.WebSocketConfig;
 import com.chimera.weapp.dto.BatchSupplyOrderDTO;
 import com.chimera.weapp.dto.ResponseBodyDTO;
+import com.chimera.weapp.entity.AppConfiguration;
 import com.chimera.weapp.entity.Order;
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.enums.RoleEnum;
+import com.chimera.weapp.repository.AppConfigurationRepository;
 import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.UserRepository;
@@ -51,6 +53,9 @@ public class OrderController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AppConfigurationRepository appConfigurationRepository;
 
     @Autowired
     private CustomRepository customRepository;
@@ -207,7 +212,8 @@ public class OrderController {
      */
     @PostMapping("/wxcreate_callback")
     @Operation(summary = "接收支付结果通知。是腾讯的微信支付系统调用的")
-    public ResponseEntity<String> callback(@RequestBody String requestBody) {
+    public ResponseEntity<Map<String, Object>> callback(@RequestBody String requestBody) {
+        Map<String, Object> response = new HashMap<>();
         try {
             NotificationParser parser = new NotificationParser(notificationConfig);
             RequestParam requestParam = buildRequestParam(requestBody);
@@ -218,33 +224,54 @@ public class OrderController {
                 Order order1 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
                 if (!Objects.equals(order1.getState(), StateEnum.PRE_PAID.toString())) {//已处理，则直接返回结果成功
                     log.warn("[支付]微信重复发送通知给订单号为{}的订单。已处理，则直接返回结果成功", outTradeNo);
-                    return ResponseEntity.ok("");
+                    response.put("status", "success");
+                    response.put("message", "微信重复发送通知");
+                    return ResponseEntity.ok(response);
                 }
                 NotifyPrePayContext notifyPrePayContext = new NotifyPrePayContext();
                 notifyPrePayContext.setTransaction(transaction);
                 StateContext<NotifyPrePayContext> context = new StateContext<>(order1, notifyPrePayContext);
                 ServiceResult<Object, NotifyPrePayContext> prePaidFSMResult = orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
                 if (!prePaidFSMResult.isSuccess()) {
-                    return ResponseEntity.internalServerError().body(
-                            String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", prePaidFSMResult.getMsg())
-                    );
+                    response.put("status", "error");
+                    response.put("message", String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", prePaidFSMResult.getMsg()));
+                    return ResponseEntity.internalServerError().body(response);
                 }
                 if (Objects.equals(context.getOrderState(), StateEnum.ABNORMAL_END.toString())) {
-                    return ResponseEntity.internalServerError().body(String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", "交易状态非‘支付成功’（建议重新下单），当前状态：" + transaction.getTradeState()));
+                    response.put("status", "error");
+                    response.put("message", String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", "交易状态非‘支付成功’（建议重新下单），当前状态：" + transaction.getTradeState()));
+                    return ResponseEntity.internalServerError().body(response);
                 }
+
+                int deprice = 0;
                 //核销优惠
                 if (order1.getCoupon() != null) {
                     String orderCouponUUID = order1.getCoupon().getUuid();
                     ObjectId userId = order1.getUserId();
-                    benefitService.redeemUserCoupon(userId, orderCouponUUID);
+                    deprice += benefitService.redeemUserCoupon(userId, orderCouponUUID);
                 }
 
-                //消费统计
+                //消费统计 与积分累计
                 User user = userRepository.findById(order1.getUserId()).orElseThrow();
                 user.setOrderNum(user.getOrderNum() + 1);
                 user.setExpend(user.getExpend() + order1.getTotalPrice());
-                userRepository.save(user);
 
+                int pointRatios = appConfigurationRepository.findByKey("积分兑换比例")
+                        .map(AppConfiguration::getValue)
+                        .map(Integer::parseInt)
+                        .orElseThrow(() -> new RuntimeException("积分兑换比例配置未找到"));
+
+                int numerator = order1.getTotalPrice() + deprice;
+                int denominator = pointRatios * 100;
+                if (denominator == 0) {
+                    throw new ArithmeticException("积分兑换，除数不能为零");
+                }
+                int gotPoints = (numerator + denominator - 1) / denominator;
+                user.setPoints(user.getPoints() + gotPoints);
+
+                String orderId = order1.getId().toString();
+
+                userRepository.save(user);
 
                 //第二次调用状态机。从PAID状态转变
                 Order order2 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
@@ -264,18 +291,25 @@ public class OrderController {
                 }
 
                 if (serviceResult.isSuccess()) {
-                    return ResponseEntity.ok("");
+                    response.put("status", "success");
+                    response.put("points", gotPoints);
+                    response.put("orderId", orderId);
+
+                    return ResponseEntity.ok(response);
                 } else {
                     log.warn("竟然走到了这个分支！当支付成功之后状态机理应顺畅成功");
-                    return ResponseEntity.internalServerError().body(
-                            String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", serviceResult.getMsg())
-                    );
+                    response.put("status", "error");
+                    response.put("message", String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", serviceResult.getMsg()));
+                    return ResponseEntity.internalServerError().body(response);
                 }
             }
         } catch (Exception e) {
             log.error("支付回调出现异常", e);
+            response.put("status", "error");
+            response.put("message", String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", e.getMessage()));
+
             return ResponseEntity.internalServerError().body(
-                    String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", e.getMessage())
+                    response
             );
         }
     }
@@ -313,7 +347,7 @@ public class OrderController {
         if (order.getCoupon() != null) {
             String orderCouponUUID = order.getCoupon().getUuid();
             ObjectId userId = order.getUserId();
-            benefitService.redeemUserCoupon(userId, orderCouponUUID);
+            int deprice = benefitService.redeemUserCoupon(userId, orderCouponUUID);
         }
 
         //2.支付状态到其它别的状态
