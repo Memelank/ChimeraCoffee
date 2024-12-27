@@ -212,8 +212,7 @@ public class OrderController {
      */
     @PostMapping("/wxcreate_callback")
     @Operation(summary = "接收支付结果通知。是腾讯的微信支付系统调用的")
-    public ResponseEntity<Map<String, Object>> callback(@RequestBody String requestBody) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<String> callback(@RequestBody String requestBody) {
         try {
             NotificationParser parser = new NotificationParser(notificationConfig);
             RequestParam requestParam = buildRequestParam(requestBody);
@@ -224,23 +223,19 @@ public class OrderController {
                 Order order1 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
                 if (!Objects.equals(order1.getState(), StateEnum.PRE_PAID.toString())) {//已处理，则直接返回结果成功
                     log.warn("[支付]微信重复发送通知给订单号为{}的订单。已处理，则直接返回结果成功", outTradeNo);
-                    response.put("status", "success");
-                    response.put("message", "微信重复发送通知");
-                    return ResponseEntity.ok(response);
+                    return ResponseEntity.ok("");
                 }
                 NotifyPrePayContext notifyPrePayContext = new NotifyPrePayContext();
                 notifyPrePayContext.setTransaction(transaction);
                 StateContext<NotifyPrePayContext> context = new StateContext<>(order1, notifyPrePayContext);
                 ServiceResult<Object, NotifyPrePayContext> prePaidFSMResult = orderFsmEngine.sendEvent(EventEnum.NOTIFY_PRE_PAID.toString(), context);
                 if (!prePaidFSMResult.isSuccess()) {
-                    response.put("status", "error");
-                    response.put("message", String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", prePaidFSMResult.getMsg()));
-                    return ResponseEntity.internalServerError().body(response);
+                    return ResponseEntity.internalServerError().body(
+                            String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", prePaidFSMResult.getMsg())
+                    );
                 }
                 if (Objects.equals(context.getOrderState(), StateEnum.ABNORMAL_END.toString())) {
-                    response.put("status", "error");
-                    response.put("message", String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", "交易状态非‘支付成功’（建议重新下单），当前状态：" + transaction.getTradeState()));
-                    return ResponseEntity.internalServerError().body(response);
+                    return ResponseEntity.internalServerError().body(String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", "交易状态非‘支付成功’（建议重新下单），当前状态：" + transaction.getTradeState()));
                 }
 
                 int deprice = 0;
@@ -269,8 +264,6 @@ public class OrderController {
                 int gotPoints = (numerator + denominator - 1) / denominator;
                 user.setPoints(user.getPoints() + gotPoints);
 
-                String orderId = order1.getId().toString();
-
                 userRepository.save(user);
 
                 //第二次调用状态机。从PAID状态转变
@@ -291,25 +284,18 @@ public class OrderController {
                 }
 
                 if (serviceResult.isSuccess()) {
-                    response.put("status", "success");
-                    response.put("points", gotPoints);
-                    response.put("orderId", orderId);
-
-                    return ResponseEntity.ok(response);
+                    return ResponseEntity.ok("本单获得"+gotPoints+"积分，记得到“我的”页面“积分商城”兑换礼品噢~");
                 } else {
                     log.warn("竟然走到了这个分支！当支付成功之后状态机理应顺畅成功");
-                    response.put("status", "error");
-                    response.put("message", String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", serviceResult.getMsg()));
-                    return ResponseEntity.internalServerError().body(response);
+                    return ResponseEntity.internalServerError().body(
+                            String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", serviceResult.getMsg())
+                    );
                 }
             }
         } catch (Exception e) {
             log.error("支付回调出现异常", e);
-            response.put("status", "error");
-            response.put("message", String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", e.getMessage()));
-
             return ResponseEntity.internalServerError().body(
-                    response
+                    String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", e.getMessage())
             );
         }
     }
