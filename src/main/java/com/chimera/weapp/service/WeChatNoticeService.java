@@ -54,7 +54,7 @@ public class WeChatNoticeService {
                 .thing11(orderService.getDescription(order))
                 .thing27(shopAddress)
                 .phone_number32(phoneNumber)
-                .character_string19(wxts);
+                .thing7(wxts);
         try {
             weChatRequestService.subscribeSend(builder.build().buildGouCaoData(), page, templateId, openid);
         } catch (URISyntaxException | IOException e) {
@@ -76,7 +76,7 @@ public class WeChatNoticeService {
                 .thing11(orderService.getDescription(order))
                 .thing27(order.getDeliveryInfo().getAddress())
                 .phone_number32(phoneNumber)
-                .character_string19(wxts);
+                .thing7(wxts);
         try {
             log.info("准备发送订阅消息[提醒]，订单号{}", order.getUserId());
             weChatRequestService.subscribeSend(builder.build().buildGouCaoData(), page, templateId, openid);
