@@ -13,6 +13,10 @@ public interface AppConfigurationRepository extends MongoRepository<AppConfigura
     String TEMPLATE_ID = "templateID";
     String SHOP_ADDRESS = "shop_address";
     String PAGE = "page";
+    String PERIODICALLY_SEND_EVENT_SWITCH="periodically_send_event_switch";
+    String PERIODICALLY_SEND_EVENT_START_TIME="periodically_send_event_start_time";
+    String PERIODICALLY_SEND_EVENT_END_TIME="periodically_send_event_end_time";
+    String THE_PERIOD_OF_TIME="the_period_of_time";
     Optional<AppConfiguration> findByKey(String key);
     Optional<AppConfiguration> findByKeyAndCategory(String key, String category);
 

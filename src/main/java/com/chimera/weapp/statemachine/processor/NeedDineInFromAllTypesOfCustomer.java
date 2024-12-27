@@ -1,12 +1,15 @@
 package com.chimera.weapp.statemachine.processor;
 
 import com.chimera.weapp.repository.CustomRepository;
+import com.chimera.weapp.service.OrderService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
 import com.chimera.weapp.statemachine.context.DineInContext;
 import com.chimera.weapp.statemachine.context.StateContext;
+import com.chimera.weapp.statemachine.enums.EventEnum;
 import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +19,8 @@ import org.springframework.stereotype.Component;
 public class NeedDineInFromAllTypesOfCustomer extends AbstractStateProcessor<String, DineInContext> {
     @Autowired
     private CustomRepository repository;
+    @Autowired
+    private OrderService orderService;
 
     @Override
     public boolean filter(StateContext<DineInContext> context) {
@@ -45,6 +50,7 @@ public class NeedDineInFromAllTypesOfCustomer extends AbstractStateProcessor<Str
 
     @Override
     public void after(StateContext<DineInContext> context) {
+        orderService.sendAnEventAfterACertainPeriodOfTime(new ObjectId(context.getOrderId()), EventEnum.SUPPLY_DINE_IN.toString());
     }
 
 }

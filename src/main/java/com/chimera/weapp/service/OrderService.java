@@ -5,10 +5,16 @@ import com.chimera.weapp.apiparams.OrderItemApiParams;
 import com.chimera.weapp.dto.UserDTO;
 import com.chimera.weapp.entity.*;
 import com.chimera.weapp.repository.*;
+import com.chimera.weapp.statemachine.context.StateContext;
+import com.chimera.weapp.statemachine.engine.OrderFsmEngine;
+import com.chimera.weapp.statemachine.enums.ErrorCodeEnum;
+import com.chimera.weapp.statemachine.exception.FsmException;
 import com.chimera.weapp.util.ThreadLocalUtil;
+import com.chimera.weapp.util.TimeRangeChecker;
 import com.chimera.weapp.vo.CouponIns;
 import com.chimera.weapp.vo.OptionValue;
 import com.chimera.weapp.vo.OrderItem;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +22,9 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.List;
 
+import static com.chimera.weapp.repository.AppConfigurationRepository.*;
+
+@Slf4j
 @Component
 public class OrderService {
     @Autowired
@@ -26,8 +35,12 @@ public class OrderService {
     private ProductOptionRepository productOptionRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private OrderFsmEngine orderFsmEngine;
+    @Autowired
+    private AppConfigurationRepository appConfigurationRepository;
 
-    public Order buildOrderByApiParams(OrderApiParams orderApiParams) throws Exception  {
+    public Order buildOrderByApiParams(OrderApiParams orderApiParams) throws Exception {
         List<OrderItem> orderItems = buildItemsByApiParams(orderApiParams.getItems());
         Order.OrderBuilder orderBuilder = Order.builder().userId(orderApiParams.getUserId())
                 .customerType(orderApiParams.getCustomerType())
@@ -58,8 +71,7 @@ public class OrderService {
 
             orderBuilder.coupon(couponIns);
             orderBuilder.totalPrice(orderItemPriceSum - couponIns.getDePrice());
-        }
-        else {
+        } else {
             orderBuilder.totalPrice(orderItemPriceSum);
         }
 
@@ -189,5 +201,42 @@ public class OrderService {
         }
         String[] array = list.toArray(new String[0]);
         return String.join(",", array);
+    }
+
+    public void sendAnEventAfterACertainPeriodOfTime(ObjectId orderId, String event) {
+        AppConfiguration time = appConfigurationRepository.findByKey(THE_PERIOD_OF_TIME).orElseThrow();
+        String timeValue = time.getValue();
+        if (checkCondition()) {
+            new Thread(() -> {
+                try {
+                    Order order = orderRepository.findById(orderId).orElseThrow();
+                    Thread.sleep(Long.parseLong(timeValue));
+                    orderFsmEngine.sendEvent(event, new StateContext<>(order, new StateContext<>()));
+                } catch (FsmException e) {
+                    if (Objects.equals(e.getMessage(), ErrorCodeEnum.NOT_FOUND_PROCESSOR.toString()) ||
+                            Objects.equals(e.getMessage(), ErrorCodeEnum.FILTER_NOT_FOUND_PROCESSOR.toString()) ||
+                            Objects.equals(e.getMessage(), ErrorCodeEnum.FOUND_MORE_PROCESSOR.toString())) {
+                        log.info("定时发送事件失败，因为没到对应的状态机,id{}", orderId.toHexString(), e);
+                    } else {
+                        log.error("定时发送事件失败，订单id为{}", orderId.toHexString());
+                        throw new RuntimeException(e);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
+        }
+    }
+
+
+    private boolean checkCondition() {
+        AppConfiguration switch_ = appConfigurationRepository.findByKey(PERIODICALLY_SEND_EVENT_SWITCH).orElseThrow();
+        AppConfiguration start = appConfigurationRepository.findByKey(PERIODICALLY_SEND_EVENT_START_TIME).orElseThrow();
+        AppConfiguration end = appConfigurationRepository.findByKey(PERIODICALLY_SEND_EVENT_END_TIME).orElseThrow();
+        String switchValue = switch_.getValue();
+        String startValue = start.getValue();
+        String endValue = end.getValue();
+        boolean open = Objects.equals(switchValue, "T");
+        return open && TimeRangeChecker.isNowInTimeRange(startValue, endValue);
     }
 }
