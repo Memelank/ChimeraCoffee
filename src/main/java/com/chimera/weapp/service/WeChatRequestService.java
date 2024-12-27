@@ -1,7 +1,6 @@
 package com.chimera.weapp.service;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.chimera.weapp.apiparams.SupplyNoticeApiParams;
 import com.chimera.weapp.dto.*;
 import com.chimera.weapp.util.CaffeineCacheUtil;
 import jakarta.validation.constraints.NotNull;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
@@ -33,8 +31,6 @@ public class WeChatRequestService {
     private String appid;
     @Value("${wx-mini-program.secret}")
     private String secret;
-    @Value("${wx-mini-program.mchid}")
-    private String mchid;
     @Value("${wx-mini-program.state}")
     private String miniprogram_state;
 
@@ -155,8 +151,7 @@ public class WeChatRequestService {
         String jsonString = JSONObject.toJSONString(builder.build());
         log.info("发送订阅消息请求的body是:{}", jsonString);
         ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
-                .setEntity(jsonString)
-                .setCharset(StandardCharsets.UTF_8)
+                .setEntity(jsonString,ContentType.create("application/json", StandardCharsets.UTF_8))
                 .build();
         String body = sendHttpRequest(uriBuilder, httpRequest);
         log.info("发送订阅消息响应的body是:{}", body);
