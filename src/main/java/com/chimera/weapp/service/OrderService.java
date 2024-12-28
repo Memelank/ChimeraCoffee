@@ -203,7 +203,7 @@ public class OrderService {
         return String.join(",", array);
     }
 
-    public void sendAnEventAfterACertainPeriodOfTime(ObjectId orderId, String event) {
+    public void sendAnEventAfterACertainPeriodOfTime(ObjectId orderId, String event, Object context) {
         AppConfiguration time = appConfigurationRepository.findByKey(THE_PERIOD_OF_TIME).orElseThrow();
         String timeValue = time.getValue();
         if (checkCondition()) {
@@ -212,7 +212,7 @@ public class OrderService {
                     Order order = orderRepository.findById(orderId).orElseThrow();
                     log.info("定时发送事件进入等待,id:{}", order.getId().toHexString());
                     Thread.sleep(Long.parseLong(timeValue));
-                    orderFsmEngine.sendEvent(event, new StateContext<>(order, new StateContext<>()));
+                    orderFsmEngine.sendEvent(event, new StateContext<>(order, context));
                     log.info("定时发送事件完成,id:{}", order.getId().toHexString());
                 } catch (FsmException e) {
                     if (Objects.equals(e.getMessage(), ErrorCodeEnum.NOT_FOUND_PROCESSOR.toString()) ||

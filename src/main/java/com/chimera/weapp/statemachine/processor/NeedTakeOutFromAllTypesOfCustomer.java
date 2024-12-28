@@ -50,7 +50,7 @@ public class NeedTakeOutFromAllTypesOfCustomer extends AbstractStateProcessor<St
 
     @Override
     public void after(StateContext<TakeOutContext> context) {
-        orderService.sendAnEventAfterACertainPeriodOfTime(new ObjectId(context.getOrderId()), EventEnum.SUPPLY_TAKE_OUT.toString());
+        orderService.sendAnEventAfterACertainPeriodOfTime(new ObjectId(context.getOrderId()), EventEnum.SUPPLY_TAKE_OUT.toString(),context.getContext());
     }
 
 }

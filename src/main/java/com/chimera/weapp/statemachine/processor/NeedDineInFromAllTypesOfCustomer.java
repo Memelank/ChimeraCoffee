@@ -50,7 +50,7 @@ public class NeedDineInFromAllTypesOfCustomer extends AbstractStateProcessor<Str
 
     @Override
     public void after(StateContext<DineInContext> context) {
-        orderService.sendAnEventAfterACertainPeriodOfTime(new ObjectId(context.getOrderId()), EventEnum.SUPPLY_DINE_IN.toString());
+        orderService.sendAnEventAfterACertainPeriodOfTime(new ObjectId(context.getOrderId()), EventEnum.SUPPLY_DINE_IN.toString(),context.getContext());
     }
 
 }
