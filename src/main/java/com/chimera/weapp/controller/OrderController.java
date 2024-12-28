@@ -22,6 +22,7 @@ import com.chimera.weapp.statemachine.enums.EventEnum;
 import com.chimera.weapp.statemachine.enums.SceneEnum;
 import com.chimera.weapp.statemachine.enums.StateEnum;
 import com.chimera.weapp.statemachine.vo.ServiceResult;
+import com.chimera.weapp.vo.DeliveryInfo;
 import com.wechat.pay.java.core.notification.NotificationConfig;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
@@ -39,6 +40,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
@@ -145,32 +148,52 @@ public class OrderController {
     public ResponseEntity<?> getOrdersByDeliveryInfo(
             @org.springframework.web.bind.annotation.RequestParam String school,
             @org.springframework.web.bind.annotation.RequestParam String address,
-            @org.springframework.web.bind.annotation.RequestParam String time,
-            @org.springframework.web.bind.annotation.RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+            @org.springframework.web.bind.annotation.RequestParam String time) {
         try {
-            // 设置开始和结束时间为当天
-            Date startTime = date;
-            startTime.setHours(0);
-            startTime.setMinutes(0);
-            startTime.setSeconds(0);
-
-            Date endTime = date;
-            endTime.setHours(23);
-            endTime.setMinutes(59);
-            endTime.setSeconds(59);
+            // 解析 "HH:mm" 格式的时间字符串，并与当天日期组合
+            Date targetTime = parseTimeStringToDate(time);
 
             // 查找符合条件的订单
-            List<Order> orders = repository.findByDeliveryInfoAndCreatedAtBetween(
-                    school, address, time, startTime, endTime
+            List<Order> orders = repository.findByDeliveryInfoSchoolAndDeliveryInfoAddressAndDeliveryInfoTimeAndState(
+                    school, address, targetTime, StateEnum.WAITING_FIX_DELIVERY.toString()
             );
 
+            log.info("查询到 {} 条符合条件的订单", orders.size());
+
             return ResponseEntity.ok(orders);
+        } catch (ParseException e) {
+            log.error("时间格式解析错误:", e);
+            return ResponseEntity.badRequest().body("时间格式错误，正确格式为 HH:mm");
         } catch (Exception e) {
             log.error("根据配送信息查找订单时发生错误:", e);
             return ResponseEntity.internalServerError().body("获取订单失败：" + e.getMessage());
         }
     }
 
+    private Date parseTimeStringToDate(String timeStr) throws ParseException {
+        // 获取当天的日期部分
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+
+        // 解析 "HH:mm" 部分
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        Date timePart = timeFormat.parse(timeStr);
+
+        // 获取时间部分的小时和分钟
+        Calendar timeCal = Calendar.getInstance();
+        timeCal.setTime(timePart);
+        int hour = timeCal.get(Calendar.HOUR_OF_DAY);
+        int minute = timeCal.get(Calendar.MINUTE);
+
+        // 将时间部分设置到当天日期，秒和毫秒设为0
+        today.set(Calendar.HOUR_OF_DAY, hour);
+        today.set(Calendar.MINUTE, minute);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+
+        return today.getTime();
+    }
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "根据userId查询Orders，当前端传递all=true时，返回所有，否则默认10条")
@@ -251,7 +274,7 @@ public class OrderController {
                 user.setOrderNum(user.getOrderNum() + 1);
                 user.setExpend(user.getExpend() + order1.getTotalPrice());
 
-                int pointRatios = appConfigurationRepository.findByKey("积分兑换比例")
+                int pointRatios = appConfigurationRepository.findByKey("points_conversion_ratio")
                         .map(AppConfiguration::getValue)
                         .map(Integer::parseInt)
                         .orElseThrow(() -> new RuntimeException("积分兑换比例配置未找到"));
@@ -419,7 +442,6 @@ public class OrderController {
                 }
 
                 Order order = orderOptional.get();
-
 
                 FixDeliveryContext fixDeliveryContext = new FixDeliveryContext();
                 StateContext<FixDeliveryContext> context = new StateContext<>(order, fixDeliveryContext);

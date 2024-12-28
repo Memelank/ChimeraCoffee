@@ -9,7 +9,4 @@ public class BatchSupplyOrderDTO {
         return orderIds;
     }
 
-    public void setOrderIds(List<String> orderIds) {
-        this.orderIds = orderIds;
-    }
 }
