@@ -69,11 +69,6 @@ public class SupplyDineIn extends AbstractStateProcessor<String, DineInContext> 
             log.error("序列化order时竟然出错！", e);
             throw new RuntimeException(e);
         }
-        try {
-            weChatNoticeService.dineInOrTakeOutNotice(order);
-        } catch (Exception e) {
-            throw new FsmException(ErrorCodeEnum.SEND_NOTIFICATION_FAILED, e);
-        }
 
     }
 

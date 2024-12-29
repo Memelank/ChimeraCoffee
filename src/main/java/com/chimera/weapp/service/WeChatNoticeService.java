@@ -8,6 +8,7 @@ import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.UserRepository;
 import com.chimera.weapp.util.DateUtil;
 import com.chimera.weapp.util.DecimalUtil;
+import com.chimera.weapp.vo.DeliveryInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,10 +72,11 @@ public class WeChatNoticeService {
         String page = acRepo.findByKeyAndCategory(PAGE, FIX_DELIVERY).orElseThrow().getValue();
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, FIX_DELIVERY).orElseThrow().getValue();
         String phoneNumber = acRepo.findByKey(CONTACT_PHONE_NUMBER).orElseThrow().getValue();
+        DeliveryInfo deliveryInfo = order.getDeliveryInfo();
         SupplyNoticeApiParams.SupplyNoticeApiParamsBuilder builder = SupplyNoticeApiParams.builder()
                 .character_string19(Integer.toString(orderNum))
                 .thing11(orderService.getDescription(order))
-                .thing27(order.getDeliveryInfo().getAddress())
+                .thing27(deliveryInfo.getSchool() + " " + deliveryInfo.getAddress())
                 .phone_number32(phoneNumber)
                 .thing7(wxts);
         try {
