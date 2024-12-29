@@ -3,10 +3,7 @@ package com.chimera.weapp.controller;
 import com.alibaba.fastjson2.JSONObject;
 import com.chimera.weapp.annotation.LoginRequired;
 import com.chimera.weapp.annotation.RolesAllow;
-import com.chimera.weapp.dto.LoginDTO;
-import com.chimera.weapp.dto.ResponseBodyDTO;
-import com.chimera.weapp.dto.UserDTO;
-import com.chimera.weapp.dto.WxStudentCheckDTO;
+import com.chimera.weapp.dto.*;
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.enums.RoleEnum;
 import com.chimera.weapp.repository.UserRepository;
@@ -169,5 +166,26 @@ public class AuthController {
     public static class CheckStudentIdentityApiParams {
         @NotNull
         String wx_student_check_code;
+    }
+
+    @PostMapping("/wx/getPhoneNumber")
+    @LoginRequired
+    @Operation(description = "该接口用于将code换取用户手机号。 说明，每个code只能使用一次，code的有效期为5min。")
+    public ResponseEntity<WxGetPhoneNumberResponseDTO> getPhoneNumber(@Valid @RequestBody GetPhoneNumberByCodeApiParams apiParams) throws URISyntaxException, IOException {
+        UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
+        WxGetPhoneNumberResponseDTO wxGetPhoneNumberResponseDTO = weChatRequestService.getPhoneNumberByCode(apiParams);
+        if ("ok".equals(wxGetPhoneNumberResponseDTO.getErrmsg())) {
+            WxGetPhoneNumberResponseDTO.PhoneInfo phoneInfo = wxGetPhoneNumberResponseDTO.getPhone_info();
+            User user = repository.findByOpenid(userDTO.getOpenid()).orElseThrow();
+            user.setPhoneInfo(phoneInfo);
+            repository.save(user);
+        }
+        return ResponseEntity.ok(wxGetPhoneNumberResponseDTO);
+    }
+
+    @Data
+    public static class GetPhoneNumberByCodeApiParams {
+        @NotNull
+        String code;
     }
 }

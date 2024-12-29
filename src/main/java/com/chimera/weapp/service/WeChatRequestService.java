@@ -1,6 +1,7 @@
 package com.chimera.weapp.service;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.chimera.weapp.controller.AuthController;
 import com.chimera.weapp.dto.*;
 import com.chimera.weapp.util.CaffeineCacheUtil;
 import jakarta.validation.constraints.NotNull;
@@ -113,6 +114,23 @@ public class WeChatRequestService {
         WxStudentCheckDTO wxStudentCheckDTO = JSONObject.parseObject(body, WxStudentCheckDTO.class);
         log.info("获取学生身份API响应:{},转成dto后的结果:{}", body, wxStudentCheckDTO);
         return wxStudentCheckDTO;
+    }
+
+    /**
+     * 获取手机号
+     * <a href="https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/user-info/phone-number/getPhoneNumber.html">链接</a>
+     */
+    public WxGetPhoneNumberResponseDTO getPhoneNumberByCode(AuthController.GetPhoneNumberByCodeApiParams apiParams) throws URISyntaxException, IOException {
+        URIBuilder uriBuilder = new URIBuilder("https://api.weixin.qq.com/wxa/business/getuserphonenumber");
+        String grant = getAccessToken();
+        uriBuilder.addParameter(ACCESS_TOKEN, grant);
+        ClassicHttpRequest httpRequest = ClassicRequestBuilder.post(uriBuilder.build())
+                .setEntity(JSONObject.toJSONString(apiParams))
+                .build();
+        String body = sendHttpRequest(uriBuilder, httpRequest);
+        WxGetPhoneNumberResponseDTO wxGetPhoneNumberResponseDTO = JSONObject.parseObject(body, WxGetPhoneNumberResponseDTO.class);
+        log.info("获取手机号API响应:{},转成dto后的结果:{}", body, wxGetPhoneNumberResponseDTO);
+        return wxGetPhoneNumberResponseDTO;
     }
 
 

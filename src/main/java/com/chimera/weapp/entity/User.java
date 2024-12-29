@@ -1,5 +1,6 @@
 package com.chimera.weapp.entity;
 
+import com.chimera.weapp.dto.WxGetPhoneNumberResponseDTO;
 import com.chimera.weapp.vo.CouponIns;
 import com.chimera.weapp.vo.PointsProductIns;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -55,4 +56,5 @@ public class User {
     private String hashedPassword;
     private String role;
     private String jwt;
+    private WxGetPhoneNumberResponseDTO.PhoneInfo phoneInfo;
 }
