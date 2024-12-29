@@ -184,6 +184,27 @@ public class OrderService {
 
 
     public String getDescription(Order order) {
+        List<String> list = getItemDescList(order);
+        String[] array = list.toArray(new String[0]);
+        return String.join(",", array);
+    }
+
+    public String getDescriptionWhileLengthNotGreaterThen20(Order order) {
+        List<String> list = getItemDescList(order);
+        StringBuilder stringBuilder = new StringBuilder();
+        while (!list.isEmpty()) {
+            String remove = list.remove(0);
+            int cur_length = stringBuilder.length();
+            if (cur_length + remove.length() + 1 > 20) {
+                break;
+            } else {
+                stringBuilder.append(remove);
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+    private List<String> getItemDescList(Order order) {
         TreeMap<String, Integer> treeMap = new TreeMap<>();
 
         for (OrderItem item : order.getItems()) {
@@ -199,8 +220,7 @@ public class OrderService {
             String str = name + "×" + count;
             list.add(str);
         }
-        String[] array = list.toArray(new String[0]);
-        return String.join(",", array);
+        return list;
     }
 
     public void sendAnEventAfterACertainPeriodOfTime(ObjectId orderId, String event, Object context) {
