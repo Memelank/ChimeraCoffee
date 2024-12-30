@@ -59,6 +59,9 @@ public class Order {
     @Schema(description = "只给商品端使用的，线下优惠，小程序端传了也不处理。")
     private int disPrice = 0;
 
+    @Schema(description = "本单获取积分数目")
+    private int points = 0;
+
     @CreatedDate
     @Schema(description = "自动填充创建时间")
     private Date createdAt;

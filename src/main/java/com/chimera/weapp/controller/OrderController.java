@@ -199,7 +199,8 @@ public class OrderController {
     @Operation(summary = "根据userId查询Orders，当前端传递all=true时，返回所有，否则默认10条")
     public ResponseEntity<List<Order>> getOrdersByUserId(
             @PathVariable String userId,
-            @org.springframework.web.bind.annotation.RequestParam(value = "all", required = false, defaultValue = "false") boolean all) {
+            @org.springframework.web.bind.annotation.RequestParam(value = "all", required = false, defaultValue = "false") boolean all,
+            @org.springframework.web.bind.annotation.RequestParam(value = "newest", required = false, defaultValue = "false") boolean newest) {
 
         ObjectId userObjectId = new ObjectId(userId);
 
@@ -207,8 +208,11 @@ public class OrderController {
         if (all) {
             // 获取所有订单，并按时间倒序排列
             return ResponseEntity.ok(repository.findByUserIdOrderByCreatedAtDesc(userObjectId));
+        } else if (newest) {
+            //返回最新
+            return ResponseEntity.ok(repository.findTop1ByUserIdOrderByCreatedAtDesc(userObjectId));
         } else {
-            // 仅获取最近的5个订单，并按时间倒序排列
+            // 仅获取最近的10个订单，并按时间倒序排列
             return ResponseEntity.ok(repository.findTop10ByUserIdOrderByCreatedAtDesc(userObjectId));
         }
     }
@@ -261,12 +265,11 @@ public class OrderController {
                     return ResponseEntity.internalServerError().body(String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", "交易状态非‘支付成功’（建议重新下单），当前状态：" + transaction.getTradeState()));
                 }
 
-                int deprice = 0;
                 //核销优惠
                 if (order1.getCoupon() != null) {
                     String orderCouponUUID = order1.getCoupon().getUuid();
                     ObjectId userId = order1.getUserId();
-                    deprice += benefitService.redeemUserCoupon(userId, orderCouponUUID);
+                    benefitService.redeemUserCoupon(userId, orderCouponUUID);
                 }
 
                 //消费统计 与积分累计
@@ -274,18 +277,7 @@ public class OrderController {
                 user.setOrderNum(user.getOrderNum() + 1);
                 user.setExpend(user.getExpend() + order1.getTotalPrice());
 
-                int pointRatios = appConfigurationRepository.findByKey("points_conversion_ratio")
-                        .map(AppConfiguration::getValue)
-                        .map(Integer::parseInt)
-                        .orElseThrow(() -> new RuntimeException("积分兑换比例配置未找到"));
-
-                int numerator = order1.getTotalPrice() + deprice;
-                int denominator = pointRatios * 100;
-                if (denominator == 0) {
-                    throw new ArithmeticException("积分兑换，除数不能为零");
-                }
-                int gotPoints = (numerator + denominator - 1) / denominator;
-                user.setPoints(user.getPoints() + gotPoints);
+                user.setPoints(user.getPoints() + order1.getPoints());
 
                 userRepository.save(user);
 
@@ -307,7 +299,7 @@ public class OrderController {
                 }
 
                 if (serviceResult.isSuccess()) {
-                    return ResponseEntity.ok("本单获得"+gotPoints+"积分，记得到“我的”页面“积分商城”兑换礼品噢~");
+                    return ResponseEntity.ok("");
                 } else {
                     log.warn("竟然走到了这个分支！当支付成功之后状态机理应顺畅成功");
                     return ResponseEntity.internalServerError().body(
@@ -356,7 +348,7 @@ public class OrderController {
         if (order.getCoupon() != null) {
             String orderCouponUUID = order.getCoupon().getUuid();
             ObjectId userId = order.getUserId();
-            int deprice = benefitService.redeemUserCoupon(userId, orderCouponUUID);
+            benefitService.redeemUserCoupon(userId, orderCouponUUID);
         }
 
         //2.支付状态到其它别的状态
