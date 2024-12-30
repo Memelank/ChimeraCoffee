@@ -81,6 +81,7 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(@Valid  @RequestBody Product entity) {
         // Save the updated product information
         entity.setImgURL(url + "product/" + entity.getImgURL());
+        entity.setImgURL_small(url + "activity/" + entity.getImgURL_small());
         return ResponseEntity.ok(repository.save(entity));
     }
 
@@ -90,6 +91,7 @@ public class ProductController {
     public ResponseEntity<Product> createProduct(@Valid @RequestBody Product entity) {
         // Save the product information to the database
         entity.setImgURL(url + "product/" + entity.getImgURL());
+        entity.setImgURL_small(url + "product/" + entity.getImgURL_small());
         return ResponseEntity.ok(repository.save(entity));
     }
 
