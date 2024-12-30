@@ -265,22 +265,6 @@ public class OrderController {
                     return ResponseEntity.internalServerError().body(String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", "交易状态非‘支付成功’（建议重新下单），当前状态：" + transaction.getTradeState()));
                 }
 
-                //核销优惠
-                if (order1.getCoupon() != null) {
-                    String orderCouponUUID = order1.getCoupon().getUuid();
-                    ObjectId userId = order1.getUserId();
-                    benefitService.redeemUserCoupon(userId, orderCouponUUID);
-                }
-
-                //消费统计 与积分累计
-                User user = userRepository.findById(order1.getUserId()).orElseThrow();
-                user.setOrderNum(user.getOrderNum() + 1);
-                user.setExpend(user.getExpend() + order1.getTotalPrice());
-
-                user.setPoints(user.getPoints() + order1.getPoints());
-
-                userRepository.save(user);
-
                 //第二次调用状态机。从PAID状态转变
                 Order order2 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
                 ServiceResult<Object, ?> serviceResult = new ServiceResult<>();

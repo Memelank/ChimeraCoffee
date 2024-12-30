@@ -6,6 +6,7 @@ import com.chimera.weapp.entity.User;
 import com.chimera.weapp.repository.CustomRepository;
 import com.chimera.weapp.repository.OrderRepository;
 import com.chimera.weapp.repository.UserRepository;
+import com.chimera.weapp.service.BenefitService;
 import com.chimera.weapp.statemachine.annotation.processor.Processor;
 import com.chimera.weapp.statemachine.context.NotifyPrePayContext;
 import com.chimera.weapp.statemachine.context.StateContext;
@@ -32,6 +33,10 @@ public class NotifyPrePay extends AbstractStateProcessor<String, NotifyPrePayCon
     @Autowired
     private WebSocketConfig webSocketConfig;
 
+    @Autowired
+    private BenefitService benefitService;
+
+
     @Override
     public boolean filter(StateContext<NotifyPrePayContext> context) {
         return true;
@@ -48,8 +53,19 @@ public class NotifyPrePay extends AbstractStateProcessor<String, NotifyPrePayCon
 
         User user = userRepository.findById(new ObjectId(context.getUserId())).orElseThrow();
         Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
-        int totalPrice = order.getTotalPrice();
-        user.setPoints(user.getPoints() + totalPrice / 100);
+
+        //核销优惠
+        if (order.getCoupon() != null) {
+            String orderCouponUUID = order.getCoupon().getUuid();
+            ObjectId userId = order.getUserId();
+            benefitService.redeemUserCoupon(userId, orderCouponUUID);
+        }
+
+        //消费统计 与积分累计
+        user.setOrderNum(user.getOrderNum() + 1);
+        user.setExpend(user.getExpend() + order.getTotalPrice());
+        user.setPoints(user.getPoints() + order.getPoints());
+
         userRepository.save(user);
 
         ServiceResult<String, NotifyPrePayContext> result = new ServiceResult<>();
