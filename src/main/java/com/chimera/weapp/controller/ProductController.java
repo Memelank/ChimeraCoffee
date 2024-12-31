@@ -165,8 +165,9 @@ public class ProductController {
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Product> updateProduct(@Valid  @RequestBody Product entity) {
         // Save the updated product information
-        entity.setImgURL(url + "product/" + entity.getImgURL());
-        entity.setImgURL_small(url + "product/" + getThumbnailFilename(entity.getImgURL()));
+        String imgURL = entity.getImgURL();
+        entity.setImgURL(url + "product/" + imgURL);
+        entity.setImgURL_small(url + "product/" + getThumbnailFilename(imgURL));
         return ResponseEntity.ok(repository.save(entity));
     }
 
@@ -175,8 +176,9 @@ public class ProductController {
     @RolesAllow(RoleEnum.ADMIN)
     public ResponseEntity<Product> createProduct(@Valid @RequestBody Product entity) {
         // Save the product information to the database
-        entity.setImgURL(url + "product/" + entity.getImgURL());
-        entity.setImgURL_small(url + "product/" + getThumbnailFilename(entity.getImgURL()));
+        String imgURL = entity.getImgURL();
+        entity.setImgURL(url + "product/" + imgURL);
+        entity.setImgURL_small(url + "product/" + getThumbnailFilename(imgURL));
         return ResponseEntity.ok(repository.save(entity));
     }
 
