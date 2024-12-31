@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 import net.coobird.thumbnailator.Thumbnails;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -76,6 +77,11 @@ public class ProductController {
 //        }
 //    }
 
+    private static final long TARGET_SIZE = 50 * 1024; // 50KB
+    private static final double MIN_QUALITY = 0.1;
+    private static final double MAX_QUALITY = 1.0;
+    private static final double QUALITY_STEP = 0.05;
+
     @PostMapping(value = "/uploadImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)
@@ -99,13 +105,34 @@ public class ProductController {
                 String thumbnailFilename = getThumbnailFilename(originalFilename);
                 File thumbnailFile = new File(destinationDir, thumbnailFilename);
 
-                // 使用 Thumbnailator 创建缩略图，尝试压缩到接近50KB
-                // 这里设置尺寸为原图的25%，可以根据需要调整
-                Thumbnails.of(destinationFile)
-                        .size(200, 200) // 设置缩略图的宽度和高度（根据实际需要调整）
-                        .outputFormat("jpg")
-                        .outputQuality(calculateQuality(destinationFile, 50 * 1024)) // 目标大小为50KB
-                        .toFile(thumbnailFile);
+                // 使用 Thumbnailator 创建缩略图，迭代调整质量以接近50KB
+                double quality = MAX_QUALITY;
+                byte[] thumbnailBytes = null;
+
+                while (quality >= MIN_QUALITY) {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    Thumbnails.of(destinationFile)
+                            .size(800, 800) // 设置较大的尺寸，具体根据需要调整
+                            .outputFormat("jpg")
+                            .outputQuality(quality)
+                            .toOutputStream(baos);
+
+                    thumbnailBytes = baos.toByteArray();
+                    long size = thumbnailBytes.length;
+
+                    if (size <= TARGET_SIZE || quality == MIN_QUALITY) {
+                        break;
+                    }
+
+                    quality -= QUALITY_STEP;
+                }
+
+                // 将最终的缩略图写入文件
+                if (thumbnailBytes != null) {
+                    java.nio.file.Files.write(thumbnailFile.toPath(), thumbnailBytes);
+                } else {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate thumbnail.");
+                }
 
                 return ResponseEntity.ok(originalFilename); // 返回原始文件名
             }
@@ -131,25 +158,6 @@ public class ProductController {
         } else {
             return originalFilename + "_small";
         }
-    }
-
-    /**
-     * 计算输出质量以尽量接近目标文件大小
-     * 注意：这只是一个简单的估算，实际结果可能需要多次调整
-     */
-    private double calculateQuality(File file, long targetSize) throws IOException {
-        // 初始质量
-        double quality = 1.0;
-        long fileSize = file.length();
-        // 简单的线性调整质量
-        if (fileSize > targetSize) {
-            quality = (double) targetSize / fileSize;
-            // 限制质量范围
-            if (quality < 0.1) {
-                quality = 0.1;
-            }
-        }
-        return quality;
     }
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
