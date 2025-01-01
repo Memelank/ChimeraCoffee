@@ -25,6 +25,6 @@ public class OrderItem {
     private ObjectId cateId;
     @Schema(description = "根据Product.price和目前optionValues中OptionValue.priceAdjustment计算的价格。单位为分")
     private int price;
-    @Schema(description = "Product.imgURL")
-    private String imgURL;
+    @Schema(description = "Product.imgURL_small")
+    private String imgURL_small;
 }

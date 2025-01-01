@@ -60,6 +60,25 @@ public class OrderService {
         }
 
         int orderItemPriceSum = orderItems.stream().map(OrderItem::getPrice).reduce(Integer::sum).orElseThrow();
+
+        System.out.println("orderItemPriceSum："+orderItemPriceSum);
+        System.out.println("points_conversion_ratio："+appConfigurationRepository.findByKey("points_conversion_ratio"));
+
+        int pointRatios = appConfigurationRepository.findByKey("points_conversion_ratio")
+                .map(AppConfiguration::getValue)
+                .map(Integer::parseInt)
+                .orElseThrow(() -> new RuntimeException("积分兑换比例配置未找到"));
+
+        System.out.println("pointRatios："+pointRatios);
+
+        int denominator = pointRatios * 100;
+        if (denominator == 0) {
+            throw new ArithmeticException("积分兑换，除数不能为零");
+        }
+        int points = (orderItemPriceSum + denominator - 1) / denominator;
+        System.out.println("points："+points);
+        orderBuilder.points(points);
+
         UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         if (!Objects.isNull(orderApiParams.getCouponInsUUID())) {
             CouponIns couponIns = getCouponInsFromUserByUUID(userDTO.getId(), orderApiParams.getCouponInsUUID(),
@@ -162,7 +181,7 @@ public class OrderService {
                     .optionValues(map)
                     .name(name)
                     .cateId(cateId)
-                    .imgURL(product.getImgURL())
+                    .imgURL_small(product.getImgURL_small())
                     .price(actualOrderItemPrice).build();
             res.add(orderItem);
         }

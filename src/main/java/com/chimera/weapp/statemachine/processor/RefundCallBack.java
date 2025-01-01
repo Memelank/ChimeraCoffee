@@ -48,11 +48,8 @@ public class RefundCallBack extends AbstractStateProcessor<String, NotifyRefundR
             emptySuccess.setSuccess(true);
             return emptySuccess;// 因为要让走到持久化那一步，且不更改用户的积分
         }
-        User user = userRepository.findById(new ObjectId(context.getUserId())).orElseThrow();
-        Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
-        int totalPrice = order.getTotalPrice();
-        user.setPoints(user.getPoints() - totalPrice / 100);
-        userRepository.save(user);
+//        User user = userRepository.findById(new ObjectId(context.getUserId())).orElseThrow();
+//        Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
 
         ServiceResult<String, NotifyRefundResultContext> result = new ServiceResult<>();
         NotifyRefundResultContext refundResultContext = context.getContext();

@@ -64,6 +64,17 @@ public class AppConfigurationController {
         return ResponseEntity.ok(openingTime);
     }
 
+    @GetMapping("/timeToStopOrdering")
+    @Operation(description = "定时达截至下单时间间隔，单位：分钟。")
+    public ResponseEntity<String> getTimeToStopOrdering() {
+
+        String openingTime = repository.findByKey("time_to_stop_ordering")
+                .map(AppConfiguration::getValue)
+                .orElseThrow(() -> new RuntimeException("未找到配置"));
+
+        return ResponseEntity.ok(openingTime);
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
