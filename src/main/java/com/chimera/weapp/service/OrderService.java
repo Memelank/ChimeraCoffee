@@ -117,11 +117,6 @@ public class OrderService {
             if (!outOfStockProducts.isEmpty()) {
                 String outOfStockMessage = String.join("，", outOfStockProducts) + "当日已售罄，现在可以下单次日的定时达噢！";
                 errorMessageBuilder.append(outOfStockMessage);
-
-                // 如果还有其他不足库存的商品，添加一个分隔符
-                if (!insufficientProducts.isEmpty()) {
-                    errorMessageBuilder.append("，");
-                }
             }
 
             if (!insufficientProducts.isEmpty()) {
