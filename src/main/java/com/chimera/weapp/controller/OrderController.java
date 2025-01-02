@@ -100,7 +100,7 @@ public class OrderController {
         }
 
         // 查找在指定时间范围内的订单，并按createdAt时间从近到远排序
-        List<Order> orders = repository.findByCreatedAtBetweenOrderByCreatedAtDesc(startTime, endTime);
+        List<Order> orders = repository.findByCreatedAtBetweenAndStateNotOrderByCreatedAtDesc(startTime, endTime, "预支付");
 
         return ResponseEntity.ok(orders);
     }
@@ -204,16 +204,18 @@ public class OrderController {
 
         ObjectId userObjectId = new ObjectId(userId);
 
+        String excludedState = "预支付";
+
         // 判断是否需要获取所有订单
         if (all) {
             // 获取所有订单，并按时间倒序排列
-            return ResponseEntity.ok(repository.findByUserIdOrderByCreatedAtDesc(userObjectId));
+            return ResponseEntity.ok(repository.findByUserIdAndStateNotOrderByCreatedAtDesc(userObjectId, excludedState));
         } else if (newest) {
             //返回最新
-            return ResponseEntity.ok(repository.findTop1ByUserIdOrderByCreatedAtDesc(userObjectId));
+            return ResponseEntity.ok(repository.findTop1ByUserIdAndStateNotOrderByCreatedAtDesc(userObjectId, excludedState));
         } else {
             // 仅获取最近的10个订单，并按时间倒序排列
-            return ResponseEntity.ok(repository.findTop10ByUserIdOrderByCreatedAtDesc(userObjectId));
+            return ResponseEntity.ok(repository.findTop10ByUserIdAndStateNotOrderByCreatedAtDesc(userObjectId, excludedState));
         }
     }
 

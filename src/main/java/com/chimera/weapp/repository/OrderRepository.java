@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Date;
 
 public interface OrderRepository extends MongoRepository<Order, ObjectId> {
-    List<Order> findByUserIdOrderByCreatedAtDesc(ObjectId userId);
-    List<Order> findTop10ByUserIdOrderByCreatedAtDesc(ObjectId userId);
-    List<Order> findTop1ByUserIdOrderByCreatedAtDesc(ObjectId userId);
+    List<Order> findByUserIdAndStateNotOrderByCreatedAtDesc(ObjectId userId, String state);
+    List<Order> findTop10ByUserIdAndStateNotOrderByCreatedAtDesc(ObjectId userId, String state);
+    List<Order> findTop1ByUserIdAndStateNotOrderByCreatedAtDesc(ObjectId userId, String state);
     long countByCreatedAtGreaterThanEqual(Date startOfDay);
-    List<Order> findByCreatedAtBetweenOrderByCreatedAtDesc(Date startTime, Date endTime);
+    List<Order> findByCreatedAtBetweenAndStateNotOrderByCreatedAtDesc(Date startTime, Date endTime, String state);
     List<Order> findByDeliveryInfoSchoolAndDeliveryInfoAddressAndDeliveryInfoTimeAndState(
             String school, String address, Date date, String status);
 }
