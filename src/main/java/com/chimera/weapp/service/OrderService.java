@@ -201,23 +201,17 @@ public class OrderService {
         return calendar.getTime();
     }
 
-
-    public String getDescription(Order order) {
-        List<String> list = getItemDescList(order);
-        String[] array = list.toArray(new String[0]);
-        return String.join(",", array);
-    }
-
-    public String getDescriptionWhileLengthNotGreaterThen20(Order order) {
+    public String getDescriptionWhileLengthNotGreaterThen(Order order, int num) {
         List<String> list = getItemDescList(order);
         StringBuilder stringBuilder = new StringBuilder();
         while (!list.isEmpty()) {
             String remove = list.remove(0);
             int cur_length = stringBuilder.length();
-            if (cur_length + remove.length() + 1 > 20) {
-                break;
-            } else {
+            if (cur_length + remove.length() < num) {
                 stringBuilder.append(remove);
+            } else {
+                stringBuilder.append("等");
+                break;
             }
         }
         return stringBuilder.toString();

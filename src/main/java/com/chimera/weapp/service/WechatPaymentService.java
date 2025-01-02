@@ -59,7 +59,7 @@ public class WechatPaymentService {
         request.setAmount(amount);
         request.setAppid(appid);
         request.setMchid(mchid);
-        request.setDescription(orderService.getDescription(order));
+        request.setDescription(orderService.getDescriptionWhileLengthNotGreaterThen(order,127));
         request.setNotifyUrl(prepayNotifyURL);
         request.setOutTradeNo(order.getId().toHexString());
         return service.prepayWithRequestPayment(request);

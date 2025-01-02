@@ -52,7 +52,7 @@ public class WeChatNoticeService {
         String templateId = acRepo.findByKeyAndCategory(TEMPLATE_ID, DINE_IN_OR_TAKE_OUT).orElseThrow().getValue();
         SupplyNoticeApiParams.SupplyNoticeApiParamsBuilder builder = SupplyNoticeApiParams.builder()
                 .character_string19(Integer.toString(orderNum))
-                .thing11(orderService.getDescriptionWhileLengthNotGreaterThen20(order))
+                .thing11(orderService.getDescriptionWhileLengthNotGreaterThen(order,20))
                 .thing27(shopAddress)
                 .phone_number32(phoneNumber)
                 .thing7(wxts);
@@ -75,7 +75,7 @@ public class WeChatNoticeService {
         DeliveryInfo deliveryInfo = order.getDeliveryInfo();
         SupplyNoticeApiParams.SupplyNoticeApiParamsBuilder builder = SupplyNoticeApiParams.builder()
                 .character_string19(Integer.toString(orderNum))
-                .thing11(orderService.getDescriptionWhileLengthNotGreaterThen20(order))
+                .thing11(orderService.getDescriptionWhileLengthNotGreaterThen(order,20))
                 .thing27(deliveryInfo.getSchool() + " " + deliveryInfo.getAddress())
                 .phone_number32(phoneNumber)
                 .thing7(wxts);
