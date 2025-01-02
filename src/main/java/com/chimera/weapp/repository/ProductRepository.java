@@ -11,6 +11,6 @@ public interface ProductRepository extends MongoRepository<Product, ObjectId> {
     boolean existsByCateIdAndDelete(ObjectId cateId, int delete);
     List<Product> findAllByDeleteIs(int delete);
     List<Product> findAllByDeleteIsAndStatusIs(int delete, int status);
-
+    List<Product> findByNeedStockWithRestrictBuyTrue();
     List<Product> findByDelete(int i);
 }

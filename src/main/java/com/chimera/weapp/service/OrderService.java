@@ -59,17 +59,66 @@ public class OrderService {
             }
         }
 
-        int orderItemPriceSum = orderItems.stream().map(OrderItem::getPrice).reduce(Integer::sum).orElseThrow();
+        //库存判断
+        Map<ObjectId, Integer> productsToUpdate = new HashMap<>();
 
-        System.out.println("orderItemPriceSum："+orderItemPriceSum);
-        System.out.println("points_conversion_ratio："+appConfigurationRepository.findByKey("points_conversion_ratio"));
+        // 定义 OptionValue.value 到整数的映射
+        Map<String, Integer> optionValueMap = new HashMap<>();
+        optionValueMap.put("一个", 1);
+        optionValueMap.put("两个", 2);
+        optionValueMap.put("三个", 3);
+
+        for (OrderItem item : orderItems) {
+            // 获取对应的 Product
+            Product product = productRepository.findById(item.getProductId()).orElseThrow(() ->
+                    new IllegalArgumentException("Product not found for ID: " + item.getProductId())
+            );
+
+            if (Boolean.TRUE.equals(product.getNeedStockWithRestrictBuy())) {
+                // 假设每个 OrderItem 的 optionValues 只有一个键值对
+                if (item.getOptionValues() != null && item.getOptionValues().size() == 1) {
+                    OptionValue optionValue = item.getOptionValues().values().iterator().next();
+                    String valueStr = optionValue.getValue();
+                    Integer quantity = optionValueMap.get(valueStr);
+                    if (quantity != null) {
+                        // 如果同一个产品多次出现，累加数量
+                        productsToUpdate.merge(product.getId(), quantity, Integer::sum);
+                    } else {
+                        throw new IllegalArgumentException("Unknown OptionValue: " + valueStr);
+                    }
+                } else {
+                    throw new IllegalArgumentException("OrderItem optionValues is invalid for OrderItem: " + item.getProductId());
+                }
+            }
+        }
+
+        // 5. 检查库存是否足够
+        List<String> insufficientProducts = new ArrayList<>();
+        for (Map.Entry<ObjectId, Integer> entry : productsToUpdate.entrySet()) {
+            ObjectId productId = entry.getKey();
+            int requiredQuantity = entry.getValue();
+
+            Product product = productRepository.findById(productId).orElseThrow(() ->
+                    new IllegalArgumentException("Product not found for ID: " + productId)
+            );
+
+            if (product.getStock() < requiredQuantity) {
+                insufficientProducts.add(String.format("[%s]仅剩%d个库存", product.getName(), product.getStock()));
+            }
+        }
+
+        if (!insufficientProducts.isEmpty()) {
+            String errorMessage = String.join("，", insufficientProducts) + "，不好意思少买一些吧~";
+            throw new Exception(errorMessage);
+        }
+
+
+        int orderItemPriceSum = orderItems.stream().map(OrderItem::getPrice).reduce(Integer::sum).orElseThrow();
 
         int pointRatios = appConfigurationRepository.findByKey("points_conversion_ratio")
                 .map(AppConfiguration::getValue)
                 .map(Integer::parseInt)
                 .orElseThrow(() -> new RuntimeException("积分兑换比例配置未找到"));
-
-        System.out.println("pointRatios："+pointRatios);
 
         int denominator = pointRatios * 100;
         if (denominator == 0) {

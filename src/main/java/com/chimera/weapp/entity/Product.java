@@ -44,6 +44,14 @@ public class Product {
     private int delete; // 1是删除，0是正常
     @Schema(description = "加购商品的可选项, key=ProductOption.id")
     private Map<String, List<OptionValue>> productOptions; // String为option的objectId
+    @Schema(description = "是否需要库存管理/限制购买，前端判断为True时限购一单")
+    private Boolean needStockWithRestrictBuy;
+    @Schema(description = "库存数量，为0时前端提示已售罄并不可下单")
+    private int stock;
+    @Schema(description = "预售买数量，补货后清零")
+    private int presaleNum;
+    @Schema(description = "当天是否已补货，0点设为False")
+    private Boolean stocked;
     @Schema(description = "是否只限堂食，为true时定时达页面不显示该商品")
     private Boolean onlyDining;
 }
