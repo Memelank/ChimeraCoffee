@@ -59,7 +59,7 @@ public class OrderService {
             }
         }
 
-        //库存判断
+        // 库存判断
         Map<ObjectId, Integer> productsToUpdate = new HashMap<>();
 
         // 定义 OptionValue.value 到整数的映射
@@ -93,6 +93,7 @@ public class OrderService {
         }
 
         // 5. 检查库存是否足够
+        List<String> outOfStockProducts = new ArrayList<>();
         List<String> insufficientProducts = new ArrayList<>();
         for (Map.Entry<ObjectId, Integer> entry : productsToUpdate.entrySet()) {
             ObjectId productId = entry.getKey();
@@ -102,14 +103,33 @@ public class OrderService {
                     new IllegalArgumentException("Product not found for ID: " + productId)
             );
 
-            if (product.getStock() < requiredQuantity) {
+            if (product.getStock() == 0) {
+                // 使用 [] 括起商品名称
+                outOfStockProducts.add("[" + product.getName() + "]");
+            } else if (product.getStock() < requiredQuantity) {
                 insufficientProducts.add(String.format("[%s]仅剩%d个库存", product.getName(), product.getStock()));
             }
         }
 
-        if (!insufficientProducts.isEmpty()) {
-            String errorMessage = String.join("，", insufficientProducts) + "，不好意思少买一些吧~";
-            throw new Exception(errorMessage);
+        if (!outOfStockProducts.isEmpty() || !insufficientProducts.isEmpty()) {
+            StringBuilder errorMessageBuilder = new StringBuilder();
+
+            if (!outOfStockProducts.isEmpty()) {
+                String outOfStockMessage = String.join("，", outOfStockProducts) + "当日已售罄，现在可以下单次日的定时达噢！";
+                errorMessageBuilder.append(outOfStockMessage);
+
+                // 如果还有其他不足库存的商品，添加一个分隔符
+                if (!insufficientProducts.isEmpty()) {
+                    errorMessageBuilder.append("，");
+                }
+            }
+
+            if (!insufficientProducts.isEmpty()) {
+                String insufficientMessage = String.join("，", insufficientProducts) + "，不好意思少买一些吧~";
+                errorMessageBuilder.append(insufficientMessage);
+            }
+
+            throw new Exception(errorMessageBuilder.toString());
         }
 
 
