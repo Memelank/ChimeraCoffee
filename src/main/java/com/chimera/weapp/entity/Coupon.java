@@ -26,6 +26,8 @@ public class Coupon {
     private String name;
     @Schema(description = "类型，可选：\"新客\"，\"兑换\"，\"活动\"，\"学生\"，\"临时\"")
     private String type;
+    @Schema(description = "说明")
+    private String description;
     @Schema(description = "抵扣金额。单位为分。")
     private int dePrice;
     @Schema(description = "0：下线，1：上线。对于status=0的，不再允许发放、兑换")

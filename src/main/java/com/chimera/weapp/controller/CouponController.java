@@ -47,7 +47,7 @@ public class CouponController {
         return ResponseEntity.ok(repository.findAllByConvertibleAndStatus(true, 1));
     }
 
-    @Operation(summary = "给某个顾客发金条，商铺端专用")
+    @Operation(summary = "给某个顾客发金条")
     @PostMapping("/add_to_user")
     @LoginRequired
     @RolesAllow(RoleEnum.ADMIN)

@@ -143,7 +143,7 @@ public class AuthController {
     @PostMapping("/wx/checkstudentidentity")
     @LoginRequired
     @Operation
-    public ResponseEntity<WxStudentCheckDTO> checkStudentIdentity(@Valid @RequestBody CheckStudentIdentityApiParams apiParams) throws URISyntaxException, IOException {
+    public ResponseEntity<WxStudentCheckDTO> checkStudentIdentity(@Valid @RequestBody CheckStudentIdentityApiParams apiParams) throws Exception {
         UserDTO userDTO = ThreadLocalUtil.get(ThreadLocalUtil.USER_DTO);
         String openid = userDTO.getOpenid();
         WxStudentCheckDTO wxStudentCheckDTO = weChatRequestService.checkStudentIdentity(
@@ -155,6 +155,10 @@ public class AuthController {
         if (bindStatus == 3 && student) {
             User user = repository.findByOpenid(openid).orElseThrow();
             user.setStudentCert(true);
+
+            // 发优惠券
+            benefitService.addCouponToUser(user.getId().toHexString(), "67777bdaf3c51b7087a25ed5");
+
             repository.save(user);
             log.info("用户{}成功认证", openid);
         }
