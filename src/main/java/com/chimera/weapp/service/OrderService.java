@@ -281,6 +281,23 @@ public class OrderService {
         return stringBuilder.toString();
     }
 
+    public String getDescriptionWhileByteLengthNotGreaterThen(Order order, int num) {
+        List<String> list = getItemDescList(order);
+        StringBuilder stringBuilder = new StringBuilder();
+        while (!list.isEmpty()) {
+            String remove = list.remove(0);
+            String tmp= stringBuilder +remove;
+
+            if (tmp.getBytes().length < num) {
+                stringBuilder.append(remove);
+            } else {
+                stringBuilder.append("等");
+                break;
+            }
+        }
+        return stringBuilder.toString();
+    }
+
     private List<String> getItemDescList(Order order) {
         TreeMap<String, Integer> treeMap = new TreeMap<>();
 
