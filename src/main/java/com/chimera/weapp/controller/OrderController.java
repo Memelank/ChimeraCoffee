@@ -224,15 +224,35 @@ public class OrderController {
     @LoginRequired
     @Operation(summary = "创建预支付订单。小程序先调用这个，再调用wx.requestPayment。response包含了调起支付所需的所有参数，可直接用于前端调起支付\n" +
             "<a href=https://github.com/wechatpay-apiv3/wechatpay-java/blob/main/service/src/example/java/com/wechat/pay/java/service/refund/RefundServiceExample.java>链接</a>")
-    public PrepayWithRequestPaymentResponse create(@Valid @RequestBody OrderApiParams orderApiParams) throws Exception {
-        securityService.checkIdImitate(orderApiParams.getUserId());
-        Order order = orderService.buildOrderByApiParams(orderApiParams);
-        order.setState(StateEnum.PRE_PAID.toString());
-        Order save = repository.save(order);
+    public ResponseEntity<?>  create(@Valid @RequestBody OrderApiParams orderApiParams) throws Exception {
+        try {
+            securityService.checkIdImitate(orderApiParams.getUserId());
+            Order order = orderService.buildOrderByApiParams(orderApiParams);
+            order.setState(StateEnum.PRE_PAID.toString());
+            Order save = repository.save(order);
 
-        PrepayWithRequestPaymentResponse response = wechatPaymentService.jsapiTransaction(save);
-        wechatPaymentService.closeIfNotPaid(save.getId().toHexString(), customRepository);
-        return response;
+            PrepayWithRequestPaymentResponse response = wechatPaymentService.jsapiTransaction(save);
+            wechatPaymentService.closeIfNotPaid(save.getId().toHexString(), customRepository);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            // 处理参数错误
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "BAD_REQUEST");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (ArithmeticException e) {
+            // 处理算术异常
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "ARITHMETIC_ERROR");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        } catch (Exception e) {
+            // 处理所有其他异常
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "INTERNAL_SERVER_ERROR");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
 
