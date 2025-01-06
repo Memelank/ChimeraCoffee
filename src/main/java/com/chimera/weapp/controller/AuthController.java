@@ -156,10 +156,10 @@ public class AuthController {
             User user = repository.findByOpenid(openid).orElseThrow();
             user.setStudentCert(true);
 
+            repository.save(user);
             // 发优惠券
             benefitService.addCouponToUser(user.getId().toHexString(), "67777bdaf3c51b7087a25ed5");
 
-            repository.save(user);
             log.info("用户{}成功认证", openid);
         }
         return ResponseEntity.ok(wxStudentCheckDTO);
