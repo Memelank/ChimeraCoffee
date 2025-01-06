@@ -65,12 +65,12 @@ public class NotifyPrePay extends AbstractStateProcessor<String, NotifyPrePayCon
         User user = userRepository.findById(new ObjectId(context.getUserId())).orElseThrow();
         Order order = orderRepository.findById(new ObjectId(context.getOrderId())).orElseThrow();
 
-        //核销优惠
-        if (order.getCoupon() != null) {
-            String orderCouponUUID = order.getCoupon().getUuid();
-            ObjectId userId = order.getUserId();
-            benefitService.redeemUserCoupon(userId, orderCouponUUID);
-        }
+        //核销优惠  不知道为什么放在这里不生效
+//        if (order.getCoupon() != null) {
+//            String orderCouponUUID = order.getCoupon().getUuid();
+//            ObjectId userId = order.getUserId();
+//            benefitService.redeemUserCoupon(userId, orderCouponUUID);
+//        }
 
         //消费统计 与积分累计
         user.setOrderNum(user.getOrderNum() + 1);

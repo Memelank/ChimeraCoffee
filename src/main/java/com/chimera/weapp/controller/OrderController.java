@@ -287,6 +287,13 @@ public class OrderController {
                     return ResponseEntity.internalServerError().body(String.format("{\"code\":\"FAIL\",\"message\":\"%s\"}", "交易状态非‘支付成功’（建议重新下单），当前状态：" + transaction.getTradeState()));
                 }
 
+                //优惠券核销回到原来位置
+                if (order1.getCoupon() != null) {
+                    String orderCouponUUID = order1.getCoupon().getUuid();
+                    ObjectId userId = order1.getUserId();
+                    benefitService.redeemUserCoupon(userId, orderCouponUUID);
+                }
+
                 //第二次调用状态机。从PAID状态转变
                 Order order2 = repository.findById(new ObjectId(outTradeNo)).orElseThrow();
                 ServiceResult<Object, ?> serviceResult = new ServiceResult<>();
