@@ -269,13 +269,14 @@ public class BenefitService {
         User user = userOptional.get();
 
         // Check if the user has any coupons
-        if (user.getCoupons() == null || user.getCoupons().isEmpty()) {
+        List<CouponIns> coupons = user.getCoupons();
+        if (coupons == null || coupons.isEmpty()) {
             throw new Exception("User has no coupons");
         }
 
         // Find the coupon in the user's coupons list by uuid
         CouponIns targetCouponIns = null;
-        for (CouponIns couponIns : user.getCoupons()) {
+        for (CouponIns couponIns : coupons) {
             if (couponIns.getUuid().equals(couponUuid)) {
                 targetCouponIns = couponIns;
                 break;
@@ -295,9 +296,12 @@ public class BenefitService {
         if (targetCouponIns.getValidity() != null && targetCouponIns.getValidity().before(now)) {
             throw new Exception("Coupon has expired");
         }
-
+        System.out.printf("修改前的coupons：" + coupons);
         // Update the coupon's status to 1 (used)
         targetCouponIns.setStatus(1);
+        System.out.printf("修改后的coupons：" + coupons);
+
+        user.setCoupons(coupons);
 
         // Save the updated user
         userRepository.save(user);
@@ -310,8 +314,8 @@ public class BenefitService {
             coupon.setUseNum(coupon.getUseNum() + 1);
             couponRepository.save(coupon);
         }
-
     }
+
 
     public void exchangePointsForCoupon(ObjectId userId, ObjectId couponId) throws Exception {
         // Retrieve the User
