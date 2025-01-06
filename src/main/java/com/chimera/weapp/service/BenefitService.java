@@ -308,6 +308,14 @@ public class BenefitService {
         // Save the updated user
         userRepository.save(user);
 
+        userOptional = userRepository.findById(userId);
+        if (!userOptional.isPresent()) {
+            throw new Exception("User not found");
+        }
+        user = userOptional.get();
+
+        System.out.printf("保存后的user：" + user);
+
         // Optionally, update the useNum of the corresponding Coupon
         ObjectId couponObjectId = new ObjectId(targetCouponIns.getCouponId());
         Optional<Coupon> couponOptional = couponRepository.findById(couponObjectId);
