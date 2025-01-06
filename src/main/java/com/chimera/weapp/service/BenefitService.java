@@ -303,6 +303,8 @@ public class BenefitService {
 
         user.setCoupons(coupons);
 
+        System.out.printf("修改后的user：" + user);
+
         // Save the updated user
         userRepository.save(user);
 
