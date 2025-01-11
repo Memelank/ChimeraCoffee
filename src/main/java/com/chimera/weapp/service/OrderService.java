@@ -41,6 +41,50 @@ public class OrderService {
     private AppConfigurationRepository appConfigurationRepository;
 
     public Order buildOrderByApiParams(OrderApiParams orderApiParams) throws Exception {
+        boolean dineInController = appConfigurationRepository.findByKey("dineInController")
+                .map(AppConfiguration::getValue)
+                .map(val -> {
+                    if ("开".equals(val)) {
+                        return true;
+                    } else if ("关".equals(val)) {
+                        return false;
+                    } else {
+                        throw new RuntimeException("非法的 dineInController 配置值: " + val);
+                    }
+                })
+                .orElseThrow(() -> new Exception("dineInController配置未找到"));
+
+        boolean deliveryController = appConfigurationRepository.findByKey("deliveryController")
+                .map(AppConfiguration::getValue)
+                .map(val -> {
+                    if ("开".equals(val)) {
+                        return true;
+                    } else if ("关".equals(val)) {
+                        return false;
+                    } else {
+                        throw new RuntimeException("非法的 deliveryController 配置值: " + val);
+                    }
+                })
+                .orElseThrow(() -> new Exception("deliveryController配置未找到"));
+
+        String scene = orderApiParams.getScene();
+
+        // 1. 当两个 bool 都是 false 时，抛出异常
+        if (!dineInController && !deliveryController) {
+            throw new Exception("奇美拉咖啡休息中~");
+        }
+
+        // 2. 当 dineInController 为 false，并且 scene 为“堂食”或“外带”时，抛出异常
+        if (!dineInController && ("堂食".equals(scene) || "外带".equals(scene))) {
+            throw new Exception("到店暂停开放，可选择定时达~");
+        }
+
+        // 3. 当 deliveryController 为 false，并且 scene 为“定时达”时，抛出异常
+        if (!deliveryController && "定时达".equals(scene)) {
+            throw new Exception("定时达暂停开放，欢迎到店品咖~");
+        }
+
+
         List<OrderItem> orderItems = buildItemsByApiParams(orderApiParams.getItems());
         Order.OrderBuilder orderBuilder = Order.builder().userId(orderApiParams.getUserId())
                 .customerType(orderApiParams.getCustomerType())
