@@ -23,8 +23,16 @@ public class FixDeliveryInfo {
     private ObjectId id;
     @Schema(description = "对应User学生认证后的学校")
     private String school;
-    @Schema(description = "可选时间")
+    @Schema(description = "旧时间")
     private List<String> times;
+    @Schema(description = "今日时间")
+    private List<String> times_today;
+    @Schema(description = "明日时间")
+    private List<String> times_tomor;
+    @Schema(description = "工作日可选时间")
+    private List<String> times_work;
+    @Schema(description = "周末可选时间")
+    private List<String> times_weekend;
     @Schema(description = "可选地址")
     private List<String> addresses;
 }
