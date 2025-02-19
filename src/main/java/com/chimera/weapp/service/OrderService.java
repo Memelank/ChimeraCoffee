@@ -99,6 +99,7 @@ public class OrderService {
             User user = userRepository.findById(orderApiParams.getUserId()).orElse(null);
             if (user != null) {
                 user.setNumber(orderApiParams.getDeliveryInfo().getNumber());
+                user.setDeliveryInfo(orderApiParams.getDeliveryInfo());
                 userRepository.save(user);
             }
         }

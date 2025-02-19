@@ -2,6 +2,7 @@ package com.chimera.weapp.entity;
 
 import com.chimera.weapp.dto.WxGetPhoneNumberResponseDTO;
 import com.chimera.weapp.vo.CouponIns;
+import com.chimera.weapp.vo.DeliveryInfo;
 import com.chimera.weapp.vo.PointsProductIns;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.bson.types.ObjectId;
@@ -42,6 +43,9 @@ public class User {
     private int points = 0;
     @Schema(description = "电话号码")
     private String number;
+
+    @Schema(description = "上次定时达配送信息")
+    private DeliveryInfo deliveryInfo;
 
     @Schema(description = "用户持有的优惠券实例")
     private List<CouponIns> coupons;

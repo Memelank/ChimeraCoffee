@@ -2,6 +2,7 @@ package com.chimera.weapp.dto;
 
 import com.chimera.weapp.entity.User;
 import com.chimera.weapp.vo.CouponIns;
+import com.chimera.weapp.vo.DeliveryInfo;
 import com.chimera.weapp.vo.PointsProductIns;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -28,6 +29,7 @@ public class UserDTO {
     private int points;
     private List<CouponIns> coupons;
     private List<PointsProductIns> pointsProducts;
+    private DeliveryInfo deliveryInfo;
 
     public static UserDTO.UserDTOBuilder ofUser(User user) {
         return UserDTO.builder()
@@ -40,6 +42,7 @@ public class UserDTO {
                 .coupons(user.getCoupons())
                 .number(user.getNumber())
                 .pointsProducts(user.getPointsProducts())
+                .deliveryInfo(user.getDeliveryInfo())
                 .role(user.getRole());
     }
 }
