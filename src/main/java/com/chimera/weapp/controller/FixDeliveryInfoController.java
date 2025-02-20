@@ -46,26 +46,26 @@ public class FixDeliveryInfoController {
         LocalDate today = now.toLocalDate();
         LocalDate tomorrow = today.plusDays(1);
 
-//        for (FixDeliveryInfo info : allFixDeliveryInfos) {
-//            // 判断今天和明天是否为周末
-////            System.out.print(info);
-//            boolean isTodayWeekend = isWeekend(today);
-//            boolean isTomorrowWeekend = isWeekend(tomorrow);
-//
-//            // 设置times_today
-//            if (isTodayWeekend) {
-//                info.setTimes_today(info.getTimes_weekend());
-//            } else {
-//                info.setTimes_today(info.getTimes_work());
-//            }
-//
-//            // 设置times_tomor
-//            if (isTomorrowWeekend) {
-//                info.setTimes_tomor(info.getTimes_weekend());
-//            } else {
-//                info.setTimes_tomor(info.getTimes_work());
-//            }
-//        }
+        for (FixDeliveryInfo info : allFixDeliveryInfos) {
+            // 判断今天和明天是否为周末
+//            System.out.print(info);
+            boolean isTodayWeekend = isWeekend(today);
+            boolean isTomorrowWeekend = isWeekend(tomorrow);
+
+            // 设置times_today
+            if (isTodayWeekend) {
+                info.setTimes_today(info.getTimes_weekend());
+            } else {
+                info.setTimes_today(info.getTimes_work());
+            }
+
+            // 设置times_tomor
+            if (isTomorrowWeekend) {
+                info.setTimes_tomor(info.getTimes_weekend());
+            } else {
+                info.setTimes_tomor(info.getTimes_work());
+            }
+        }
 
         return ResponseEntity.ok(allFixDeliveryInfos);
     }
