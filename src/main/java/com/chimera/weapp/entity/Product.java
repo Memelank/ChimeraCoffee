@@ -54,4 +54,7 @@ public class Product {
     private Boolean stocked;
     @Schema(description = "是否只限堂食，为true时定时达页面不显示该商品")
     private Boolean onlyDining;
+
+    @Schema(description = "是否不能用优惠券，为true时不能用")
+    private Boolean no_coupon;
 }
