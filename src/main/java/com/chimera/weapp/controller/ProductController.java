@@ -28,6 +28,7 @@ import net.coobird.thumbnailator.Thumbnails;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -117,19 +118,40 @@ public class ProductController {
         }
     }
 
-
+    public static final Comparator<Product> RANK_DESC_NULL_LAST =
+            Comparator.comparing(
+                    Product::getRank,                       // 提取 rank
+                    Comparator.nullsLast(Comparator.reverseOrder()) // NULL 最后，非 NULL 递减
+            );
 
     @GetMapping
-    @Operation(summary = "获得所有Products，用于菜单展示")
+    @Operation(summary = "获得所有 Products，用于菜单展示")
     public ResponseEntity<List<Product>> getAllProducts() {
-        return ResponseEntity.ok(repository.findAllByDeleteIsAndStatusIs(0, 1));
+        List<Product> products =
+                repository.findAllByDeleteIsAndStatusIs(0, 1);
+        products.sort(RANK_DESC_NULL_LAST);     // 稳定排序
+        return ResponseEntity.ok(products);
     }
-
 
     @GetMapping("/shop")
     public ResponseEntity<List<Product>> getAllProductsShop() {
-        return ResponseEntity.ok(repository.findAllByDeleteIs(0));
+        List<Product> products = repository.findAllByDeleteIs(0);
+        products.sort(RANK_DESC_NULL_LAST);     // 同上
+        return ResponseEntity.ok(products);
     }
+
+
+//    @GetMapping
+//    @Operation(summary = "获得所有Products，用于菜单展示")
+//    public ResponseEntity<List<Product>> getAllProducts() {
+//        return ResponseEntity.ok(repository.findAllByDeleteIsAndStatusIs(0, 1));
+//    }
+//
+//
+//    @GetMapping("/shop")
+//    public ResponseEntity<List<Product>> getAllProductsShop() {
+//        return ResponseEntity.ok(repository.findAllByDeleteIs(0));
+//    }
 
     private static final long TARGET_SIZE = 50 * 1024; // 50KB
     private static final double MIN_QUALITY = 0.1;
